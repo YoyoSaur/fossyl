@@ -1,7 +1,6 @@
-type ExtractUrlParams<Path extends string> =
-  Path extends `${string}/:${infer Param}/${infer Rest}`
-    ? Param | ExtractUrlParams<Rest>
-    : Path extends `${string}/:${infer Param}`
+type ExtractUrlParams<Path extends string> = Path extends `${string}/:${infer Param}/${infer Rest}`
+  ? Param | ExtractUrlParams<Rest>
+  : Path extends `${string}/:${infer Param}`
     ? Param
     : never;
 

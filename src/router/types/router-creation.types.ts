@@ -10,7 +10,7 @@ export type Endpoint<Path extends string> = {
   get: GetEndpointCreationFunction<Path, "GET">;
   post: EndpointCreationFunction<Path, "POST">;
   put: EndpointCreationFunction<Path, "PUT">;
-  delete: EndpointCreationFunction<Path, "DELETE">;
+  delete: GetEndpointCreationFunction<Path, "DELETE">;
 };
 
 /**
@@ -27,14 +27,10 @@ export type Router<BasePath extends string> = {
    * Creates an endpoint
    * @param path string, must extend Router's string
    */
-  createEndpoint: <Path extends `${BasePath}${string}`>(
-    path: Path
-  ) => Endpoint<Path>;
+  createEndpoint: <Path extends `${BasePath}${string}`>(path: Path) => Endpoint<Path>;
   /**
    * Creates a subrouter
    * @param path string, must extend Router's string
    */
-  createSubrouter: <Path extends `${BasePath}${string}`>(
-    path: Path
-  ) => Router<Path>;
+  createSubrouter: <Path extends `${BasePath}${string}`>(path: Path) => Router<Path>;
 };
