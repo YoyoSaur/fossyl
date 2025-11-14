@@ -1,6 +1,14 @@
 {
   "name": "fossyl",
   "version": "0.1.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YoyoSaur/fossyl.git"
+  },
+  "homepage": "https://github.com/YoyoSaur/fossyl#readme",
+  "bugs": {
+    "url": "https://github.com/YoyoSaur/fossyl/issues"
+  },
   "description": "Type-safe REST API framework core - designed for AI-assisted development",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -35,6 +43,9 @@
   ],
   "author": "YoyoSaur",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {},
   "devDependencies": {
     "tsup": "^8.0.0",
