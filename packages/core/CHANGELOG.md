@@ -1,5 +1,11 @@
 # fossyl
 
+## 0.1.2
+
+### Patch Changes
+
+- Added the ReadMe and SVG logo.
+
 ## 0.1.1
 
 ### Patch Changes
