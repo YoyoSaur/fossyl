@@ -47,7 +47,7 @@ const createUserRoute = router.createEndpoint('/users').post({
     // Your validation logic (use any validator library)
     return data as { name: string; email: string };
   },
-  handler: async ({ url, body }) => {
+  handler: async ({ url }, body) => {
     // body type is inferred from validator return type
     return { id: '123', ...body };
   }
@@ -122,7 +122,7 @@ const fullRoute = router.createEndpoint('/api/resource/:id').post({
   authenticator,
   validator: (data): { title: string } => data as { title: string },
   queryValidator: (data): { draft?: boolean } => data as { draft?: boolean },
-  handler: async ({ url, body, query }, auth) => {
+  handler: async ({ url, query }, auth, body) => {
     // All parameters are fully typed
     return {
       id: url.id,
@@ -136,12 +136,45 @@ const fullRoute = router.createEndpoint('/api/resource/:id').post({
 
 ## REST Method Types
 
-Available methods: `get`, `post`, `put`, `patch`, `delete`
+Available methods: `get`, `post`, `put`, `delete`
 
 **REST Semantics Enforcement:**
 - `GET` and `DELETE` cannot have a body validator
-- `POST`, `PUT`, and `PATCH` require a body validator
+- `POST` and `PUT` require a body validator
 - All methods can have authentication and query validation
+
+**Handler Parameter Order:**
+- Routes with body validation: `handler(params, [auth,] body)`
+- Routes without body validation: `handler(params [, auth])`
+
+Where:
+- `params` contains `{ url, query }` (query only if queryValidator provided)
+- `auth` is provided if authenticator is used
+- `body` is provided if validator is used
+
+## Route Types
+
+Fossyl provides four distinct route types based on what validation is required:
+
+### OpenRoute
+- No authentication or body validation required
+- Handler: `(params) => Promise<Response>`
+- Use for: Public endpoints, health checks
+
+### AuthenticatedRoute  
+- Requires authentication, no body validation
+- Handler: `(params, auth) => Promise<Response>`
+- Use for: Protected GET/DELETE endpoints
+
+### ValidatedRoute
+- Requires body validation, no authentication  
+- Handler: `(params, body) => Promise<Response>`
+- Use for: Public POST/PUT endpoints (e.g., registration)
+
+### FullRoute
+- Requires both authentication and body validation
+- Handler: `(params, auth, body) => Promise<Response>`
+- Use for: Protected POST/PUT endpoints (most common)
 
 ## Adapter Libraries
 
@@ -182,7 +215,11 @@ import type {
    - This enables async operations: OAuth flows, JWT verification, database lookups, etc.
    - Make your auth function `async` or explicitly return a Promise
 
-5. **URL Parameters**: Parameters in the route path (e.g., `:id`, `:userId`) are automatically typed and available in `url` object.
+5. **Handler Parameter Order**: Pay attention to parameter order in handlers:
+   - Body validation routes: parameters come first, then auth (if present), then body
+   - No body validation: parameters come first, then auth (if present)
+
+6. **URL Parameters**: Parameters in the route path (e.g., `:id`, `:userId`) are automatically typed and available in `url` object.
 
 ## Example: Complete API
 
@@ -210,7 +247,7 @@ const routes = {
     authenticator: auth,
     validator: (data): { name: string; email: string } =>
       data as { name: string; email: string },
-    handler: async ({ body }, auth) => ({
+    handler: async ({ url }, auth, body) => ({
       id: 'new-id',
       ...body,
       createdBy: auth.userId
@@ -221,7 +258,7 @@ const routes = {
     authenticator: auth,
     validator: (data): { name?: string; email?: string } =>
       data as { name?: string; email?: string },
-    handler: async ({ url, body }, auth) => ({
+    handler: async ({ url }, auth, body) => ({
       id: url.id,
       ...body,
       updatedBy: auth.userId
