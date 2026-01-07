@@ -1,28 +1,16 @@
 // Main adapter export
-export { expressAdapter } from './adapter';
+export { expressAdapter } from "./adapter";
 
-// Context exports
-export {
-  getContext,
-  getLogger,
-  getRequestId,
-  getDb,
-  type RequestContext,
-  type LoggerContext,
-} from './context';
+// Types
+export type { ExpressAdapterOptions, CorsOptions } from "./types";
 
-// Error exports
-export {
-  AuthenticationError,
-  ValidationError,
-  ERROR_CODES,
-  createErrorResponse,
-  type ErrorCode,
-  type ErrorResponse,
-} from './errors';
+// Error handling utilities
+export { ERROR_CODES, createErrorResponse } from "./error-codes";
+export type { ErrorCode, ErrorResponse } from "./error-codes";
 
-// Response exports
-export { wrapResponse } from './response';
+// Generator utilities (for advanced use cases)
+export { buildRouteTree, groupRoutesByPrefix, extractRouterPrefixes } from "./generator/route-tree-builder";
+export type { RouteNode } from "./generator/route-tree-builder";
 
-// Type exports
-export type { ExpressAdapterOptions, CorsOptions, MetricsRecorder } from './types';
+export { analyzeMiddleware, isAuthenticatorHoisted, isValidatorHoisted } from "./generator/middleware-analyzer";
+export type { AnalyzedMiddleware } from "./generator/middleware-analyzer";

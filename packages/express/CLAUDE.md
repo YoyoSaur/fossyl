@@ -1,201 +1,252 @@
 # @fossyl/express - AI Development Guide
 
-**Express.js runtime adapter for fossyl**
+**Express framework adapter for fossyl - generates optimized Express.js TypeScript code**
+
+## Overview
+
+`@fossyl/express` is a framework adapter that generates Express.js TypeScript code from fossyl routes. It implements the `FrameworkAdapter` interface from fossyl and produces production-ready, type-safe Express applications.
+
+## Installation
+
+```bash
+pnpm add @fossyl/express
+```
 
 ## Quick Start
 
 ```typescript
-import { createRouter } from 'fossyl';
+// fossyl.config.ts
+import { defineConfig } from 'fossyl';
 import { expressAdapter } from '@fossyl/express';
 
-const router = createRouter('/api');
-const routes = [
-  router.createEndpoint('/api/health').get({
-    handler: async () => ({ typeName: 'Health' as const, status: 'ok' }),
-  }),
-];
-
-const adapter = expressAdapter({ cors: true });
-adapter.register(routes);
-await adapter.listen(3000);
-```
-
-## Adapter Options
-
-```typescript
-import type { LoggerAdapter, DatabaseAdapter } from 'fossyl';
-
-const adapter = expressAdapter({
-  // Existing Express app (optional - creates one if not provided)
-  app?: Application;
-
-  // Enable CORS (default: false)
-  cors?: boolean | CorsOptions;
-
-  // Database adapter for transaction support
-  database?: DatabaseAdapter;
-
-  // Logger adapter for request logging (default: console-based)
-  logger?: LoggerAdapter;
-
-  // Metrics recorder for request tracking
-  metrics?: MetricsRecorder;
-});
-```
-
-## CORS Options
-
-```typescript
-type CorsOptions = {
-  origin?: string | string[] | boolean;
-  methods?: string[];
-  allowedHeaders?: string[];
-  credentials?: boolean;
-};
-```
-
-## Logger Integration
-
-The adapter accepts a `LoggerAdapter` from `fossyl` core. If not provided, a default console-based logger is used.
-
-```typescript
-import type { LoggerAdapter } from 'fossyl';
-
-const pinoLogger: LoggerAdapter = {
-  type: 'logger',
-  name: 'pino',
-  createLogger: (requestId) => ({
-    info: (msg, meta) => pino.info({ requestId, ...meta }, msg),
-    warn: (msg, meta) => pino.warn({ requestId, ...meta }, msg),
-    error: (msg, meta) => pino.error({ requestId, ...meta }, msg),
-  }),
-};
-
-const adapter = expressAdapter({ logger: pinoLogger });
-```
-
-## Metrics Integration
-
-```typescript
-const adapter = expressAdapter({
-  metrics: {
-    onRequestStart: ({ method, path, requestId }) => {
-      // Called at request start
-    },
-    onRequestEnd: ({ method, path, requestId, statusCode, durationMs }) => {
-      // Called on successful completion
-    },
-    onRequestError: ({ method, path, requestId, error, durationMs }) => {
-      // Called on error
-    },
+export default defineConfig({
+  routes: './src/routes',
+  output: './src/server.generated.ts',
+  adapters: {
+    framework: expressAdapter({
+      cors: true,
+      wrapResponses: true,
+    }),
   },
 });
 ```
 
-## Accessing Request Context
-
-Use these functions anywhere in your handler call stack:
+## Configuration Options
 
 ```typescript
-import { getContext, getLogger, getRequestId, getDb } from '@fossyl/express';
+type ExpressAdapterOptions = {
+  // Enable CORS (default: false)
+  cors?: boolean | CorsOptions;
 
-// In a handler or any called function:
-const logger = getLogger();
-const requestId = getRequestId();
-const dbContext = getDb(); // If database adapter configured
+  // Wrap responses in { data: ... } (default: true)
+  wrapResponses?: boolean;
+
+  // Min routes to trigger middleware hoisting (default: 3)
+  hoistThreshold?: number;
+};
+
+type CorsOptions = {
+  origin?: string | string[];
+  methods?: string;
+  allowedHeaders?: string;
+  credentials?: boolean;
+};
 ```
 
-## Error Handling
+## Architecture
 
-Throw these errors in handlers for proper HTTP responses:
+### Package Structure
 
-```typescript
-import { AuthenticationError, ValidationError } from '@fossyl/express';
-
-// Returns 401
-throw new AuthenticationError('Invalid token');
-
-// Returns 400
-throw new ValidationError('Invalid input', { field: 'email' });
+```
+src/
+├── index.ts                      # Public exports
+├── adapter.ts                    # expressAdapter() implementation
+├── types.ts                      # ExpressAdapterOptions, CorsOptions
+├── error-codes.ts                # Branded error codes
+├── generator/
+│   ├── code-emitter.ts           # Main code generation orchestrator
+│   ├── route-tree-builder.ts     # Builds hierarchical route tree
+│   ├── middleware-analyzer.ts    # Detects shared middleware for hoisting
+│   ├── handler-emitter.ts        # Emits individual route handlers
+│   └── imports-collector.ts      # Collects and formats imports
+└── templates/
+    ├── app-setup.ts              # Express app boilerplate
+    ├── middleware-factories.ts   # Auth/validation middleware templates
+    ├── error-handlers.ts         # 404 and error handler templates
+    └── cors.ts                   # CORS middleware template
 ```
 
-## Response Format
+### Key Components
 
-All responses are wrapped automatically:
+1. **Route Tree Builder** (`route-tree-builder.ts`)
+   - Converts flat route array to hierarchical tree
+   - Enables efficient Express router generation
+   - Sorts routes: static before dynamic params
 
+2. **Middleware Analyzer** (`middleware-analyzer.ts`)
+   - Detects shared authenticators/validators
+   - Determines hoisting candidates (>= threshold routes)
+   - Optimizes generated middleware placement
+
+3. **Code Emitter** (`code-emitter.ts`)
+   - Orchestrates all code generation
+   - Produces complete Express TypeScript file
+   - Integrates with database adapters
+
+## Generated Code Features
+
+### Route Ordering
+Static routes are registered before dynamic params:
 ```typescript
-// Handler returns:
-{ typeName: 'User', id: '123', name: 'John' }
-
-// Client receives:
-{
-  success: "true",
-  type: "User",
-  data: { typeName: 'User', id: '123', name: 'John' }
-}
+// /users/list registered before /users/:id
+router.get('/list', ...);  // First
+router.get('/:id', ...);   // Second
 ```
 
-Error responses:
+### Middleware Hoisting
+When 3+ routes share middleware, it's hoisted to router level:
 ```typescript
-{
-  success: "false",
-  error: {
-    code: 1002,  // Branded ErrorCode
-    message: "Authentication failed",
-    details?: unknown
-  }
-}
+// Instead of per-route middleware:
+const usersRouter = express.Router();
+usersRouter.use(createAuthMiddleware(jwtAuth)); // Hoisted
 ```
 
-## Package Exports
-
+### Error Handling
+Branded error codes for type-safe error responses:
 ```typescript
-// Main adapter
-export { expressAdapter } from '@fossyl/express';
-
-// Context accessors
-export { getContext, getLogger, getRequestId, getDb } from '@fossyl/express';
-
-// Errors
-export { AuthenticationError, ValidationError, ERROR_CODES, createErrorResponse } from '@fossyl/express';
-
-// Response wrapper
-export { wrapResponse } from '@fossyl/express';
-
-// Types
-export type {
-  ExpressAdapterOptions,
-  CorsOptions,
-  MetricsRecorder,
-  RequestContext,
-  LoggerContext,
-  ErrorCode,
-  ErrorResponse,
-} from '@fossyl/express';
+ERROR_CODES.AUTHENTICATION_FAILED  // 1001
+ERROR_CODES.VALIDATION_FAILED      // 2001
+ERROR_CODES.RESOURCE_NOT_FOUND     // 3001
+ERROR_CODES.INTERNAL_SERVER_ERROR  // 5001
 ```
 
-## Integration with Other Adapters
-
-When using with database adapters:
-
+### Database Integration
+Composes with database adapters for transaction wrapping:
 ```typescript
-import { expressAdapter } from '@fossyl/express';
-// Future: import { prismaKyselyAdapter } from '@fossyl/prisma-kysely';
-
-const adapter = expressAdapter({
-  database: databaseAdapter, // Provides withTransaction/withClient
-  logger: loggerAdapter,
+// With database adapter configured
+const result = await withTransaction(async () => {
+  return handler({ url: req.params }, auth);
 });
 ```
 
-The framework adapter will:
-- Call `database.onStartup()` when `listen()` is called
-- Wrap handlers with `withTransaction()` for POST/PUT routes
-- Wrap handlers with `withClient()` for GET/DELETE routes
+## API Reference
 
-## Development Notes
+### `expressAdapter(options?)`
 
-- Routes are sorted so static paths match before dynamic params
-- Routes are grouped by common prefix for efficient Express routing
-- Request context uses `AsyncLocalStorage` for isolation
-- All route types (open, authenticated, validated, full) are supported
+Creates a fossyl FrameworkAdapter for Express.
+
+```typescript
+import { expressAdapter } from '@fossyl/express';
+
+const adapter = expressAdapter({
+  cors: true,
+  wrapResponses: true,
+  hoistThreshold: 3,
+});
+```
+
+### Error Utilities
+
+```typescript
+import { ERROR_CODES, createErrorResponse } from '@fossyl/express';
+
+// Create typed error response
+const error = createErrorResponse(
+  401,
+  ERROR_CODES.AUTHENTICATION_FAILED,
+  'Invalid token'
+);
+```
+
+### Route Tree Utilities
+
+```typescript
+import { buildRouteTree, groupRoutesByPrefix } from '@fossyl/express';
+
+// Build hierarchical route tree
+const tree = buildRouteTree(routes);
+
+// Group routes by common prefix
+const groups = groupRoutesByPrefix(routes);
+```
+
+## Generated Output Example
+
+Input route:
+```typescript
+// src/routes/users.ts
+const router = createRouter('/api/users');
+
+export const getUser = router.createEndpoint('/:id').get({
+  authenticator: jwtAuth,
+  handler: async ({ url }, auth) => {
+    return { id: url.id, userId: auth.userId };
+  },
+});
+```
+
+Generated output:
+```typescript
+// src/server.generated.ts
+import express, { Request, Response, NextFunction } from 'express';
+import { getUser } from './routes/users';
+
+const app = express();
+app.use(express.json());
+
+function createAuthMiddleware<TAuth>(
+  authenticator: (headers: Record<string, string | undefined>) => Promise<TAuth> | TAuth
+) {
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const auth = await authenticator(req.headers as Record<string, string | undefined>);
+      req.fossylAuth = auth;
+      next();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Authentication failed';
+      res.status(401).json(createErrorResponse(401, ERROR_CODES.AUTHENTICATION_FAILED, message));
+    }
+  };
+}
+
+const apiUsersRouter = express.Router();
+
+apiUsersRouter.get('/:id',
+  createAuthMiddleware(getUser.authenticator),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const auth = req.fossylAuth;
+      const result = await getUser.handler({ url: req.params }, auth);
+      res.json(wrapResponse(result));
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+app.use('/api/users', apiUsersRouter);
+
+export { app };
+```
+
+## Development
+
+### Type Checking
+```bash
+pnpm run typecheck
+```
+
+### Building
+```bash
+pnpm run build
+```
+
+## Contributing
+
+When modifying this package:
+
+1. **Maintain zero `any` types** - Use proper TypeScript types throughout
+2. **Test generated output** - Ensure generated code compiles and runs
+3. **Follow route ordering** - Static routes must come before dynamic
+4. **Preserve middleware semantics** - Auth before validation before handler
+5. **Error codes are branded** - Don't use plain numbers for error codes

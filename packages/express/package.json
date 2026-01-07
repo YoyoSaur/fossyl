@@ -1,7 +1,7 @@
 {
   "name": "@fossyl/express",
   "version": "0.1.0",
-  "description": "Express.js runtime adapter for fossyl - type-safe REST API framework",
+  "description": "Express framework adapter for fossyl",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -15,8 +15,7 @@
   "files": [
     "dist",
     "src",
-    "CLAUDE.md",
-    "README.md"
+    "CLAUDE.md"
   ],
   "scripts": {
     "build": "tsup src/index.ts --format cjs,esm --dts",
@@ -27,27 +26,23 @@
   "keywords": [
     "fossyl",
     "express",
+    "adapter",
     "typescript",
     "rest-api",
-    "type-safe",
-    "adapter"
+    "code-generation"
   ],
   "author": "YoyoSaur",
-  "license": "GPL-3.0",
+  "license": "MIT",
   "publishConfig": {
     "access": "public"
   },
   "peerDependencies": {
-    "express": "^4.18.0 || ^5.0.0",
-    "fossyl": ">=0.1.0"
-  },
-  "dependencies": {
-    "@types/express": "^4.17.21"
+    "@fossyl/core": "^0.1.0"
   },
   "devDependencies": {
-    "express": "^4.21.0",
-    "fossyl": "workspace:*",
+    "@fossyl/core": "workspace:*",
+    "@types/express": "^5.0.0",
     "tsup": "^8.0.0",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.0"
   }
 }
