@@ -1,0 +1,61 @@
+{
+  "name": "@fossyl/prisma-kysely",
+  "version": "0.1.0",
+  "description": "Prisma-Kysely database adapter for fossyl with automatic transaction handling",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "CLAUDE.md",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "fossyl",
+    "prisma",
+    "kysely",
+    "database",
+    "adapter",
+    "transaction",
+    "asynclocalstorage",
+    "typescript"
+  ],
+  "author": "YoyoSaur",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YoyoSaur/fossyl.git",
+    "directory": "packages/prisma-kysely"
+  },
+  "homepage": "https://github.com/YoyoSaur/fossyl#readme",
+  "bugs": {
+    "url": "https://github.com/YoyoSaur/fossyl/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "peerDependencies": {
+    "@fossyl/core": "^0.1.0",
+    "kysely": "^0.27.0"
+  },
+  "devDependencies": {
+    "@fossyl/core": "workspace:*",
+    "kysely": "^0.27.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.8.0"
+  }
+}
