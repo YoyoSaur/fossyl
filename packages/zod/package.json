@@ -14,11 +14,10 @@
   },
   "files": [
     "dist",
-    "src",
-    "CLAUDE.md"
+    "src"
   ],
   "scripts": {
-    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "build": "tsup src/index.ts --format cjs,esm --dts && cp USAGE.md dist/CLAUDE.md",
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit"

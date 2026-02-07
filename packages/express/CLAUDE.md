@@ -1,203 +1,75 @@
-# @fossyl/express - AI Development Guide
+# @fossyl/express - Contributor Guide
 
 **Express.js runtime adapter for fossyl**
 
-> **AI Collaboration:** This package is in the **Green Zone** - AI contributions welcome. See `/CONTRIBUTING.md` for guidelines. Do not modify `@fossyl/core`.
+> **AI Collaboration:** This package is in the **Green Zone** - contributions welcome. See `/CONTRIBUTING.md` for guidelines. Do not modify `@fossyl/core`.
 
-## Quick Start
+## Source Structure
 
-```typescript
-import { createRouter } from 'fossyl';
-import { expressAdapter } from '@fossyl/express';
-
-const router = createRouter('/api');
-const routes = [
-  router.createEndpoint('/api/health').get({
-    handler: async () => ({ typeName: 'Health' as const, status: 'ok' }),
-  }),
-];
-
-const adapter = expressAdapter({ cors: true });
-adapter.register(routes);
-await adapter.listen(3000);
+```
+src/
+├── index.ts      # Main exports
+├── adapter.ts    # Adapter factory and Express app setup
+├── handlers.ts   # Route handler wrappers with type matching
+├── register.ts   # Route grouping and Express router registration
+├── sorting.ts    # Route sorting (static paths before dynamic)
+├── context.ts    # Request context management (AsyncLocalStorage)
+├── response.ts   # Response formatting wrapper
+├── errors.ts     # Error code definitions and error response creation
+└── types.ts      # Adapter option types (CORS, metrics, etc.)
 ```
 
-## Adapter Options
+## Key Implementation Details
 
+### Route Registration Flow
+
+1. `adapter.register(routes)` receives route definitions from core
+2. Routes are sorted (static paths before dynamic params)
+3. Routes are grouped by common prefix for efficient Express routing
+4. Each route is wrapped with appropriate handler based on route type
+
+### Handler Type Matching
+
+`handlers.ts` pattern-matches on route type to call handlers correctly:
+- OpenRoute: `handler(params)`
+- AuthenticatedRoute: `handler(params, auth)`
+- ValidatedRoute: `handler(params, body)`
+- FullRoute: `handler(params, auth, body)`
+- ListRoute/AuthenticatedListRoute: `handler(params [, auth])` with pagination
+
+### AsyncLocalStorage Context
+
+`context.ts` uses Node's AsyncLocalStorage to propagate request context:
+- Logger instance
+- Request ID
+- Database client/transaction (if database adapter provided)
+
+This allows `getLogger()`, `getRequestId()`, `getDb()` to work anywhere in the call stack.
+
+### Response Wrapping
+
+All handler responses are wrapped in:
 ```typescript
-import type { LoggerAdapter, DatabaseAdapter } from 'fossyl';
-
-const adapter = expressAdapter({
-  // Existing Express app (optional - creates one if not provided)
-  app?: Application;
-
-  // Enable CORS (default: false)
-  cors?: boolean | CorsOptions;
-
-  // Database adapter for transaction support
-  database?: DatabaseAdapter;
-
-  // Logger adapter for request logging (default: console-based)
-  logger?: LoggerAdapter;
-
-  // Metrics recorder for request tracking
-  metrics?: MetricsRecorder;
-});
+{ success: "true", type: response.typeName, data: response }
 ```
 
-## CORS Options
-
+Errors are wrapped in:
 ```typescript
-type CorsOptions = {
-  origin?: string | string[] | boolean;
-  methods?: string[];
-  allowedHeaders?: string[];
-  credentials?: boolean;
-};
+{ success: "false", error: { code, message, details? } }
 ```
 
-## Logger Integration
+## Development Commands
 
-The adapter accepts a `LoggerAdapter` from `fossyl` core. If not provided, a default console-based logger is used.
-
-```typescript
-import type { LoggerAdapter } from 'fossyl';
-
-const pinoLogger: LoggerAdapter = {
-  type: 'logger',
-  name: 'pino',
-  createLogger: (requestId) => ({
-    info: (msg, meta) => pino.info({ requestId, ...meta }, msg),
-    warn: (msg, meta) => pino.warn({ requestId, ...meta }, msg),
-    error: (msg, meta) => pino.error({ requestId, ...meta }, msg),
-  }),
-};
-
-const adapter = expressAdapter({ logger: pinoLogger });
+```bash
+pnpm build       # Build with tsup
+pnpm typecheck   # Check types
+pnpm test        # Run tests
 ```
 
-## Metrics Integration
+## Contributing
 
-```typescript
-const adapter = expressAdapter({
-  metrics: {
-    onRequestStart: ({ method, path, requestId }) => {
-      // Called at request start
-    },
-    onRequestEnd: ({ method, path, requestId, statusCode, durationMs }) => {
-      // Called on successful completion
-    },
-    onRequestError: ({ method, path, requestId, error, durationMs }) => {
-      // Called on error
-    },
-  },
-});
-```
-
-## Accessing Request Context
-
-Use these functions anywhere in your handler call stack:
-
-```typescript
-import { getContext, getLogger, getRequestId, getDb } from '@fossyl/express';
-
-// In a handler or any called function:
-const logger = getLogger();
-const requestId = getRequestId();
-const dbContext = getDb(); // If database adapter configured
-```
-
-## Error Handling
-
-Throw these errors in handlers for proper HTTP responses:
-
-```typescript
-import { AuthenticationError, ValidationError } from '@fossyl/express';
-
-// Returns 401
-throw new AuthenticationError('Invalid token');
-
-// Returns 400
-throw new ValidationError('Invalid input', { field: 'email' });
-```
-
-## Response Format
-
-All responses are wrapped automatically:
-
-```typescript
-// Handler returns:
-{ typeName: 'User', id: '123', name: 'John' }
-
-// Client receives:
-{
-  success: "true",
-  type: "User",
-  data: { typeName: 'User', id: '123', name: 'John' }
-}
-```
-
-Error responses:
-```typescript
-{
-  success: "false",
-  error: {
-    code: 1002,  // Branded ErrorCode
-    message: "Authentication failed",
-    details?: unknown
-  }
-}
-```
-
-## Package Exports
-
-```typescript
-// Main adapter
-export { expressAdapter } from '@fossyl/express';
-
-// Context accessors
-export { getContext, getLogger, getRequestId, getDb } from '@fossyl/express';
-
-// Errors
-export { AuthenticationError, ValidationError, ERROR_CODES, createErrorResponse } from '@fossyl/express';
-
-// Response wrapper
-export { wrapResponse } from '@fossyl/express';
-
-// Types
-export type {
-  ExpressAdapterOptions,
-  CorsOptions,
-  MetricsRecorder,
-  RequestContext,
-  LoggerContext,
-  ErrorCode,
-  ErrorResponse,
-} from '@fossyl/express';
-```
-
-## Integration with Other Adapters
-
-When using with database adapters:
-
-```typescript
-import { expressAdapter } from '@fossyl/express';
-// Future: import { prismaKyselyAdapter } from '@fossyl/prisma-kysely';
-
-const adapter = expressAdapter({
-  database: databaseAdapter, // Provides withTransaction/withClient
-  logger: loggerAdapter,
-});
-```
-
-The framework adapter will:
-- Call `database.onStartup()` when `listen()` is called
-- Wrap handlers with `withTransaction()` for POST/PUT routes
-- Wrap handlers with `withClient()` for GET/DELETE routes
-
-## Development Notes
-
-- Routes are sorted so static paths match before dynamic params
-- Routes are grouped by common prefix for efficient Express routing
-- Request context uses `AsyncLocalStorage` for isolation
-- All route types (open, authenticated, validated, full) are supported
+When adding features:
+- Maintain compatibility with all 6 route types from core
+- Test with database adapters (transaction wrapping)
+- Preserve AsyncLocalStorage context isolation
+- Keep error codes consistent with `errors.ts`

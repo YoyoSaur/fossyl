@@ -18,11 +18,10 @@
   },
   "files": [
     "bin",
-    "dist",
-    "CLAUDE.md"
+    "dist"
   ],
   "scripts": {
-    "build": "node scripts/generate-versions.js && tsup src/index.ts --format cjs,esm --dts",
+    "build": "node scripts/generate-versions.js && tsup src/index.ts --format cjs,esm --dts && cp USAGE.md dist/CLAUDE.md",
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit"

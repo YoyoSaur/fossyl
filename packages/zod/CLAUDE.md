@@ -1,103 +1,48 @@
-# @fossyl/zod - AI Development Guide
+# @fossyl/zod - Contributor Guide
 
 **Zod validation adapter for fossyl**
 
-> **AI Collaboration:** This package is in the **Green Zone** - AI contributions welcome. See `/CONTRIBUTING.md` for guidelines. Do not modify `@fossyl/core`.
+> **AI Collaboration:** This package is in the **Green Zone** - contributions welcome. See `/CONTRIBUTING.md` for guidelines. Do not modify `@fossyl/core`.
 
-## Overview
+## Source Structure
 
-`@fossyl/zod` is a tiny validation adapter that provides type-safe validator wrappers for Zod schemas. It extracts the type from the schema so handlers receive properly typed body/query params.
+```
+src/
+└── index.ts    # Everything - zodValidator and zodQueryValidator
+```
 
-## Installation
+This is a tiny package. The entire implementation is ~20 lines.
+
+## Implementation
+
+```typescript
+export const zodValidator = <T extends z.ZodType>(schema: T) => {
+  return (data: unknown): z.infer<T> => schema.parse(data);
+};
+
+export const zodQueryValidator = zodValidator; // Same implementation
+```
+
+The key insight: returning a function with explicit return type `z.infer<T>` allows TypeScript to infer the body/query type in route handlers.
+
+## Why Two Functions?
+
+`zodValidator` and `zodQueryValidator` are functionally identical but semantically distinct:
+- `zodValidator` is used for `validator` (request body)
+- `zodQueryValidator` is used for `queryValidator` (URL query params)
+
+This makes code more readable and self-documenting.
+
+## Development Commands
 
 ```bash
-npm install @fossyl/zod zod
-# or
-pnpm add @fossyl/zod zod
+pnpm build       # Build with tsup
+pnpm typecheck   # Check types
 ```
 
-Note: `zod` is a peer dependency and must be installed separately.
+## Contributing
 
-## Usage
-
-### Body Validation
-
-```typescript
-import { createRouter } from 'fossyl';
-import { zodValidator } from '@fossyl/zod';
-import { z } from 'zod';
-
-const router = createRouter('/api');
-
-const userSchema = z.object({
-  name: z.string().min(1),
-  email: z.string().email(),
-});
-
-const createUser = router.createEndpoint('/users').post({
-  validator: zodValidator(userSchema),
-  handler: async ({ url }, body) => {
-    // body is { name: string, email: string }
-    return { created: true, name: body.name };
-  },
-});
-```
-
-### Query Validation
-
-```typescript
-import { zodQueryValidator } from '@fossyl/zod';
-
-const querySchema = z.object({
-  page: z.coerce.number().default(1),
-  limit: z.coerce.number().default(10),
-});
-
-const listUsers = router.createEndpoint('/users').get({
-  queryValidator: zodQueryValidator(querySchema),
-  handler: async ({ query }) => {
-    // query is { page: number, limit: number }
-    return { page: query.page, results: [] };
-  },
-});
-```
-
-## API Reference
-
-### `zodValidator<T>(schema: T)`
-
-Creates a type-safe body validator from a Zod schema.
-
-- **Parameters**: `schema` - A Zod schema (`z.ZodType`)
-- **Returns**: A validator function `(data: unknown) => z.infer<T>`
-- **Throws**: Zod validation errors if data doesn't match schema
-
-### `zodQueryValidator<T>(schema: T)`
-
-Creates a type-safe query validator from a Zod schema. Functionally identical to `zodValidator` but semantically indicates query parameter validation.
-
-- **Parameters**: `schema` - A Zod schema (`z.ZodType`)
-- **Returns**: A validator function `(data: unknown) => z.infer<T>`
-- **Throws**: Zod validation errors if data doesn't match schema
-
-## Why This Exists
-
-Without the wrapper, you lose type inference:
-
-```typescript
-// Without @fossyl/zod - body is unknown
-validator: (data) => userSchema.parse(data),
-handler: async ({ url }, body) => {
-  body.name  // Error: 'body' is of type 'unknown'
-}
-
-// With @fossyl/zod - body is inferred from schema
-validator: zodValidator(userSchema),
-handler: async ({ url }, body) => {
-  body.name  // string - properly typed!
-}
-```
-
-## Package Size
-
-This is an extremely small package (~20 lines). The entire implementation is just type wrappers around `schema.parse()`.
+This package is intentionally minimal. If adding features:
+- Keep the API surface small
+- Maintain type inference (the whole point of this package)
+- Consider if the feature belongs here or in user code
