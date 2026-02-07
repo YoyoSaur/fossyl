@@ -25,8 +25,14 @@ export type {
   AuthenticatedRoute,
   ValidatedRoute,
   FullRoute,
+  ListRoute,
+  AuthenticatedListRoute,
   RestMethod,
   Route,
+  // Pagination types
+  PaginationParams,
+  PaginationConfig,
+  PaginatedResponse,
 } from "./router/types/routes.types";
 
 export type {

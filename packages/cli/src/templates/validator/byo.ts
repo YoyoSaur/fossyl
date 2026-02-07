@@ -44,9 +44,9 @@ export interface UpdatePingBody {
   message?: string;
 }
 
+// List filters (pagination is handled automatically by .list() routes)
 export interface ListPingQuery {
-  limit: number;
-  offset: number;
+  search?: string;
 }
 
 // Validators - TODO: Implement actual validation
@@ -62,10 +62,10 @@ export const updatePingValidator = (data: unknown): UpdatePingBody => {
 
 export const listPingQueryValidator = (data: unknown): ListPingQuery => {
   // TODO: Add validation logic
+  // Note: pagination (page, pageSize) is handled automatically by the framework
   const parsed = data as Record<string, unknown>;
   return {
-    limit: Number(parsed.limit) || 10,
-    offset: Number(parsed.offset) || 0,
+    search: typeof parsed.search === 'string' ? parsed.search : undefined,
   };
 };
 `;

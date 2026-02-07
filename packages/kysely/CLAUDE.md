@@ -2,6 +2,8 @@
 
 **Kysely runtime database adapter for fossyl**
 
+> **AI Collaboration:** This package is in the **Green Zone** - AI contributions welcome. See `/CONTRIBUTING.md` for guidelines. Do not modify `@fossyl/core`.
+
 This adapter provides:
 - **Kysely** for type-safe query building
 - **Migrations** with up/down support using Kysely's schema builder

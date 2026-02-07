@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "module": "ESNext",
+    "target": "ES2020",
+    "skipLibCheck": true,
+    "resolveJsonModule": true
+  },
+  "include": ["*.test-d.ts", "*.ts"],
+  "exclude": ["node_modules"]
+}

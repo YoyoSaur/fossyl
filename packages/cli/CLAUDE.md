@@ -2,6 +2,8 @@
 
 **CLI for scaffolding fossyl projects**
 
+> **AI Collaboration:** This package is in the **Green Zone** - AI contributions welcome. See `/CONTRIBUTING.md` for guidelines. Do not modify `@fossyl/core`.
+
 ## Overview
 
 The `fossyl` CLI is an interactive project scaffolding tool that generates new fossyl API projects with your choice of adapters.

@@ -6,6 +6,11 @@ import {
   FullRoute,
   OpenRoute,
   ValidatedRoute,
+  ListRoute,
+  AuthenticatedListRoute,
+  PaginationConfig,
+  PaginationParams,
+  PaginatedResponse,
 } from "./routes.types";
 import { RestMethod } from "./routes.types";
 
@@ -141,4 +146,69 @@ export type GetEndpointCreationFunction<Path extends string, Method extends Rest
       handler: (params: { url: Params<Path>; query: Query }, auth: Auth) => Promise<Res>;
     }
   ): AuthenticatedRoute<Path, Method, Res, Auth, Query>;
+};
+
+/**
+ * Configuration type for LIST endpoints (paginated GET).
+ * Always returns PaginatedResponse<T>. Pagination params are automatically
+ * parsed from query string by the framework.
+ *
+ * Four variants (with/without auth × with/without query filters):
+ * 1. List, no auth, no query: handler(params) with pagination
+ * 2. List, no auth, with query: queryValidator + handler(params) with pagination
+ * 3. Authenticated list, no query: authenticator + handler(params, auth) with pagination
+ * 4. Authenticated list, with query: authenticator + queryValidator + handler(params, auth) with pagination
+ */
+export type ListEndpointCreationFunction<Path extends string> = {
+  // List route: no auth, no query filters
+  <Data>(config: {
+    authenticator?: never;
+    queryValidator?: never;
+    paginationConfig?: PaginationConfig;
+    handler: (params: {
+      url: Params<Path>;
+      pagination: PaginationParams;
+    }) => Promise<PaginatedResponse<Data>>;
+  }): ListRoute<Path, Data, undefined>;
+
+  // List route: no auth, with query filters
+  <Data, Query extends unknown>(config: {
+    authenticator?: never;
+    queryValidator: ValidatorFunction<Query>;
+    paginationConfig?: PaginationConfig;
+    handler: (params: {
+      url: Params<Path>;
+      query: Query;
+      pagination: PaginationParams;
+    }) => Promise<PaginatedResponse<Data>>;
+  }): ListRoute<Path, Data, Query>;
+
+  // Authenticated list route: auth, no query filters
+  <Data, Auth extends Authentication>(config: {
+    authenticator: AuthenticationFunction<Auth>;
+    queryValidator?: never;
+    paginationConfig?: PaginationConfig;
+    handler: (
+      params: {
+        url: Params<Path>;
+        pagination: PaginationParams;
+      },
+      auth: Auth
+    ) => Promise<PaginatedResponse<Data>>;
+  }): AuthenticatedListRoute<Path, Data, Auth, undefined>;
+
+  // Authenticated list route: auth, with query filters
+  <Data, Auth extends Authentication, Query extends unknown>(config: {
+    authenticator: AuthenticationFunction<Auth>;
+    queryValidator: ValidatorFunction<Query>;
+    paginationConfig?: PaginationConfig;
+    handler: (
+      params: {
+        url: Params<Path>;
+        query: Query;
+        pagination: PaginationParams;
+      },
+      auth: Auth
+    ) => Promise<PaginatedResponse<Data>>;
+  }): AuthenticatedListRoute<Path, Data, Auth, Query>;
 };

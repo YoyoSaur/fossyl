@@ -1,8 +1,11 @@
-import { GetEndpointCreationFunction } from "./configuration.types";
-import { EndpointCreationFunction } from "./configuration.types";
+import {
+  GetEndpointCreationFunction,
+  EndpointCreationFunction,
+  ListEndpointCreationFunction,
+} from "./configuration.types";
 
 /* Endpoint seems more complex than it is from its type signature.
- * It has 4 Major functions on offer. The different HTTP methods
+ * It has 5 Major functions on offer. The different HTTP methods + list
  *
  * These use the EndpointCreationFunction
  */
@@ -11,6 +14,12 @@ export type Endpoint<Path extends string> = {
   post: EndpointCreationFunction<Path, "POST">;
   put: EndpointCreationFunction<Path, "PUT">;
   delete: GetEndpointCreationFunction<Path, "DELETE">;
+  /**
+   * Create a paginated list endpoint (GET).
+   * Pagination params (page, pageSize) are automatically parsed from query string.
+   * Handler must return PaginatedResponse<T>.
+   */
+  list: ListEndpointCreationFunction<Path>;
 };
 
 /**
