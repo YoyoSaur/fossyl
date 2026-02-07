@@ -5,6 +5,11 @@ import {
   ValidatedRoute,
   AuthenticatedRoute,
   OpenRoute,
+  ListRoute,
+  AuthenticatedListRoute,
+  PaginationConfig,
+  PaginationParams,
+  PaginatedResponse,
 } from "./types/routes.types";
 import { Endpoint, Router } from "./types/router-creation.types";
 import { AuthenticationFunction, ValidatorFunction } from "./types/configuration.types";
@@ -192,11 +197,133 @@ function createEndpoint<Path extends string>(path: Path): Endpoint<Path> {
     return bodyMethod;
   }
 
+  function createListMethod() {
+    // List route: no auth, no query filters
+    function listMethod<Data>(config: {
+      authenticator?: never;
+      queryValidator?: never;
+      paginationConfig?: PaginationConfig;
+      handler: (params: {
+        url: Params<Path>;
+        pagination: PaginationParams;
+      }) => Promise<PaginatedResponse<Data>>;
+    }): ListRoute<Path, Data, undefined>;
+
+    // List route: no auth, with query filters
+    function listMethod<Data, Query extends unknown>(config: {
+      authenticator?: never;
+      queryValidator: ValidatorFunction<Query>;
+      paginationConfig?: PaginationConfig;
+      handler: (params: {
+        url: Params<Path>;
+        query: Query;
+        pagination: PaginationParams;
+      }) => Promise<PaginatedResponse<Data>>;
+    }): ListRoute<Path, Data, Query>;
+
+    // Authenticated list route: auth, no query filters
+    function listMethod<Data, Auth extends Authentication>(config: {
+      authenticator: AuthenticationFunction<Auth>;
+      queryValidator?: never;
+      paginationConfig?: PaginationConfig;
+      handler: (
+        params: {
+          url: Params<Path>;
+          pagination: PaginationParams;
+        },
+        auth: Auth
+      ) => Promise<PaginatedResponse<Data>>;
+    }): AuthenticatedListRoute<Path, Data, Auth, undefined>;
+
+    // Authenticated list route: auth, with query filters
+    function listMethod<Data, Auth extends Authentication, Query extends unknown>(config: {
+      authenticator: AuthenticationFunction<Auth>;
+      queryValidator: ValidatorFunction<Query>;
+      paginationConfig?: PaginationConfig;
+      handler: (
+        params: {
+          url: Params<Path>;
+          query: Query;
+          pagination: PaginationParams;
+        },
+        auth: Auth
+      ) => Promise<PaginatedResponse<Data>>;
+    }): AuthenticatedListRoute<Path, Data, Auth, Query>;
+
+    function listMethod(
+      config:
+        | {
+            paginationConfig?: PaginationConfig;
+            handler: (params: {
+              url: Params<Path>;
+              pagination: PaginationParams;
+            }) => Promise<PaginatedResponse<any>>;
+          }
+        | {
+            queryValidator: ValidatorFunction<any>;
+            paginationConfig?: PaginationConfig;
+            handler: (params: {
+              url: Params<Path>;
+              query: any;
+              pagination: PaginationParams;
+            }) => Promise<PaginatedResponse<any>>;
+          }
+        | {
+            authenticator: AuthenticationFunction<any>;
+            paginationConfig?: PaginationConfig;
+            handler: (
+              params: {
+                url: Params<Path>;
+                pagination: PaginationParams;
+              },
+              auth: any
+            ) => Promise<PaginatedResponse<any>>;
+          }
+        | {
+            authenticator: AuthenticationFunction<any>;
+            queryValidator: ValidatorFunction<any>;
+            paginationConfig?: PaginationConfig;
+            handler: (
+              params: {
+                url: Params<Path>;
+                query: any;
+                pagination: PaginationParams;
+              },
+              auth: any
+            ) => Promise<PaginatedResponse<any>>;
+          }
+    ): ListRoute<Path, any, any> | AuthenticatedListRoute<Path, any, any, any> {
+      if ("authenticator" in config) {
+        return {
+          type: "authenticated-list" as const,
+          path,
+          method: "GET" as const,
+          authenticator: config.authenticator,
+          queryValidator: "queryValidator" in config ? config.queryValidator : undefined,
+          paginationConfig: config.paginationConfig,
+          handler: config.handler,
+        } as AuthenticatedListRoute<Path, any, any, any>;
+      } else {
+        return {
+          type: "list" as const,
+          path,
+          method: "GET" as const,
+          queryValidator: "queryValidator" in config ? config.queryValidator : undefined,
+          paginationConfig: config.paginationConfig,
+          handler: config.handler,
+        } as ListRoute<Path, any, any>;
+      }
+    }
+
+    return listMethod;
+  }
+
   return {
     get: createNoBodyMethod("GET"),
     post: createBodyMethod("POST"),
     put: createBodyMethod("PUT"),
     delete: createNoBodyMethod("DELETE"),
+    list: createListMethod(),
   };
 }
 

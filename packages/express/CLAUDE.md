@@ -2,6 +2,8 @@
 
 **Express.js runtime adapter for fossyl**
 
+> **AI Collaboration:** This package is in the **Green Zone** - AI contributions welcome. See `/CONTRIBUTING.md` for guidelines. Do not modify `@fossyl/core`.
+
 ## Quick Start
 
 ```typescript

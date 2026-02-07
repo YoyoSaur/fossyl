@@ -1,8 +1,48 @@
-# Fossyl - AI Development Guide
+# Fossyl Core - AI Development Guide
 
 **Type-safe REST API framework designed for AI-assisted development**
 
 > **Important:** Load `CLAUDE.md` from all `@fossyl/*` packages in this monorepo for full context on available adapters.
+
+---
+
+## AI COLLABORATION POLICY
+
+> **DO NOT MODIFY THIS PACKAGE.**
+
+The `@fossyl/core` package was deliberately handcrafted to force AI tools to write code in a structured, type-safe way. This is the foundation that makes Fossyl work.
+
+### What This Means
+
+- **No source code changes** in `packages/core/src/`
+- **No type definition changes** - the route types, adapter interfaces, and utilities are carefully designed
+- **No "improvements"** - the complexity is intentional and enables the simplicity elsewhere
+
+### Why Core is Protected
+
+1. **Function Overloads** - Carefully ordered for correct type inference across all 6 route types
+2. **Branded Types** - `authWrapper()`/`bodyWrapper()` enable inference without explicit generics
+3. **Route Type Unions** - Map precisely to REST patterns and enforce semantics at compile-time
+4. **Adapter Interfaces** - Define the exact contract all adapters must follow
+
+AI modifications risk breaking the finely-tuned type inference that makes Fossyl useful.
+
+### What AI CAN Do
+
+- **Read and understand** the core to write correct adapter code
+- **Use the types** to build adapters, services, and user-facing code
+- **Reference this guide** to understand patterns and constraints
+- Fix typos in comments/docs (with human review)
+
+### If Core Needs Changes
+
+1. Open an issue describing the limitation
+2. Include a failing use case
+3. A human maintainer will implement the fix
+
+See `/CONTRIBUTING.md` for full collaboration guidelines.
+
+---
 
 ## CLI - Project Scaffolding
 
@@ -267,38 +307,41 @@ type ApiResponse<T> = {
 
 ## REST Method Types
 
-Available methods: `get`, `post`, `put`, `delete`
+Available methods: `get`, `post`, `put`, `delete`, `list`
 
 **REST Semantics Enforcement:**
 - `GET` and `DELETE` cannot have a body validator
 - `POST` and `PUT` require a body validator
+- `list` is always GET with automatic pagination
 - All methods can have authentication and query validation
 
 **Handler Parameter Order:**
 - Routes with body validation: `handler(params, [auth,] body)`
 - Routes without body validation: `handler(params [, auth])`
+- List routes: `handler({ url, query, pagination } [, auth])`
 
 Where:
 - `params` contains `{ url, query }` (query only if queryValidator provided)
 - `auth` is provided if authenticator is used
 - `body` is provided if validator is used
+- `pagination` is provided automatically for list routes
 
 ## Route Types
 
-Fossyl provides four distinct route types based on what validation is required:
+Fossyl provides six distinct route types based on what validation is required:
 
 ### OpenRoute
 - No authentication or body validation required
 - Handler: `(params) => Promise<ResponseData>`
 - Use for: Public endpoints, health checks
 
-### AuthenticatedRoute  
+### AuthenticatedRoute
 - Requires authentication, no body validation
 - Handler: `(params, auth) => Promise<ResponseData>`
 - Use for: Protected GET/DELETE endpoints
 
 ### ValidatedRoute
-- Requires body validation, no authentication  
+- Requires body validation, no authentication
 - Handler: `(params, body) => Promise<ResponseData>`
 - Use for: Public POST/PUT endpoints (e.g., registration)
 
@@ -306,6 +349,100 @@ Fossyl provides four distinct route types based on what validation is required:
 - Requires both authentication and body validation
 - Handler: `(params, auth, body) => Promise<ResponseData>`
 - Use for: Protected POST/PUT endpoints (most common)
+
+### ListRoute
+- Paginated GET endpoint, no authentication
+- Handler: `({ url, query, pagination }) => Promise<PaginatedResponse<T>>`
+- Use for: Public collection endpoints
+
+### AuthenticatedListRoute
+- Paginated GET endpoint with authentication
+- Handler: `({ url, query, pagination }, auth) => Promise<PaginatedResponse<T>>`
+- Use for: Protected collection endpoints
+
+## List Routes (Pagination)
+
+Use `.list()` for paginated endpoints. The framework automatically parses `page` and `pageSize` from query parameters.
+
+```typescript
+import { createRouter, type PaginatedResponse } from '@fossyl/core';
+
+const router = createRouter('/api');
+
+// Public list
+const listItems = router.createEndpoint('/items').list({
+  queryValidator: filterValidator,  // Optional: custom filters (not pagination)
+  paginationConfig: { defaultPageSize: 20, maxPageSize: 100 },
+  handler: async ({ query, pagination }): Promise<PaginatedResponse<Item>> => {
+    // pagination.page and pagination.pageSize are always present
+    const items = await db.selectFrom('items')
+      .limit(pagination.pageSize + 1)  // N+1 trick for hasMore
+      .offset((pagination.page - 1) * pagination.pageSize)
+      .execute();
+
+    const hasMore = items.length > pagination.pageSize;
+
+    return {
+      data: hasMore ? items.slice(0, pagination.pageSize) : items,
+      pagination: {
+        page: pagination.page,
+        pageSize: pagination.pageSize,
+        hasMore,           // Optional
+        total: 100,        // Optional (expensive COUNT query)
+      },
+    };
+  },
+});
+
+// Authenticated list
+const listOrders = router.createEndpoint('/orders').list({
+  authenticator: auth,
+  queryValidator: orderFilterValidator,
+  handler: async ({ query, pagination }, auth) => {
+    // auth is available, pagination is automatic
+    return { data: orders, pagination: { ... } };
+  },
+});
+```
+
+### Pagination Types
+
+```typescript
+type PaginationParams = {
+  page: number;
+  pageSize: number;
+};
+
+type PaginationConfig = {
+  defaultPageSize?: number;  // Default: 20
+  maxPageSize?: number;      // Default: 100
+};
+
+type PaginatedResponse<T> = {
+  data: T[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    hasMore?: boolean;  // Use N+1 trick
+    total?: number;     // Requires COUNT query
+  };
+};
+```
+
+### Computing hasMore (N+1 Trick)
+
+Instead of running an expensive COUNT query, fetch one extra item:
+
+```typescript
+// Fetch N+1 items
+const results = await db.limit(pageSize + 1).execute();
+
+// If we got N+1, there's more
+const hasMore = results.length > pageSize;
+
+// Return only N items
+const data = hasMore ? results.slice(0, pageSize) : results;
+```
 
 ## Adapter Libraries
 
@@ -355,13 +492,19 @@ import type {
   AuthenticatedRoute,
   ValidatedRoute,
   FullRoute,
+  ListRoute,
+  AuthenticatedListRoute,
   RestMethod,
   Route,
   ValidatorFunction,
   AuthenticationFunction,
   Endpoint,
   Router,
-  Params
+  Params,
+  // Pagination types
+  PaginationParams,
+  PaginationConfig,
+  PaginatedResponse,
 } from '@fossyl/core';
 ```
 
@@ -425,7 +568,7 @@ import type {
 ## Example: Complete API
 
 ```typescript
-import { createRouter, authWrapper } from '@fossyl/core';
+import { createRouter, authWrapper, type PaginatedResponse } from '@fossyl/core';
 
 // Async auth function (supports OAuth, JWT, database lookups, etc.)
 const auth = async (headers: Record<string, string>) =>
@@ -434,23 +577,42 @@ const auth = async (headers: Record<string, string>) =>
 // Router
 const api = createRouter('/api');
 
+// User type
+interface User {
+  id: string;
+  name: string;
+  email?: string;
+}
+
 // Routes
 const routes = {
-  listUsers: api.createEndpoint('/users').get({
-    handler: async () => ({ 
-      typeName: 'UserList' as const,
-      users: [] 
-    })
+  // ListRoute - paginated collection
+  listUsers: api.createEndpoint('/users').list({
+    authenticator: auth,
+    paginationConfig: { defaultPageSize: 20, maxPageSize: 100 },
+    handler: async ({ pagination }, auth): Promise<PaginatedResponse<User>> => {
+      const users = await getUsers(pagination.page, pagination.pageSize);
+      return {
+        data: users,
+        pagination: {
+          page: pagination.page,
+          pageSize: pagination.pageSize,
+          hasMore: users.length === pagination.pageSize,
+        },
+      };
+    }
   }),
 
+  // OpenRoute - single resource
   getUser: api.createEndpoint('/users/:id').get({
-    handler: async ({ url }) => ({ 
+    handler: async ({ url }) => ({
       typeName: 'User' as const,
-      id: url.id, 
-      name: 'User' 
+      id: url.id,
+      name: 'User'
     })
   }),
 
+  // FullRoute - create with auth + validation
   createUser: api.createEndpoint('/users').post({
     authenticator: auth,
     validator: (data): { name: string; email: string } =>
@@ -463,6 +625,7 @@ const routes = {
     })
   }),
 
+  // FullRoute - update with auth + validation
   updateUser: api.createEndpoint('/users/:id').put({
     authenticator: auth,
     validator: (data): { name?: string; email?: string } =>
@@ -475,6 +638,7 @@ const routes = {
     })
   }),
 
+  // AuthenticatedRoute - delete with auth only
   deleteUser: api.createEndpoint('/users/:id').delete({
     authenticator: auth,
     handler: async ({ url }, auth) => ({

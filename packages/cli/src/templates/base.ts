@@ -195,17 +195,42 @@ pnpm dev
 
 ## Route Types
 
-Fossyl provides four route types:
+Fossyl provides five route types:
 
 - **OpenRoute**: No authentication or body validation
 - **AuthenticatedRoute**: Requires authentication, no body validation
 - **ValidatedRoute**: Requires body validation, no authentication
 - **FullRoute**: Requires both authentication and body validation
+- **ListRoute**: Paginated GET with automatic pagination params
 
 ## Handler Parameter Order
 
 - Routes with body: \`handler(params, [auth,] body)\`
 - Routes without body: \`handler(params [, auth])\`
+- List routes: \`handler({ url, query, pagination } [, auth])\`
+
+## List Routes (Pagination)
+
+Use \`.list()\` for paginated endpoints:
+
+\`\`\`typescript
+router.createEndpoint('/items').list({
+  queryValidator: filterValidator,  // Optional: custom filters
+  paginationConfig: { defaultPageSize: 20, maxPageSize: 100 },
+  handler: async ({ query, pagination }) => {
+    // pagination.page and pagination.pageSize are always present
+    return {
+      data: items,
+      pagination: {
+        page: pagination.page,
+        pageSize: pagination.pageSize,
+        hasMore: true,   // Optional
+        total: 100,      // Optional
+      },
+    };
+  },
+});
+\`\`\`
 ${byoNotes.join('\n')}
 
 ## Documentation

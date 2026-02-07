@@ -28,7 +28,7 @@ importers:
         version: 3.6.2
       tsup:
         specifier: ^8.0.0
-        version: 8.5.1(postcss@8.5.6)(typescript@5.8.3)(yaml@2.8.1)
+        version: 8.5.1(postcss@8.5.6)(tsx@4.21.0)(typescript@5.8.3)(yaml@2.8.1)
       typescript:
         specifier: ^5.8.3
         version: 5.8.3
@@ -41,7 +41,7 @@ importers:
     devDependencies:
       tsup:
         specifier: ^8.0.0
-        version: 8.5.1(postcss@8.5.6)(typescript@5.8.3)(yaml@2.8.1)
+        version: 8.5.1(postcss@8.5.6)(tsx@4.21.0)(typescript@5.8.3)(yaml@2.8.1)
       typescript:
         specifier: ^5.8.0
         version: 5.8.3
@@ -50,7 +50,10 @@ importers:
     devDependencies:
       tsup:
         specifier: ^8.0.0
-        version: 8.5.1(postcss@8.5.6)(typescript@5.8.3)(yaml@2.8.1)
+        version: 8.5.1(postcss@8.5.6)(tsx@4.21.0)(typescript@5.8.3)(yaml@2.8.1)
+      tsx:
+        specifier: ^4.7.0
+        version: 4.21.0
       typescript:
         specifier: ^5.8.3
         version: 5.8.3
@@ -59,13 +62,13 @@ importers:
     dependencies:
       '@astrojs/mdx':
         specifier: ^4.3.10
-        version: 4.3.10(astro@5.15.7(@types/node@20.19.25)(rollup@4.53.2)(typescript@5.8.3)(yaml@2.8.1))
+        version: 4.3.10(astro@5.15.7(@types/node@20.19.25)(rollup@4.53.2)(tsx@4.21.0)(typescript@5.8.3)(yaml@2.8.1))
       '@astrojs/starlight':
         specifier: ^0.36.2
-        version: 0.36.2(astro@5.15.7(@types/node@20.19.25)(rollup@4.53.2)(typescript@5.8.3)(yaml@2.8.1))
+        version: 0.36.2(astro@5.15.7(@types/node@20.19.25)(rollup@4.53.2)(tsx@4.21.0)(typescript@5.8.3)(yaml@2.8.1))
       astro:
         specifier: ^5.15.7
-        version: 5.15.7(@types/node@20.19.25)(rollup@4.53.2)(typescript@5.8.3)(yaml@2.8.1)
+        version: 5.15.7(@types/node@20.19.25)(rollup@4.53.2)(tsx@4.21.0)(typescript@5.8.3)(yaml@2.8.1)
     devDependencies:
       '@types/node':
         specifier: ^20.0.0
@@ -88,7 +91,7 @@ importers:
         version: 4.22.1
       tsup:
         specifier: ^8.0.0
-        version: 8.5.1(postcss@8.5.6)(typescript@5.8.3)(yaml@2.8.1)
+        version: 8.5.1(postcss@8.5.6)(tsx@4.21.0)(typescript@5.8.3)(yaml@2.8.1)
       typescript:
         specifier: ^5.8.3
         version: 5.8.3
@@ -103,7 +106,7 @@ importers:
         version: 0.27.6
       tsup:
         specifier: ^8.0.0
-        version: 8.5.1(postcss@8.5.6)(typescript@5.8.3)(yaml@2.8.1)
+        version: 8.5.1(postcss@8.5.6)(tsx@4.21.0)(typescript@5.8.3)(yaml@2.8.1)
       typescript:
         specifier: ^5.8.3
         version: 5.8.3
@@ -112,7 +115,7 @@ importers:
     devDependencies:
       tsup:
         specifier: ^8.0.0
-        version: 8.5.1(postcss@8.5.6)(typescript@5.8.3)(yaml@2.8.1)
+        version: 8.5.1(postcss@8.5.6)(tsx@4.21.0)(typescript@5.8.3)(yaml@2.8.1)
       typescript:
         specifier: ^5.8.0
         version: 5.8.3
@@ -1774,6 +1777,9 @@ packages:
     resolution: {integrity: sha512-sTSfBjoXBp89JvIKIefqw7U2CCebsc74kiY6awiGogKtoSGbgjYE/G/+l9sF3MWFPNc9IcoOC4ODfKHfxFmp0g==}
     engines: {node: '>= 0.4'}
 
+  get-tsconfig@4.13.3:
+    resolution: {integrity: sha512-vp8Cj/+9Q/ibZUrq1rhy8mCTQpCk31A3uu9wc1C50yAb3x2pFHOsGdAZQ7jD86ARayyxZUViYeIztW+GE8dcrg==}
+
   github-slugger@2.0.0:
     resolution: {integrity: sha512-IaOQ9puYtjrkq7Y0Ygl9KDZnrf/aiUJYUpVf89y8kyaxbRG7Y1SrX/jaumrv81vc61+kiMempujsM3Yw7w5qcw==}
 
@@ -2672,6 +2678,9 @@ packages:
     resolution: {integrity: sha512-qYg9KP24dD5qka9J47d0aVky0N+b4fTU89LN9iDnjB5waksiC49rvMB0PrUJQGoTmH50XPiqOvAjDfaijGxYZw==}
     engines: {node: '>=8'}
 
+  resolve-pkg-maps@1.0.0:
+    resolution: {integrity: sha512-seS2Tj26TBVOC2NIc2rOe2y2ZO7efxITtLZcGSOnHHNOQ7CkiUBfw0Iw2ck6xkIhPwLhKNLS8BO+hEpngQlqzw==}
+
   restructure@3.0.2:
     resolution: {integrity: sha512-gSfoiOEA0VPE6Tukkrr7I0RBdE0s7H1eFCDBk05l1KIQT1UIKNc5JZy6jdyW6eYH3aR3g5b3PuL77rq0hvwtAw==}
 
@@ -2928,6 +2937,11 @@ packages:
         optional: true
       typescript:
         optional: true
+
+  tsx@4.21.0:
+    resolution: {integrity: sha512-5C1sg4USs1lfG0GFb2RLXsdpXqBSEhAaA/0kPL01wxzpMqLILNxIxIOKiILz+cdg/pLnOUxFYOR5yhHU666wbw==}
+    engines: {node: '>=18.0.0'}
+    hasBin: true
 
   type-check@0.4.0:
     resolution: {integrity: sha512-XleUoc9uwGXqjWwXaUTZAmzMcFZ5858QA2vvx1Ur5xIcixXIP+8LnFDgRplU30us6teqdlskFfu+ae4K79Ooew==}
@@ -3250,12 +3264,12 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@astrojs/mdx@4.3.10(astro@5.15.7(@types/node@20.19.25)(rollup@4.53.2)(typescript@5.8.3)(yaml@2.8.1))':
+  '@astrojs/mdx@4.3.10(astro@5.15.7(@types/node@20.19.25)(rollup@4.53.2)(tsx@4.21.0)(typescript@5.8.3)(yaml@2.8.1))':
     dependencies:
       '@astrojs/markdown-remark': 6.3.8
       '@mdx-js/mdx': 3.1.1
       acorn: 8.15.0
-      astro: 5.15.7(@types/node@20.19.25)(rollup@4.53.2)(typescript@5.8.3)(yaml@2.8.1)
+      astro: 5.15.7(@types/node@20.19.25)(rollup@4.53.2)(tsx@4.21.0)(typescript@5.8.3)(yaml@2.8.1)
       es-module-lexer: 1.7.0
       estree-util-visit: 2.0.0
       hast-util-to-html: 9.0.5
@@ -3279,17 +3293,17 @@ snapshots:
       stream-replace-string: 2.0.0
       zod: 3.25.76
 
-  '@astrojs/starlight@0.36.2(astro@5.15.7(@types/node@20.19.25)(rollup@4.53.2)(typescript@5.8.3)(yaml@2.8.1))':
+  '@astrojs/starlight@0.36.2(astro@5.15.7(@types/node@20.19.25)(rollup@4.53.2)(tsx@4.21.0)(typescript@5.8.3)(yaml@2.8.1))':
     dependencies:
       '@astrojs/markdown-remark': 6.3.8
-      '@astrojs/mdx': 4.3.10(astro@5.15.7(@types/node@20.19.25)(rollup@4.53.2)(typescript@5.8.3)(yaml@2.8.1))
+      '@astrojs/mdx': 4.3.10(astro@5.15.7(@types/node@20.19.25)(rollup@4.53.2)(tsx@4.21.0)(typescript@5.8.3)(yaml@2.8.1))
       '@astrojs/sitemap': 3.6.0
       '@pagefind/default-ui': 1.4.0
       '@types/hast': 3.0.4
       '@types/js-yaml': 4.0.9
       '@types/mdast': 4.0.4
-      astro: 5.15.7(@types/node@20.19.25)(rollup@4.53.2)(typescript@5.8.3)(yaml@2.8.1)
-      astro-expressive-code: 0.41.3(astro@5.15.7(@types/node@20.19.25)(rollup@4.53.2)(typescript@5.8.3)(yaml@2.8.1))
+      astro: 5.15.7(@types/node@20.19.25)(rollup@4.53.2)(tsx@4.21.0)(typescript@5.8.3)(yaml@2.8.1)
+      astro-expressive-code: 0.41.3(astro@5.15.7(@types/node@20.19.25)(rollup@4.53.2)(tsx@4.21.0)(typescript@5.8.3)(yaml@2.8.1))
       bcp-47: 2.1.0
       hast-util-from-html: 2.0.3
       hast-util-select: 6.0.4
@@ -4312,12 +4326,12 @@ snapshots:
 
   astring@1.9.0: {}
 
-  astro-expressive-code@0.41.3(astro@5.15.7(@types/node@20.19.25)(rollup@4.53.2)(typescript@5.8.3)(yaml@2.8.1)):
+  astro-expressive-code@0.41.3(astro@5.15.7(@types/node@20.19.25)(rollup@4.53.2)(tsx@4.21.0)(typescript@5.8.3)(yaml@2.8.1)):
     dependencies:
-      astro: 5.15.7(@types/node@20.19.25)(rollup@4.53.2)(typescript@5.8.3)(yaml@2.8.1)
+      astro: 5.15.7(@types/node@20.19.25)(rollup@4.53.2)(tsx@4.21.0)(typescript@5.8.3)(yaml@2.8.1)
       rehype-expressive-code: 0.41.3
 
-  astro@5.15.7(@types/node@20.19.25)(rollup@4.53.2)(typescript@5.8.3)(yaml@2.8.1):
+  astro@5.15.7(@types/node@20.19.25)(rollup@4.53.2)(tsx@4.21.0)(typescript@5.8.3)(yaml@2.8.1):
     dependencies:
       '@astrojs/compiler': 2.13.0
       '@astrojs/internal-helpers': 0.7.4
@@ -4373,8 +4387,8 @@ snapshots:
       unist-util-visit: 5.0.0
       unstorage: 1.17.2
       vfile: 6.0.3
-      vite: 6.4.1(@types/node@20.19.25)(yaml@2.8.1)
-      vitefu: 1.1.1(vite@6.4.1(@types/node@20.19.25)(yaml@2.8.1))
+      vite: 6.4.1(@types/node@20.19.25)(tsx@4.21.0)(yaml@2.8.1)
+      vitefu: 1.1.1(vite@6.4.1(@types/node@20.19.25)(tsx@4.21.0)(yaml@2.8.1))
       xxhash-wasm: 1.1.0
       yargs-parser: 21.1.1
       yocto-spinner: 0.2.3
@@ -5045,6 +5059,10 @@ snapshots:
     dependencies:
       dunder-proto: 1.0.1
       es-object-atoms: 1.1.1
+
+  get-tsconfig@4.13.3:
+    dependencies:
+      resolve-pkg-maps: 1.0.0
 
   github-slugger@2.0.0: {}
 
@@ -6143,11 +6161,12 @@ snapshots:
       mlly: 1.8.0
       pathe: 2.0.3
 
-  postcss-load-config@6.0.1(postcss@8.5.6)(yaml@2.8.1):
+  postcss-load-config@6.0.1(postcss@8.5.6)(tsx@4.21.0)(yaml@2.8.1):
     dependencies:
       lilconfig: 3.1.3
     optionalDependencies:
       postcss: 8.5.6
+      tsx: 4.21.0
       yaml: 2.8.1
 
   postcss-nested@6.2.0(postcss@8.5.6):
@@ -6359,6 +6378,8 @@ snapshots:
   resolve-from@4.0.0: {}
 
   resolve-from@5.0.0: {}
+
+  resolve-pkg-maps@1.0.0: {}
 
   restructure@3.0.2: {}
 
@@ -6669,7 +6690,7 @@ snapshots:
 
   tslib@2.8.1: {}
 
-  tsup@8.5.1(postcss@8.5.6)(typescript@5.8.3)(yaml@2.8.1):
+  tsup@8.5.1(postcss@8.5.6)(tsx@4.21.0)(typescript@5.8.3)(yaml@2.8.1):
     dependencies:
       bundle-require: 5.1.0(esbuild@0.27.0)
       cac: 6.7.14
@@ -6680,7 +6701,7 @@ snapshots:
       fix-dts-default-cjs-exports: 1.0.1
       joycon: 3.1.1
       picocolors: 1.1.1
-      postcss-load-config: 6.0.1(postcss@8.5.6)(yaml@2.8.1)
+      postcss-load-config: 6.0.1(postcss@8.5.6)(tsx@4.21.0)(yaml@2.8.1)
       resolve-from: 5.0.0
       rollup: 4.53.2
       source-map: 0.7.6
@@ -6696,6 +6717,13 @@ snapshots:
       - supports-color
       - tsx
       - yaml
+
+  tsx@4.21.0:
+    dependencies:
+      esbuild: 0.27.0
+      get-tsconfig: 4.13.3
+    optionalDependencies:
+      fsevents: 2.3.3
 
   type-check@0.4.0:
     dependencies:
@@ -6830,7 +6858,7 @@ snapshots:
       '@types/unist': 3.0.3
       vfile-message: 4.0.3
 
-  vite@6.4.1(@types/node@20.19.25)(yaml@2.8.1):
+  vite@6.4.1(@types/node@20.19.25)(tsx@4.21.0)(yaml@2.8.1):
     dependencies:
       esbuild: 0.25.12
       fdir: 6.5.0(picomatch@4.0.3)
@@ -6841,11 +6869,12 @@ snapshots:
     optionalDependencies:
       '@types/node': 20.19.25
       fsevents: 2.3.3
+      tsx: 4.21.0
       yaml: 2.8.1
 
-  vitefu@1.1.1(vite@6.4.1(@types/node@20.19.25)(yaml@2.8.1)):
+  vitefu@1.1.1(vite@6.4.1(@types/node@20.19.25)(tsx@4.21.0)(yaml@2.8.1)):
     optionalDependencies:
-      vite: 6.4.1(@types/node@20.19.25)(yaml@2.8.1)
+      vite: 6.4.1(@types/node@20.19.25)(tsx@4.21.0)(yaml@2.8.1)
 
   web-namespaces@2.0.1: {}
 

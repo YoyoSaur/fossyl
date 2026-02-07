@@ -15,13 +15,14 @@ export function generatePingRoute(options: ProjectOptions): string {
 } from '../validators/ping.validators';`;
 
   return `import { createRouter } from '@fossyl/core';
+import type { PaginatedResponse } from '@fossyl/core';
 import * as pingService from '../services/ping.service';
 import { authenticator } from '../../../auth';
 ${validatorImport}
 
 /**
- * Ping feature routes demonstrating all 4 route types:
- * - OpenRoute: GET /ping (list all)
+ * Ping feature routes demonstrating all 5 route types:
+ * - ListRoute: GET /ping (paginated list with filters)
  * - OpenRoute: GET /ping/:id (get one)
  * - FullRoute: POST /ping (authenticated + validated)
  * - FullRoute: PUT /ping/:id (authenticated + validated)
@@ -30,16 +31,21 @@ ${validatorImport}
 
 const router = createRouter('/ping');
 
-// OpenRoute - List all pings (public)
-export const listPings = router.createEndpoint('/ping').get({
+// ListRoute - Paginated list with optional filters (public)
+// Pagination params (page, pageSize) are automatically parsed by the framework
+export const listPings = router.createEndpoint('/ping').list({
   queryValidator: listPingQueryValidator,
-  handler: async ({ query }) => {
-    const pings = await pingService.listPings(query.limit, query.offset);
+  paginationConfig: { defaultPageSize: 20, maxPageSize: 100 },
+  handler: async ({ query, pagination }): Promise<PaginatedResponse<pingService.PingData>> => {
+    const result = await pingService.listPings(pagination, query);
     return {
-      typeName: 'PingList' as const,
-      pings,
-      limit: query.limit,
-      offset: query.offset,
+      data: result.data,
+      pagination: {
+        page: pagination.page,
+        pageSize: pagination.pageSize,
+        hasMore: result.hasMore,
+        total: result.total,
+      },
     };
   },
 });
@@ -99,7 +105,8 @@ export default [listPings, getPing, createPing, updatePing, deletePing];
 }
 
 export function generatePingService(_options: ProjectOptions): string {
-  return `import * as pingRepo from '../repo/ping.repo';
+  return `import type { PaginationParams } from '@fossyl/core';
+import * as pingRepo from '../repo/ping.repo';
 
 export interface PingData {
   id: number;
@@ -108,8 +115,33 @@ export interface PingData {
   created_at: Date;
 }
 
-export async function listPings(limit: number, offset: number): Promise<PingData[]> {
-  return pingRepo.findAll(limit, offset);
+export interface PingListResult {
+  data: PingData[];
+  hasMore: boolean;
+  total?: number;
+}
+
+export interface PingFilters {
+  search?: string;
+}
+
+/**
+ * Lists pings with pagination using the N+1 trick for hasMore.
+ * Optionally includes total count (more expensive).
+ */
+export async function listPings(
+  pagination: PaginationParams,
+  filters: PingFilters
+): Promise<PingListResult> {
+  // N+1 trick: fetch one extra to determine hasMore without COUNT query
+  const results = await pingRepo.findAll(pagination.pageSize + 1, pagination.page, filters);
+  const hasMore = results.length > pagination.pageSize;
+  const data = hasMore ? results.slice(0, pagination.pageSize) : results;
+
+  // Optional: get total count (expensive for large tables)
+  const total = await pingRepo.count(filters);
+
+  return { data, hasMore, total };
 }
 
 export async function getPing(id: string): Promise<PingData> {
@@ -165,15 +197,40 @@ function generateKyselyPingRepo(): string {
   return `import { getTransaction } from '@fossyl/kysely';
 import type { DB, Ping, NewPing, PingUpdate } from '../../../types/db';
 
-export async function findAll(limit: number, offset: number): Promise<Ping[]> {
+export interface PingFilters {
+  search?: string;
+}
+
+export async function findAll(
+  limit: number,
+  page: number,
+  filters: PingFilters
+): Promise<Ping[]> {
   const db = getTransaction<DB>();
-  return db
-    .selectFrom('ping')
-    .selectAll()
+  let query = db.selectFrom('ping').selectAll();
+
+  // Apply filters
+  if (filters.search) {
+    query = query.where('message', 'like', \`%\${filters.search}%\`);
+  }
+
+  return query
     .orderBy('created_at', 'desc')
     .limit(limit)
-    .offset(offset)
+    .offset((page - 1) * (limit - 1)) // -1 because we fetch N+1 for hasMore
     .execute();
+}
+
+export async function count(filters: PingFilters): Promise<number> {
+  const db = getTransaction<DB>();
+  let query = db.selectFrom('ping').select(db.fn.countAll().as('count'));
+
+  if (filters.search) {
+    query = query.where('message', 'like', \`%\${filters.search}%\`);
+  }
+
+  const result = await query.executeTakeFirst();
+  return Number(result?.count ?? 0);
 }
 
 export async function findById(id: string): Promise<Ping | undefined> {
@@ -226,14 +283,42 @@ export interface Ping {
   created_at: Date;
 }
 
+export interface PingFilters {
+  search?: string;
+}
+
 // In-memory store for demo purposes - replace with actual database
 const pings: Map<number, Ping> = new Map();
 let nextId = 1;
 
-export async function findAll(limit: number, offset: number): Promise<Ping[]> {
+export async function findAll(
+  limit: number,
+  page: number,
+  filters: PingFilters
+): Promise<Ping[]> {
   // TODO: Replace with actual database query
-  const all = Array.from(pings.values());
+  let all = Array.from(pings.values());
+
+  // Apply filters
+  if (filters.search) {
+    all = all.filter((p) => p.message.includes(filters.search!));
+  }
+
+  // Sort by created_at desc
+  all.sort((a, b) => b.created_at.getTime() - a.created_at.getTime());
+
+  // Paginate
+  const offset = (page - 1) * (limit - 1); // -1 because we fetch N+1 for hasMore
   return all.slice(offset, offset + limit);
+}
+
+export async function count(filters: PingFilters): Promise<number> {
+  // TODO: Replace with actual database COUNT query
+  let all = Array.from(pings.values());
+  if (filters.search) {
+    all = all.filter((p) => p.message.includes(filters.search!));
+  }
+  return all.length;
 }
 
 export async function findById(id: string): Promise<Ping | undefined> {

@@ -1,14 +1,46 @@
 import type { Request, Response, NextFunction, RequestHandler } from 'express';
-import type { Route, ResponseData } from '@fossyl/core';
+import type { Route, ResponseData, PaginatedResponse, PaginationParams } from '@fossyl/core';
 import { requestContext, type RequestContext, createDefaultLogger } from './context';
 import { wrapResponse } from './response';
 import { handleError } from './errors';
 import type { ExpressAdapterOptions } from './types';
 
 /**
+ * Parses pagination parameters from query string.
+ * Applies defaults and bounds checking.
+ */
+function parsePagination(
+  query: Record<string, unknown>,
+  config?: { defaultPageSize?: number; maxPageSize?: number }
+): PaginationParams {
+  const defaultPageSize = config?.defaultPageSize ?? 20;
+  const maxPageSize = config?.maxPageSize ?? 100;
+
+  const page = Math.max(1, parseInt(String(query.page)) || 1);
+  const pageSize = Math.min(
+    maxPageSize,
+    Math.max(1, parseInt(String(query.pageSize)) || defaultPageSize)
+  );
+
+  return { page, pageSize };
+}
+
+/**
+ * Strips pagination params from query object.
+ */
+function stripPaginationFromQuery(
+  query: Record<string, unknown>
+): Record<string, unknown> {
+  const { page: _, pageSize: __, ...rest } = query;
+  return rest;
+}
+
+/**
  * Creates an Express request handler for a fossyl route.
  */
 export function createHandler(route: Route, options: ExpressAdapterOptions): RequestHandler {
+  const isListRoute = route.type === 'list' || route.type === 'authenticated-list';
+
   return async (req: Request, res: Response, _next: NextFunction) => {
     const startTime = Date.now();
     const requestId = crypto.randomUUID();
@@ -28,7 +60,12 @@ export function createHandler(route: Route, options: ExpressAdapterOptions): Req
         return executeRoute(route, req, options);
       });
 
-      res.json(wrapResponse(result));
+      // List routes return PaginatedResponse directly, others get wrapped
+      if (isListRoute) {
+        res.json(result);
+      } else {
+        res.json(wrapResponse(result as ResponseData));
+      }
 
       options.metrics?.onRequestEnd({
         ...metricsInfo,
@@ -54,7 +91,7 @@ async function executeRoute(
   route: Route,
   req: Request,
   options: ExpressAdapterOptions
-): Promise<ResponseData> {
+): Promise<ResponseData | PaginatedResponse<unknown>> {
   const params = { url: req.params, query: req.query };
 
   switch (route.type) {
@@ -87,6 +124,35 @@ async function executeRoute(
       return options.database
         ? options.database.withClient(() => route.handler(params))
         : route.handler(params);
+    }
+
+    case 'list': {
+      const pagination = parsePagination(
+        req.query as Record<string, unknown>,
+        route.paginationConfig
+      );
+      const strippedQuery = stripPaginationFromQuery(req.query as Record<string, unknown>);
+      const query = route.queryValidator ? route.queryValidator(strippedQuery) : undefined;
+      const listParams = { url: req.params, query, pagination };
+
+      return options.database
+        ? options.database.withClient(() => route.handler(listParams))
+        : route.handler(listParams);
+    }
+
+    case 'authenticated-list': {
+      const auth = await route.authenticator(req.headers as Record<string, string>);
+      const pagination = parsePagination(
+        req.query as Record<string, unknown>,
+        route.paginationConfig
+      );
+      const strippedQuery = stripPaginationFromQuery(req.query as Record<string, unknown>);
+      const query = route.queryValidator ? route.queryValidator(strippedQuery) : undefined;
+      const listParams = { url: req.params, query, pagination };
+
+      return options.database
+        ? options.database.withClient(() => route.handler(listParams, auth))
+        : route.handler(listParams, auth);
     }
   }
 }

@@ -2,6 +2,8 @@
 
 **Zod validation adapter for fossyl**
 
+> **AI Collaboration:** This package is in the **Green Zone** - AI contributions welcome. See `/CONTRIBUTING.md` for guidelines. Do not modify `@fossyl/core`.
+
 ## Overview
 
 `@fossyl/zod` is a tiny validation adapter that provides type-safe validator wrappers for Zod schemas. It extracts the type from the schema so handlers receive properly typed body/query params.

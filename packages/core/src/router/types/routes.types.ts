@@ -74,6 +74,47 @@ export function bodyWrapper<T>(body: T): T & RequestBody {
 
 export type RestMethod = "GET" | "POST" | "PUT" | "DELETE";
 
+// ============================================================================
+// Pagination Types
+// ============================================================================
+
+/**
+ * Pagination parameters parsed from query string.
+ * Always present on list route handlers.
+ */
+export type PaginationParams = {
+  page: number;
+  pageSize: number;
+};
+
+/**
+ * Optional configuration for pagination behavior.
+ */
+export type PaginationConfig = {
+  /** Default page size if not specified. Defaults to 20. */
+  defaultPageSize?: number;
+  /** Maximum allowed page size. Defaults to 100. */
+  maxPageSize?: number;
+};
+
+/**
+ * Required response shape for list routes.
+ * - data: The items for this page
+ * - pagination: Metadata about the current page
+ *   - page, pageSize: Always required (echo back the request)
+ *   - hasMore: Optional, use N+1 trick to compute cheaply
+ *   - total: Optional, requires COUNT query (expensive)
+ */
+export type PaginatedResponse<T> = {
+  data: T[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    hasMore?: boolean;
+    total?: number;
+  };
+};
+
 /**
  * Base constraint for all response types.
  *
@@ -256,6 +297,70 @@ export type FullRoute<
       ) => Promise<Res>;
 };
 
+// ============================================================================
+// List Route Types (Paginated)
+// ============================================================================
+
+/**
+ * List routes are paginated GET endpoints.
+ *
+ * Handler receives: (params: { url, query, pagination })
+ *
+ * These are GET-only routes that enforce pagination semantics:
+ * - Pagination params (page, pageSize) are automatically parsed from query string
+ * - Handler must return PaginatedResponse<T>
+ *
+ * Use for: Collection endpoints that return multiple items.
+ */
+export type ListRoute<
+  Path extends string,
+  Data,
+  Query extends unknown | undefined = undefined,
+> = {
+  type: "list";
+  path: Path;
+  method: "GET";
+  paginationConfig?: PaginationConfig;
+  validator?: never;
+  authenticator?: never;
+  queryValidator?: (data: unknown) => Query;
+  handler: (params: {
+    url: Params<Path>;
+    query: Query;
+    pagination: PaginationParams;
+  }) => Promise<PaginatedResponse<Data>>;
+};
+
+/**
+ * Authenticated list routes are paginated GET endpoints that require authentication.
+ *
+ * Handler receives: (params: { url, query, pagination }, auth)
+ *
+ * Use for: Protected collection endpoints.
+ */
+export type AuthenticatedListRoute<
+  Path extends string,
+  Data,
+  Auth extends Authentication,
+  Query extends unknown | undefined = undefined,
+> = {
+  type: "authenticated-list";
+  path: Path;
+  method: "GET";
+  paginationConfig?: PaginationConfig;
+  validator?: never;
+  authenticator: AuthenticationFunction<Auth>;
+  queryValidator?: (data: unknown) => Query;
+  handler: (
+    params: {
+      url: Params<Path>;
+      query: Query;
+      pagination: PaginationParams;
+    },
+    auth: Auth
+  ) => Promise<PaginatedResponse<Data>>;
+};
+
 /**
  * Union of all route types.
  * Used by adapters and CLI for route processing.
@@ -266,4 +371,6 @@ export type Route =
   | OpenRoute<string, RestMethod, ResponseData, any>
   | AuthenticatedRoute<string, RestMethod, ResponseData, any, any>
   | ValidatedRoute<string, RestMethod, ResponseData, any, any>
-  | FullRoute<string, RestMethod, ResponseData, any, any, any>;
+  | FullRoute<string, RestMethod, ResponseData, any, any, any>
+  | ListRoute<string, any, any>
+  | AuthenticatedListRoute<string, any, any, any>;

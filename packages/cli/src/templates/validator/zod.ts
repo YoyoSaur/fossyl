@@ -18,10 +18,9 @@ export const updatePingSchema = z.object({
 export const updatePingValidator = zodValidator(updatePingSchema);
 export type UpdatePingBody = z.infer<typeof updatePingSchema>;
 
-// List ping query schema
+// List ping filter schema (pagination is handled automatically by .list())
 export const listPingQuerySchema = z.object({
-  limit: z.coerce.number().min(1).max(100).default(10),
-  offset: z.coerce.number().min(0).default(0),
+  search: z.string().optional(),
 });
 
 export const listPingQueryValidator = zodQueryValidator(listPingQuerySchema);

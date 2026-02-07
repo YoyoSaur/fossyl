@@ -32,7 +32,9 @@
     "build": "tsup src/index.ts --format cjs,esm --dts",
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
     "clean": "rm -rf dist",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "generate:type-tests": "tsx tests/types/test-generator.ts",
+    "test:types": "tsc -p tests/types/tsconfig.json"
   },
   "keywords": [
     "typescript",
@@ -63,6 +65,7 @@
   },
   "devDependencies": {
     "tsup": "^8.0.0",
+    "tsx": "^4.7.0",
     "typescript": "^5.8.3"
   }
 }
