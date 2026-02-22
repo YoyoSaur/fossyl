@@ -5,6 +5,7 @@ dist/
 .changeset/
 !.changeset/README.md
 .npmrc
+plans/*
 
 # Auto-generated
 packages/cli/src/versions.ts
