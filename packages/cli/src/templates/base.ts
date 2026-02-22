@@ -117,41 +117,113 @@ export const authenticator = async (headers: Record<string, string>) => {
 }
 
 export function generateClaudeMd(options: ProjectOptions): string {
-  const adapterDocs: string[] = [];
-
+  const adapterList: string[] = [];
   if (options.server === 'express') {
-    adapterDocs.push('- `@fossyl/express` - Express.js runtime adapter');
+    adapterList.push('`@fossyl/express`');
   }
   if (options.validator === 'zod') {
-    adapterDocs.push('- `@fossyl/zod` - Zod validation adapter');
+    adapterList.push('`@fossyl/zod`');
   }
   if (options.database === 'kysely') {
-    adapterDocs.push('- `@fossyl/kysely` - Kysely database adapter');
+    adapterList.push('`@fossyl/kysely`');
   }
 
-  const byoNotes: string[] = [];
-  if (options.server === 'byo') {
-    byoNotes.push(`
+  // Build adapter-specific context sections
+  const adapterContext: string[] = [];
+
+  if (options.server === 'express') {
+    adapterContext.push(`
+### @fossyl/express
+
+Express.js runtime adapter. Key files:
+- \`adapter.ts\` - Adapter factory and Express app setup
+- \`handlers.ts\` - Route handler wrappers with type matching
+- \`context.ts\` - Request context management (AsyncLocalStorage)
+
+**Handler Type Matching**: Pattern-matches on route type to call handlers correctly:
+- OpenRoute: \`handler(params)\`
+- AuthenticatedRoute: \`handler(params, auth)\`
+- ValidatedRoute: \`handler(params, body)\`
+- FullRoute: \`handler(params, auth, body)\`
+- ListRoute: \`handler(params [, auth])\` with pagination
+
+**AsyncLocalStorage Context**: Uses Node's AsyncLocalStorage to propagate request context.
+\`getLogger()\`, \`getRequestId()\`, \`getDb()\` work anywhere in the call stack.
+
+**Response Wrapping**: All responses wrapped in \`{ success: "true", type, data }\`.
+Errors wrapped in \`{ success: "false", error: { code, message } }\`.`);
+  } else {
+    adapterContext.push(`
 ### Server (BYO)
+
 You need to implement your own server adapter. See \`src/server.ts\` for the placeholder.
-Check the @fossyl/express source for reference: https://github.com/YoyoSaur/fossyl/tree/main/packages/express`);
+Reference: https://github.com/YoyoSaur/fossyl/tree/main/packages/express`);
   }
-  if (options.validator === 'byo') {
-    byoNotes.push(`
+
+  if (options.validator === 'zod') {
+    adapterContext.push(`
+### @fossyl/zod
+
+Zod validation adapter (~20 lines total).
+
+\`\`\`typescript
+import { zodValidator, zodQueryValidator } from '@fossyl/zod';
+
+// For request body validation
+const bodyValidator = zodValidator(z.object({ name: z.string() }));
+
+// For query params validation
+const queryValidator = zodQueryValidator(z.object({ search: z.string().optional() }));
+\`\`\`
+
+The key: returning a function with explicit return type \`z.infer<T>\` allows TypeScript to infer the body/query type in route handlers automatically.`);
+  } else {
+    adapterContext.push(`
 ### Validator (BYO)
-You need to implement your own validators. See \`src/features/ping/validators/ping.validators.ts\` for the placeholder.
-Check the @fossyl/zod source for reference: https://github.com/YoyoSaur/fossyl/tree/main/packages/zod`);
+
+You need to implement your own validators. See \`src/features/ping/validators/ping.validators.ts\`.
+Reference: https://github.com/YoyoSaur/fossyl/tree/main/packages/zod`);
   }
-  if (options.database === 'byo') {
-    byoNotes.push(`
+
+  if (options.database === 'kysely') {
+    adapterContext.push(`
+### @fossyl/kysely
+
+Kysely database adapter. Key files:
+- \`adapter.ts\` - Implements DatabaseAdapter interface
+- \`context.ts\` - AsyncLocalStorage for transaction context
+- \`migrations.ts\` - Migration provider and utilities
+
+**Transaction Context**: Uses AsyncLocalStorage to propagate Kysely client/transaction.
+- \`withTransaction()\` - Wraps handler in a transaction
+- \`getTransaction()\` - Retrieves current client anywhere in call stack
+
+**Migrations**: Uses Kysely's built-in Migrator. Define migrations in \`src/migrations/\`.`);
+  } else {
+    adapterContext.push(`
 ### Database (BYO)
-You need to implement your own database layer. See \`src/db.ts\` for the placeholder.
-Check the @fossyl/kysely source for reference: https://github.com/YoyoSaur/fossyl/tree/main/packages/kysely`);
+
+You need to implement your own database layer. See \`src/db.ts\`.
+Reference: https://github.com/YoyoSaur/fossyl/tree/main/packages/kysely`);
   }
 
   return `# ${options.name} - AI Development Guide
 
-**Fossyl REST API project**
+**Fossyl REST API project** using ${adapterList.join(', ')}
+
+## Claude Code Setup
+
+Install the TypeScript LSP plugin for real-time type inference:
+
+\`\`\`bash
+# In Claude Code, run:
+/plugin install typescript-lsp@claude-plugins-official
+
+# Ensure the language server is installed:
+npm install -g typescript-language-server
+\`\`\`
+
+This gives Claude instant diagnostics after every edit instead of running \`tsc\` manually.
 
 ## Project Structure
 
@@ -167,71 +239,44 @@ src/
 ├── types/
 │   └── db.ts                         # Database type definitions
 ├── db.ts                             # Database setup
+├── auth.ts                           # Authentication helper
 └── index.ts                          # Main entry point
 \`\`\`
-
-## Adapters Used
-
-${adapterDocs.join('\n')}
 
 ## Quick Start
 
 \`\`\`bash
-# Install dependencies
 pnpm install
-
-# Start development server
 pnpm dev
 \`\`\`
 
+## Route Types & Handler Signatures
+
+Fossyl enforces correct handler signatures via TypeScript overloads:
+
+| Route Type | Config | Handler Signature |
+|------------|--------|-------------------|
+| OpenRoute | \`{}\` | \`(params) => Promise<Res>\` |
+| OpenRoute + Query | \`{ queryValidator }\` | \`({ url, query }) => Promise<Res>\` |
+| AuthenticatedRoute | \`{ authenticator }\` | \`(params, auth) => Promise<Res>\` |
+| AuthenticatedRoute + Query | \`{ authenticator, queryValidator }\` | \`({ url, query }, auth) => Promise<Res>\` |
+| ValidatedRoute | \`{ validator }\` | \`(params, body) => Promise<Res>\` |
+| FullRoute | \`{ authenticator, validator }\` | \`(params, auth, body) => Promise<Res>\` |
+| ListRoute | \`{ paginationConfig? }\` | \`({ url, pagination }) => Promise<PaginatedResponse>\` |
+
+**The type system enforces this.** If you provide \`authenticator\`, the handler MUST accept \`auth\`. If you provide \`queryValidator\`, \`params\` MUST include \`query\`.
+
 ## Adding New Features
 
-1. Create a new feature directory under \`src/features/\`
-2. Add route definitions in \`routes/\`
-3. Add business logic in \`services/\`
-4. Add database access in \`repo/\`
-5. Add validators in \`validators/\`
-6. Register routes in \`src/index.ts\`
+1. Create feature directory: \`src/features/{name}/\`
+2. Add route: \`routes/{name}.route.ts\`
+3. Add service: \`services/{name}.service.ts\`
+4. Add validators: \`validators/{name}.validators.ts\`
+5. Add repo (if DB): \`repo/{name}.repo.ts\`
+6. Register in \`src/index.ts\`
 
-## Route Types
-
-Fossyl provides five route types:
-
-- **OpenRoute**: No authentication or body validation
-- **AuthenticatedRoute**: Requires authentication, no body validation
-- **ValidatedRoute**: Requires body validation, no authentication
-- **FullRoute**: Requires both authentication and body validation
-- **ListRoute**: Paginated GET with automatic pagination params
-
-## Handler Parameter Order
-
-- Routes with body: \`handler(params, [auth,] body)\`
-- Routes without body: \`handler(params [, auth])\`
-- List routes: \`handler({ url, query, pagination } [, auth])\`
-
-## List Routes (Pagination)
-
-Use \`.list()\` for paginated endpoints:
-
-\`\`\`typescript
-router.createEndpoint('/items').list({
-  queryValidator: filterValidator,  // Optional: custom filters
-  paginationConfig: { defaultPageSize: 20, maxPageSize: 100 },
-  handler: async ({ query, pagination }) => {
-    // pagination.page and pagination.pageSize are always present
-    return {
-      data: items,
-      pagination: {
-        page: pagination.page,
-        pageSize: pagination.pageSize,
-        hasMore: true,   // Optional
-        total: 100,      // Optional
-      },
-    };
-  },
-});
-\`\`\`
-${byoNotes.join('\n')}
+## Adapter Reference
+${adapterContext.join('\n')}
 
 ## Documentation
 
