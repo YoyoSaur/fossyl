@@ -14,7 +14,7 @@ import {
 } from "./routes.types";
 import { RestMethod } from "./routes.types";
 
-export type ValidatorFunction<T extends unknown = unknown> = (data: unknown) => T;
+export type ValidatorFunction<T> = (data: unknown) => T;
 export type AuthenticationFunction<T extends Authentication> = (
   headers: Record<string, string>
 ) => Promise<T>;
