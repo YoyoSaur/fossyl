@@ -6,6 +6,7 @@ dist/
 !.changeset/README.md
 .npmrc
 plans/*
+bump-push
 
 # Auto-generated
 packages/cli/src/versions.ts

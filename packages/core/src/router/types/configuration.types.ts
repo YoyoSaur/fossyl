@@ -47,17 +47,7 @@ export type AuthenticationFunction<T extends Authentication> = (
  * 4. Full (auth + validated), with query: authenticator + validator + queryValidator + handler(params, auth, body)
  */
 export type EndpointCreationFunction<Path extends string, Method extends RestMethod> = {
-  // Validated route: no auth, no query
-  <Res extends ResponseData, RequestBody extends unknown>(
-    config: {
-      authenticator?: never;
-      validator: ValidatorFunction<RequestBody>;
-      queryValidator?: never;
-      handler: (params: { url: Params<Path> }, body: RequestBody) => Promise<Res>;
-    }
-  ): ValidatedRoute<Path, Method, Res, RequestBody, undefined>;
-
-  // Validated route: no auth, with query
+  // Validated route: no auth, with query (MUST be before no-query variant)
   <Res extends ResponseData, RequestBody extends unknown, Query extends unknown>(
     config: {
       authenticator?: never;
@@ -70,17 +60,17 @@ export type EndpointCreationFunction<Path extends string, Method extends RestMet
     }
   ): ValidatedRoute<Path, Method, Res, RequestBody, Query>;
 
-  // Full route: auth + body validation, no query
-  <Res extends ResponseData, RequestBody extends unknown, Auth extends Authentication>(
+  // Validated route: no auth, no query
+  <Res extends ResponseData, RequestBody extends unknown>(
     config: {
-      authenticator: AuthenticationFunction<Auth>;
+      authenticator?: never;
       validator: ValidatorFunction<RequestBody>;
       queryValidator?: never;
-      handler: (params: { url: Params<Path> }, auth: Auth, body: RequestBody) => Promise<Res>;
+      handler: (params: { url: Params<Path> }, body: RequestBody) => Promise<Res>;
     }
-  ): FullRoute<Path, Method, Res, RequestBody, Auth, undefined>;
+  ): ValidatedRoute<Path, Method, Res, RequestBody, undefined>;
 
-  // Full route: auth + body validation, with query
+  // Full route: auth + body validation, with query (MUST be before no-query variant)
   <
     Res extends ResponseData,
     RequestBody extends unknown,
@@ -98,6 +88,16 @@ export type EndpointCreationFunction<Path extends string, Method extends RestMet
       ) => Promise<Res>;
     }
   ): FullRoute<Path, Method, Res, RequestBody, Auth, Query>;
+
+  // Full route: auth + body validation, no query
+  <Res extends ResponseData, RequestBody extends unknown, Auth extends Authentication>(
+    config: {
+      authenticator: AuthenticationFunction<Auth>;
+      validator: ValidatorFunction<RequestBody>;
+      queryValidator?: never;
+      handler: (params: { url: Params<Path> }, auth: Auth, body: RequestBody) => Promise<Res>;
+    }
+  ): FullRoute<Path, Method, Res, RequestBody, Auth, undefined>;
 };
 
 /**
@@ -111,6 +111,15 @@ export type EndpointCreationFunction<Path extends string, Method extends RestMet
  * 4. Authenticated, with query: authenticator + queryValidator + handler(params, auth)
  */
 export type GetEndpointCreationFunction<Path extends string, Method extends RestMethod> = {
+  // Open route: no auth, with query (MUST be before no-query variant)
+  <Res extends ResponseData, Query extends unknown>(
+    config: {
+      authenticator?: never;
+      queryValidator: ValidatorFunction<Query>;
+      handler: (params: { url: Params<Path>; query: Query }) => Promise<Res>;
+    }
+  ): OpenRoute<Path, Method, Res, Query>;
+
   // Open route: no auth, no query
   <Res extends ResponseData>(
     config: {
@@ -120,14 +129,14 @@ export type GetEndpointCreationFunction<Path extends string, Method extends Rest
     }
   ): OpenRoute<Path, Method, Res, undefined>;
 
-  // Open route: no auth, with query
-  <Res extends ResponseData, Query extends unknown>(
+  // Authenticated route: auth, with query (MUST be before no-query variant)
+  <Res extends ResponseData, Auth extends Authentication, Query extends unknown>(
     config: {
-      authenticator?: never;
+      authenticator: AuthenticationFunction<Auth>;
       queryValidator: ValidatorFunction<Query>;
-      handler: (params: { url: Params<Path>; query: Query }) => Promise<Res>;
+      handler: (params: { url: Params<Path>; query: Query }, auth: Auth) => Promise<Res>;
     }
-  ): OpenRoute<Path, Method, Res, Query>;
+  ): AuthenticatedRoute<Path, Method, Res, Auth, Query>;
 
   // Authenticated route: auth, no query
   <Res extends ResponseData, Auth extends Authentication>(
@@ -137,15 +146,6 @@ export type GetEndpointCreationFunction<Path extends string, Method extends Rest
       handler: (params: { url: Params<Path> }, auth: Auth) => Promise<Res>;
     }
   ): AuthenticatedRoute<Path, Method, Res, Auth, undefined>;
-
-  // Authenticated route: auth, with query
-  <Res extends ResponseData, Auth extends Authentication, Query extends unknown>(
-    config: {
-      authenticator: AuthenticationFunction<Auth>;
-      queryValidator: ValidatorFunction<Query>;
-      handler: (params: { url: Params<Path>; query: Query }, auth: Auth) => Promise<Res>;
-    }
-  ): AuthenticatedRoute<Path, Method, Res, Auth, Query>;
 };
 
 /**
@@ -160,6 +160,18 @@ export type GetEndpointCreationFunction<Path extends string, Method extends Rest
  * 4. Authenticated list, with query: authenticator + queryValidator + handler(params, auth) with pagination
  */
 export type ListEndpointCreationFunction<Path extends string> = {
+  // List route: no auth, with query filters (MUST be before no-query variant)
+  <Data, Query extends unknown>(config: {
+    authenticator?: never;
+    queryValidator: ValidatorFunction<Query>;
+    paginationConfig?: PaginationConfig;
+    handler: (params: {
+      url: Params<Path>;
+      query: Query;
+      pagination: PaginationParams;
+    }) => Promise<PaginatedResponse<Data>>;
+  }): ListRoute<Path, Data, Query>;
+
   // List route: no auth, no query filters
   <Data>(config: {
     authenticator?: never;
@@ -171,17 +183,20 @@ export type ListEndpointCreationFunction<Path extends string> = {
     }) => Promise<PaginatedResponse<Data>>;
   }): ListRoute<Path, Data, undefined>;
 
-  // List route: no auth, with query filters
-  <Data, Query extends unknown>(config: {
-    authenticator?: never;
+  // Authenticated list route: auth, with query filters (MUST be before no-query variant)
+  <Data, Auth extends Authentication, Query extends unknown>(config: {
+    authenticator: AuthenticationFunction<Auth>;
     queryValidator: ValidatorFunction<Query>;
     paginationConfig?: PaginationConfig;
-    handler: (params: {
-      url: Params<Path>;
-      query: Query;
-      pagination: PaginationParams;
-    }) => Promise<PaginatedResponse<Data>>;
-  }): ListRoute<Path, Data, Query>;
+    handler: (
+      params: {
+        url: Params<Path>;
+        query: Query;
+        pagination: PaginationParams;
+      },
+      auth: Auth
+    ) => Promise<PaginatedResponse<Data>>;
+  }): AuthenticatedListRoute<Path, Data, Auth, Query>;
 
   // Authenticated list route: auth, no query filters
   <Data, Auth extends Authentication>(config: {
@@ -196,19 +211,4 @@ export type ListEndpointCreationFunction<Path extends string> = {
       auth: Auth
     ) => Promise<PaginatedResponse<Data>>;
   }): AuthenticatedListRoute<Path, Data, Auth, undefined>;
-
-  // Authenticated list route: auth, with query filters
-  <Data, Auth extends Authentication, Query extends unknown>(config: {
-    authenticator: AuthenticationFunction<Auth>;
-    queryValidator: ValidatorFunction<Query>;
-    paginationConfig?: PaginationConfig;
-    handler: (
-      params: {
-        url: Params<Path>;
-        query: Query;
-        pagination: PaginationParams;
-      },
-      auth: Auth
-    ) => Promise<PaginatedResponse<Data>>;
-  }): AuthenticatedListRoute<Path, Data, Auth, Query>;
 };
