@@ -1,6 +1,6 @@
 {
   "name": "fossyl",
-  "version": "0.18.3",
+  "version": "0.18.4",
   "type": "module",
   "description": "CLI for scaffolding fossyl projects",
   "bin": {

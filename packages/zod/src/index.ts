@@ -23,9 +23,9 @@ import type { z } from 'zod';
  * });
  * ```
  */
-export function zodValidator<Output>(
-  schema: z.ZodType<Output>
-): (data: unknown) => Output {
+export function zodValidator<T extends z.ZodTypeAny>(
+  schema: T
+): (data: unknown) => z.output<T> {
   return (data: unknown) => schema.parse(data);
 }
 
@@ -49,8 +49,8 @@ export function zodValidator<Output>(
  * });
  * ```
  */
-export function zodQueryValidator<Output>(
-  schema: z.ZodType<Output>
-): (data: unknown) => Output {
+export function zodQueryValidator<T extends z.ZodTypeAny>(
+  schema: T
+): (data: unknown) => z.output<T> {
   return (data: unknown) => schema.parse(data);
 }
