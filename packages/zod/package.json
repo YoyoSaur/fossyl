@@ -1,6 +1,6 @@
 {
   "name": "@fossyl/zod",
-  "version": "0.18.5",
+  "version": "0.18.6",
   "description": "Zod validation adapter for fossyl",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
