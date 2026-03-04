@@ -1,52 +1,59 @@
-import express, { type Application, Router, type Request, type Response, type NextFunction } from 'express';
-import type { Server } from 'node:http';
-import type { FrameworkAdapter, Route } from '@fossyl/core';
-import type { ExpressAdapterOptions, CorsOptions } from './types';
-import { sortRoutes } from './sorting';
-import { groupRoutes } from './register';
-import { createHandler } from './handlers';
-import { createErrorResponse, ERROR_CODES } from './errors';
+import express, {
+  type Application,
+  Router,
+  type Request,
+  type Response,
+  type NextFunction,
+} from "express";
+import type { Server } from "node:http";
+import type { FrameworkAdapter, Route } from "@fossyl/core";
+import type { ExpressAdapterOptions, CorsOptions } from "./types";
+import { sortRoutes } from "./sorting";
+import { groupRoutes } from "./register";
+import { createHandler } from "./handlers";
+import { createStreamHandler } from "./stream-handler";
+import { createErrorResponse, ERROR_CODES } from "./errors";
 
 /**
  * Creates CORS middleware from options.
  */
 function createCorsMiddleware(corsOptions: boolean | CorsOptions) {
   const options: CorsOptions =
-    typeof corsOptions === 'boolean' ? { origin: true, credentials: true } : corsOptions;
+    typeof corsOptions === "boolean" ? { origin: true, credentials: true } : corsOptions;
 
   return (req: Request, res: Response, next: NextFunction) => {
     const origin = req.headers.origin;
 
     // Handle origin
     if (options.origin === true) {
-      res.setHeader('Access-Control-Allow-Origin', origin ?? '*');
-    } else if (typeof options.origin === 'string') {
-      res.setHeader('Access-Control-Allow-Origin', options.origin);
+      res.setHeader("Access-Control-Allow-Origin", origin ?? "*");
+    } else if (typeof options.origin === "string") {
+      res.setHeader("Access-Control-Allow-Origin", options.origin);
     } else if (Array.isArray(options.origin) && origin && options.origin.includes(origin)) {
-      res.setHeader('Access-Control-Allow-Origin', origin);
+      res.setHeader("Access-Control-Allow-Origin", origin);
     }
 
     // Handle methods
     if (options.methods) {
-      res.setHeader('Access-Control-Allow-Methods', options.methods.join(', '));
+      res.setHeader("Access-Control-Allow-Methods", options.methods.join(", "));
     } else {
-      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+      res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
     }
 
     // Handle headers
     if (options.allowedHeaders) {
-      res.setHeader('Access-Control-Allow-Headers', options.allowedHeaders.join(', '));
+      res.setHeader("Access-Control-Allow-Headers", options.allowedHeaders.join(", "));
     } else {
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+      res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
     }
 
     // Handle credentials
     if (options.credentials) {
-      res.setHeader('Access-Control-Allow-Credentials', 'true');
+      res.setHeader("Access-Control-Allow-Credentials", "true");
     }
 
     // Handle preflight
-    if (req.method === 'OPTIONS') {
+    if (req.method === "OPTIONS") {
       res.status(204).end();
       return;
     }
@@ -78,8 +85,8 @@ export function expressAdapter(options: ExpressAdapterOptions = {}): FrameworkAd
   }
 
   return {
-    type: 'framework',
-    name: 'express',
+    type: "framework",
+    name: "express",
     app,
 
     register(routes: Route[]): void {
@@ -90,10 +97,15 @@ export function expressAdapter(options: ExpressAdapterOptions = {}): FrameworkAd
         const router = Router();
 
         for (const route of group.routes) {
-          const method = route.method.toLowerCase() as 'get' | 'post' | 'put' | 'delete';
-          const subPath = route.path.slice(group.prefix.length) || '/';
+          const method = route.method.toLowerCase() as "get" | "post" | "put" | "delete";
+          const subPath = route.path.slice(group.prefix.length) || "/";
 
-          router[method](subPath, createHandler(route, options));
+          const isStreamRoute =
+            route.type === "stream-open" || route.type === "stream-authenticated";
+          const handler = isStreamRoute
+            ? createStreamHandler(route as any, options)
+            : createHandler(route, options);
+          router[method](subPath, handler);
         }
 
         app.use(group.prefix, router);
@@ -101,9 +113,9 @@ export function expressAdapter(options: ExpressAdapterOptions = {}): FrameworkAd
 
       // 404 handler
       app.use((req: Request, res: Response) => {
-        res.status(404).json(
-          createErrorResponse(ERROR_CODES.NOT_FOUND, `Not found: ${req.method} ${req.path}`)
-        );
+        res
+          .status(404)
+          .json(createErrorResponse(ERROR_CODES.NOT_FOUND, `Not found: ${req.method} ${req.path}`));
       });
     },
 
