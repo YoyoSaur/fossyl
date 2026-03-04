@@ -1,5 +1,5 @@
 // Main adapter export
-export { expressAdapter } from './adapter';
+export { expressAdapter } from "./adapter";
 
 // Context exports
 export {
@@ -9,7 +9,7 @@ export {
   getDb,
   type RequestContext,
   type LoggerContext,
-} from './context';
+} from "./context";
 
 // Error exports
 export {
@@ -19,10 +19,13 @@ export {
   createErrorResponse,
   type ErrorCode,
   type ErrorResponse,
-} from './errors';
+} from "./errors";
 
 // Response exports
-export { wrapResponse } from './response';
+export { wrapResponse } from "./response";
 
 // Type exports
-export type { ExpressAdapterOptions, CorsOptions, MetricsRecorder } from './types';
+export type { ExpressAdapterOptions, CorsOptions, MetricsRecorder } from "./types";
+
+// Stream handler exports
+export { createStreamHandler, formatSSEFrame } from "./stream-handler";
