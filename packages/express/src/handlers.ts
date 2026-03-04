@@ -1,9 +1,11 @@
-import type { Request, Response, NextFunction, RequestHandler } from 'express';
-import type { Route, ResponseData, PaginatedResponse, PaginationParams } from '@fossyl/core';
-import { requestContext, type RequestContext, createDefaultLogger } from './context';
-import { wrapResponse } from './response';
-import { handleError } from './errors';
-import type { ExpressAdapterOptions } from './types';
+import type { Request, Response, NextFunction, RequestHandler } from "express";
+import type { Route, ResponseData, PaginatedResponse, PaginationParams } from "@fossyl/core";
+
+type UnaryRoute = Exclude<Route, { type: "stream-open" | "stream-authenticated" }>;
+import { requestContext, type RequestContext, createDefaultLogger } from "./context";
+import { wrapResponse } from "./response";
+import { handleError } from "./errors";
+import type { ExpressAdapterOptions } from "./types";
 
 /**
  * Parses pagination parameters from query string.
@@ -28,9 +30,7 @@ function parsePagination(
 /**
  * Strips pagination params from query object.
  */
-function stripPaginationFromQuery(
-  query: Record<string, unknown>
-): Record<string, unknown> {
+function stripPaginationFromQuery(query: Record<string, unknown>): Record<string, unknown> {
   const { page: _, pageSize: __, ...rest } = query;
   return rest;
 }
@@ -39,7 +39,7 @@ function stripPaginationFromQuery(
  * Creates an Express request handler for a fossyl route.
  */
 export function createHandler(route: Route, options: ExpressAdapterOptions): RequestHandler {
-  const isListRoute = route.type === 'list' || route.type === 'authenticated-list';
+  const isListRoute = route.type === "list" || route.type === "authenticated-list";
 
   return async (req: Request, res: Response, _next: NextFunction) => {
     const startTime = Date.now();
@@ -57,7 +57,7 @@ export function createHandler(route: Route, options: ExpressAdapterOptions): Req
 
     try {
       const result = await requestContext.run(ctx, async () => {
-        return executeRoute(route, req, options);
+        return executeRoute(route as UnaryRoute, req, options);
       });
 
       // List routes return PaginatedResponse directly, others get wrapped
@@ -88,14 +88,14 @@ export function createHandler(route: Route, options: ExpressAdapterOptions): Req
  * Executes a route handler based on route type.
  */
 async function executeRoute(
-  route: Route,
+  route: UnaryRoute,
   req: Request,
   options: ExpressAdapterOptions
 ): Promise<ResponseData | PaginatedResponse<unknown>> {
   const params = { url: req.params, query: req.query };
 
   switch (route.type) {
-    case 'full': {
+    case "full": {
       const auth = await route.authenticator(req.headers as Record<string, string>);
       const body = route.validator(req.body);
 
@@ -104,7 +104,7 @@ async function executeRoute(
         : route.handler(params, auth, body);
     }
 
-    case 'authenticated': {
+    case "authenticated": {
       const auth = await route.authenticator(req.headers as Record<string, string>);
 
       return options.database
@@ -112,7 +112,7 @@ async function executeRoute(
         : route.handler(params, auth);
     }
 
-    case 'validated': {
+    case "validated": {
       const body = route.validator(req.body);
 
       return options.database
@@ -120,13 +120,13 @@ async function executeRoute(
         : route.handler(params, body);
     }
 
-    case 'open': {
+    case "open": {
       return options.database
         ? options.database.withClient(() => route.handler(params))
         : route.handler(params);
     }
 
-    case 'list': {
+    case "list": {
       const pagination = parsePagination(
         req.query as Record<string, unknown>,
         route.paginationConfig
@@ -140,7 +140,7 @@ async function executeRoute(
         : route.handler(listParams);
     }
 
-    case 'authenticated-list': {
+    case "authenticated-list": {
       const auth = await route.authenticator(req.headers as Record<string, string>);
       const pagination = parsePagination(
         req.query as Record<string, unknown>,
@@ -153,6 +153,11 @@ async function executeRoute(
       return options.database
         ? options.database.withClient(() => route.handler(listParams, auth))
         : route.handler(listParams, auth);
+    }
+
+    default: {
+      const _exhaustive: never = route;
+      throw new Error(`Unhandled route type: ${(_exhaustive as any).type}`);
     }
   }
 }

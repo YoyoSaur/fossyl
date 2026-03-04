@@ -2,10 +2,11 @@ import {
   GetEndpointCreationFunction,
   EndpointCreationFunction,
   ListEndpointCreationFunction,
+  StreamEndpointCreationFunction,
 } from "./configuration.types";
 
 /* Endpoint seems more complex than it is from its type signature.
- * It has 5 Major functions on offer. The different HTTP methods + list
+ * It has 6 Major functions on offer. The different HTTP methods + list + stream
  *
  * These use the EndpointCreationFunction
  */
@@ -20,6 +21,7 @@ export type Endpoint<Path extends string> = {
    * Handler must return PaginatedResponse<T>.
    */
   list: ListEndpointCreationFunction<Path>;
+  stream: StreamEndpointCreationFunction<Path>;
 };
 
 /**
