@@ -14,6 +14,7 @@ import {
 import { Endpoint, Router } from "./types/router-creation.types";
 import { AuthenticationFunction, ValidatorFunction } from "./types/configuration.types";
 import { Params } from "./types/params.types";
+import { StreamOpenRoute, StreamAuthenticatedRoute, StreamEvent } from "./types/stream.types";
 
 /**
  * Creates an endpoint which can be used to create final routes from.
@@ -318,12 +319,103 @@ function createEndpoint<Path extends string>(path: Path): Endpoint<Path> {
     return listMethod;
   }
 
+  function createStreamMethod() {
+    // Stream-open: no auth, no query
+    function streamMethod<Events extends StreamEvent>(config: {
+      authenticator?: never;
+      queryValidator?: never;
+      handler: (params: { url: Params<Path>; signal: AbortSignal }) => AsyncIterable<Events>;
+    }): StreamOpenRoute<Path, Events, undefined>;
+
+    // Stream-open: no auth, with query
+    function streamMethod<Events extends StreamEvent, Query extends unknown>(config: {
+      authenticator?: never;
+      queryValidator: ValidatorFunction<Query>;
+      handler: (params: {
+        url: Params<Path>;
+        query: Query;
+        signal: AbortSignal;
+      }) => AsyncIterable<Events>;
+    }): StreamOpenRoute<Path, Events, Query>;
+
+    // Stream-authenticated: auth, no query
+    function streamMethod<Events extends StreamEvent, Auth extends Authentication>(config: {
+      authenticator: AuthenticationFunction<Auth>;
+      queryValidator?: never;
+      handler: (
+        params: { url: Params<Path>; signal: AbortSignal },
+        auth: Auth
+      ) => AsyncIterable<Events>;
+    }): StreamAuthenticatedRoute<Path, Events, Auth, undefined>;
+
+    // Stream-authenticated: auth, with query
+    function streamMethod<
+      Events extends StreamEvent,
+      Auth extends Authentication,
+      Query extends unknown,
+    >(config: {
+      authenticator: AuthenticationFunction<Auth>;
+      queryValidator: ValidatorFunction<Query>;
+      handler: (
+        params: { url: Params<Path>; query: Query; signal: AbortSignal },
+        auth: Auth
+      ) => AsyncIterable<Events>;
+    }): StreamAuthenticatedRoute<Path, Events, Auth, Query>;
+
+    function streamMethod(
+      config:
+        | { handler: (params: { url: Params<Path>; signal: AbortSignal }) => AsyncIterable<any> }
+        | {
+            queryValidator: ValidatorFunction<any>;
+            handler: (params: {
+              url: Params<Path>;
+              query: any;
+              signal: AbortSignal;
+            }) => AsyncIterable<any>;
+          }
+        | {
+            authenticator: AuthenticationFunction<any>;
+            handler: (
+              params: { url: Params<Path>; signal: AbortSignal },
+              auth: any
+            ) => AsyncIterable<any>;
+          }
+        | {
+            authenticator: AuthenticationFunction<any>;
+            queryValidator: ValidatorFunction<any>;
+            handler: (
+              params: { url: Params<Path>; query: any; signal: AbortSignal },
+              auth: any
+            ) => AsyncIterable<any>;
+          }
+    ): StreamOpenRoute<Path, any, any> | StreamAuthenticatedRoute<Path, any, any, any> {
+      if ("authenticator" in config) {
+        return {
+          ...config,
+          type: "stream-authenticated",
+          path,
+          method: "GET",
+        } satisfies StreamAuthenticatedRoute<Path, any, any, any>;
+      } else {
+        return {
+          ...config,
+          type: "stream-open",
+          path,
+          method: "GET",
+        } satisfies StreamOpenRoute<Path, any, any>;
+      }
+    }
+
+    return streamMethod;
+  }
+
   return {
     get: createNoBodyMethod("GET"),
     post: createBodyMethod("POST"),
     put: createBodyMethod("PUT"),
     delete: createNoBodyMethod("DELETE"),
     list: createListMethod(),
+    stream: createStreamMethod(),
   };
 }
 
