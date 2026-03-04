@@ -1,5 +1,6 @@
 import { AuthenticationFunction, ValidatorFunction } from "./configuration.types";
 import { Params } from "./params.types";
+import { StreamOpenRoute, StreamAuthenticatedRoute, StreamEvent } from "./stream.types";
 
 declare const authBrand: unique symbol;
 declare const requestBrand: unique symbol;
@@ -312,11 +313,7 @@ export type FullRoute<
  *
  * Use for: Collection endpoints that return multiple items.
  */
-export type ListRoute<
-  Path extends string,
-  Data,
-  Query extends unknown | undefined = undefined,
-> = {
+export type ListRoute<Path extends string, Data, Query extends unknown | undefined = undefined> = {
   type: "list";
   path: Path;
   method: "GET";
@@ -373,4 +370,6 @@ export type Route =
   | ValidatedRoute<string, RestMethod, ResponseData, any, any>
   | FullRoute<string, RestMethod, ResponseData, any, any, any>
   | ListRoute<string, any, any>
-  | AuthenticatedListRoute<string, any, any, any>;
+  | AuthenticatedListRoute<string, any, any, any>
+  | StreamOpenRoute<string, StreamEvent, any>
+  | StreamAuthenticatedRoute<string, StreamEvent, any, any>;
