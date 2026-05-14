@@ -75,6 +75,12 @@ importers:
       '@fossyl/core':
         specifier: workspace:*
         version: link:../core
+      '@fossyl/express':
+        specifier: workspace:*
+        version: link:../express
+      '@fossyl/kysely':
+        specifier: workspace:*
+        version: link:../kysely
       astro:
         specifier: ^6.3.1
         version: 6.3.1(@types/node@25.7.0)(rollup@4.60.3)(tsx@4.21.0)(yaml@2.9.0)

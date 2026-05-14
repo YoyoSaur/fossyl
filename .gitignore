@@ -10,3 +10,5 @@ bump-push
 
 # Auto-generated
 packages/cli/src/versions.ts
+**/.vercel
+.vercel

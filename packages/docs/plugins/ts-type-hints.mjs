@@ -66,6 +66,8 @@ function getCompilerSetup() {
   if (compilerOptions) return { host: compilerHost, options: compilerOptions };
 
   const coreDist = path.resolve(__dirname, '../../core/dist/index.d.ts');
+  const expressDist = path.resolve(__dirname, '../../express/dist/index.d.ts');
+  const kyselyDist = path.resolve(__dirname, '../../kysely/dist/index.d.ts');
   const libDir = path.dirname(path.dirname(new URL(import.meta.resolve('typescript')).pathname));
 
   compilerOptions = {
@@ -78,6 +80,8 @@ function getCompilerSetup() {
     lib: ['lib.esnext.d.ts'],
     paths: {
       'fossyl': [coreDist],
+      '@fossyl/express': [expressDist],
+      '@fossyl/kysely': [kyselyDist],
     },
     baseUrl: path.dirname(coreDist),
     allowJs: false,
@@ -88,16 +92,22 @@ function getCompilerSetup() {
   const originalResolveModule = compilerHost.resolveModuleNames?.bind(compilerHost);
   const originalFileExists = compilerHost.fileExists.bind(compilerHost);
 
+  const adapterDists = {
+    '@fossyl/express': expressDist,
+    '@fossyl/kysely': kyselyDist,
+  };
+
   compilerHost.resolveModuleNames = (moduleNames, containingFile) => {
     return moduleNames.map((name) => {
-      if (name === 'fossyl') {
+      if (name === 'fossyl' || name in adapterDists) {
+        const dist = name === 'fossyl' ? coreDist : adapterDists[name];
         const result = ts.resolveModuleName(name, containingFile, compilerOptions, {
           fileExists: originalFileExists,
           readFile: compilerHost.readFile.bind(compilerHost),
         });
         if (result.resolvedModule) return result.resolvedModule;
         return {
-          resolvedFileName: coreDist,
+          resolvedFileName: dist,
           extension: ts.Extension.Dts,
           isExternalLibraryImport: true,
         };
@@ -110,8 +120,10 @@ function getCompilerSetup() {
     });
   };
 
+  const allKnownDists = [coreDist, expressDist, kyselyDist];
+
   compilerHost.fileExists = (fileName) => {
-    if (fileName === coreDist) return true;
+    if (allKnownDists.includes(fileName)) return true;
     return originalFileExists(fileName);
   };
 
