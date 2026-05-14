@@ -21,12 +21,18 @@
   "author": "YoyoSaur",
   "license": "GPL-3.0",
   "packageManager": "pnpm@11.1.2",
+  "pnpm": {
+    "patchedDependencies": {
+      "@astrojs/starlight@0.39.2": "patches/@astrojs__starlight@0.39.2.patch"
+    }
+  },
   "devDependencies": {
     "@changesets/cli": "^2.29.7",
     "@types/node": "^20.0.0",
     "@typescript-eslint/eslint-plugin": "^8.54.0",
     "@typescript-eslint/parser": "^8.54.0",
     "eslint": "^9.39.2",
+    "patch-package": "^8.0.1",
     "prettier": "^3.6.2",
     "tsup": "^8.0.0",
     "typescript": "^5.8.3"

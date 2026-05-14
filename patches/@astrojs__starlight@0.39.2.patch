@@ -1,0 +1,52 @@
+diff --git a/components-internals/TableOfContents/starlight-toc.ts b/components-internals/TableOfContents/starlight-toc.ts
+index 415c5cf93a20c401c7e72830db85125bfb081fbd..af06840a2011a9f53109ea5286e226610ddc83d6 100644
+--- a/components-internals/TableOfContents/starlight-toc.ts
++++ b/components-internals/TableOfContents/starlight-toc.ts
+@@ -66,6 +66,11 @@ export class StarlightTOC extends HTMLElement {
+ 		const setCurrent: IntersectionObserverCallback = (entries) => {
+ 			for (const { isIntersecting, target } of entries) {
+ 				if (!isIntersecting) continue;
++				// When the sentinel at the bottom of the page is reached, highlight the last link.
++				if (target === sentinel && links.length > 0) {
++					this.current = links[links.length - 1];
++					break;
++				}
+ 				const heading = getElementHeading(target);
+ 				if (!heading) continue;
+ 				const link = links.find((link) => link.hash === '#' + encodeURIComponent(heading.id));
+@@ -82,14 +87,27 @@ export class StarlightTOC extends HTMLElement {
+ 		// - direct children of `.sl-markdown-content` to include elements before the first subheading
+ 		// - direct children of `main` that don’t include headings (mainly to target Starlight’s banner)
+ 		// Ignore any elements that themselves contain a table-of-contents heading, as we are already observing those children.
+-		const toObserve = document.querySelectorAll(
+-			[
+-				`main :where(${this.tocHeadingSelector})`,
+-				`main :where(${this.tocHeadingSelector}, .sl-heading-wrapper) ~ *:not(:has(${this.tocHeadingSelector}))`,
+-				`main .sl-markdown-content > *:not(:has(${this.tocHeadingSelector}))`,
+-				`main > *:not(:has(${this.tocHeadingSelector}))`,
+-			].join()
+-		);
++		const toObserve = [
++			...document.querySelectorAll(
++				[
++					`main :where(${this.tocHeadingSelector})`,
++					`main :where(${this.tocHeadingSelector}, .sl-heading-wrapper) ~ *:not(:has(${this.tocHeadingSelector}))`,
++					`main .sl-markdown-content > *:not(:has(${this.tocHeadingSelector}))`,
++					`main > *:not(:has(${this.tocHeadingSelector}))`,
++				].join()
++			),
++		];
++
++		// Add a sentinel at the bottom of the page so the last TOC item is highlighted when scrolled to the bottom.
++		const sentinel = document.createElement('div');
++		sentinel.style.position = 'absolute';
++		sentinel.style.bottom = '0';
++		sentinel.style.height = '1px';
++		sentinel.style.width = '1px';
++		sentinel.style.pointerEvents = 'none';
++		sentinel.dataset.tocSentinel = '';
++		document.body.appendChild(sentinel);
++		toObserve.push(sentinel);
+ 
+ 		let observer: IntersectionObserver | undefined;
+ 		const observe = () => {
