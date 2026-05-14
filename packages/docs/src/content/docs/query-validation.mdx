@@ -1,0 +1,79 @@
+---
+title: Query Validation
+description: Deep dive into URL params, query params, and pagination validation
+---
+
+Fossyl provides three levels of parameter validation: URL path parameters, query string parameters, and pagination parameters. Each is validated at a different point in the request lifecycle and has different type inference behavior.
+
+## URL Parameters
+
+URL parameters are declared using `:param` syntax in the route path. Fossyl parses them at the type level — no runtime configuration needed.
+
+```typescript code-sample="query-validation/01-url-params" segment="url-params"
+```
+
+URL params are always `string` types since they come from the URL path. The `Params<Path>` utility type drives this inference.
+
+### Path Pattern Rules
+
+- `:id` → `{ id: string }`
+- `:postId/comments/:commentId` → `{ postId: string; commentId: string }`
+- Static segments and dynamic params can be mixed freely
+
+## Query Parameters
+
+Query parameters are optional and require a `queryValidator`. This keeps the type system honest — you explicitly declare what query params you expect.
+
+```typescript code-sample="query-validation/02-query-params" segment="query-params"
+```
+
+### Query Validation with Zod
+
+The `@fossyl/zod` package provides `zodQueryValidator` for Zod-based query validation. Use `z.coerce` for type coercion from strings:
+
+```typescript code-sample="query-validation/03-query-with-zod" segment="query-with-zod"
+```
+
+### Query vs URL Params
+
+| Aspect | URL Params | Query Params |
+|--------|-----------|-------------|
+| Syntax | `:id` in path | `?key=value` in URL |
+| Required | Always | Optional |
+| Type | Always `string` | Any (coerced) |
+| Validation | Automatic | Via `queryValidator` |
+| Access | `url.paramName` | `query.fieldName` |
+
+## Pagination Parameters
+
+List routes handle pagination automatically. The route type provides `page`, `pageSize`, and configures defaults and limits.
+
+```typescript code-sample="query-validation/04-pagination" segment="pagination"
+```
+
+### PaginationConfig
+
+```typescript
+type PaginationConfig = {
+  defaultPageSize: number;  // Default when ?pageSize is omitted
+  maxPageSize: number;       // Hard upper limit enforced at runtime
+};
+```
+
+### Response Shape
+
+Paginated endpoints return a `PaginatedResponse<T>`:
+
+```typescript
+type PaginatedResponse<T> = {
+  data: T[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    hasMore?: boolean;  // Use N+1 trick to determine
+    total?: number;     // Optional: include if you do a count query
+  };
+};
+```
+
+The N+1 trick (fetching `pageSize + 1` items) is the recommended way to determine `hasMore` without a separate count query.

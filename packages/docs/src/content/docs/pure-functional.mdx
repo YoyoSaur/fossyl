@@ -1,0 +1,49 @@
+---
+title: Pure Functional
+description: Fossyl's validator-library agnostic design with pure function adapters
+---
+
+Fossyl is designed around **pure functions** — no decorators, no base classes, no framework coupling. Every adapter in the ecosystem is just a function or an object implementing a simple interface.
+
+## Validators Are Just Functions
+
+A validator in fossyl is a function that receives `unknown` and returns a typed value. That's it.
+
+```typescript code-sample="pure-functional/01-validator-function" segment="validator-function"
+```
+
+Use **any** validation library — Zod, Valibot, Yup, io-ts, or write your own. The type system flows from the return type of your validator.
+
+## Adapter Pattern
+
+Fossyl defines several adapter interfaces. Each adapter type is an independent contract — they are standalone modules that get composed in your project's entry point.
+
+### Database Adapter
+
+Database adapters provide transaction management and client context. Created independently, then passed to the framework adapter:
+
+```typescript code-sample="pure-functional/05-database-adapter" segment="database-adapter"
+```
+
+### Logger Adapter
+
+Logger adapters create per-request loggers. Any logging library works:
+
+```typescript code-sample="pure-functional/04-logger-adapter" segment="logger-adapter"
+```
+
+### Validation Adapter
+
+Validation adapters format errors for HTTP responses. The default is usually sufficient, but you can customize it:
+
+```typescript code-sample="pure-functional/03-custom-validation-adapter" segment="custom-validation-adapter"
+```
+
+## Adapter Composition
+
+Adapters are standalone modules composed in `src/index.ts`. Each is created independently and wired together through the framework adapter:
+
+```typescript code-sample="pure-functional/06-adapter-composition" segment="adapter-composition"
+```
+
+The framework adapter orchestrates them at runtime — it calls `database.onStartup()` on listen, wraps POST/PUT handlers in `withTransaction()`, and provides `getLogger()`/`getDb()` context accessors. But each adapter is its own standalone module.

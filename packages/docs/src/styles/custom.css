@@ -178,11 +178,11 @@ button:active,
   box-shadow: 0 4px 0px var(--fossyl-brown) !important;
 }
 
-.header > div,
 .header .sl-flex {
   max-width: 1200px !important;
   margin-left: auto !important;
   margin-right: auto !important;
+  justify-content: flex-start !important;
 }
 
 /* Remove padding/gap that creates double line effect */
@@ -201,6 +201,72 @@ header.header,
   letter-spacing: 0.05em !important;
   color: var(--fossyl-brown) !important;
   text-shadow: 2px 2px 0px var(--fossyl-orange);
+}
+
+/* Center search in header */
+.header .header {
+  display: flex !important;
+  align-items: center !important;
+}
+
+.header .title-wrapper {
+  flex: 1 1 0 !important;
+}
+
+.header site-search {
+  flex: 0 0 auto !important;
+}
+
+.header site-search button {
+  all: unset !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  cursor: pointer !important;
+  padding: 0.5rem 1rem !important;
+  border: 2px solid var(--fossyl-brown) !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  background: var(--fossyl-cream) !important;
+  color: var(--fossyl-brown) !important;
+  font-weight: 500 !important;
+  font-size: 0.875rem !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+}
+
+/* Show keyboard shortcut with visible colors */
+.header site-search button kbd {
+  display: flex !important;
+  color: var(--fossyl-brown) !important;
+  background: var(--fossyl-cream) !important;
+  gap: 0.125rem !important;
+  align-items: center !important;
+}
+
+.header site-search button kbd kbd {
+  border: 1px solid var(--fossyl-brown) !important;
+  padding: 0 0.25rem !important;
+  font-size: 0.7rem !important;
+  line-height: 1.3 !important;
+  border-radius: 2px !important;
+  color: var(--fossyl-brown) !important;
+  background: var(--fossyl-tan) !important;
+}
+
+.header .right-group {
+  flex: 1 1 0 !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  border: none !important;
+}
+
+/* Remove separator bars */
+.social-icons::before,
+.social-icons::after {
+  display: none !important;
 }
 
 /* ===== Sidebar ===== */
@@ -232,6 +298,105 @@ header.header,
 .right-sidebar-container,
 aside.right-sidebar {
   min-width: 16rem !important;
+}
+
+.right-sidebar-panel {
+  padding-bottom: 0 !important;
+}
+
+/* ===== Table of Contents Active State ===== */
+starlight-toc a {
+  border-bottom: none !important;
+}
+
+starlight-toc a[aria-current="true"],
+starlight-toc a[aria-current="page"] {
+  color: var(--fossyl-brown) !important;
+  font-weight: 900 !important;
+  border-left: 3px solid var(--fossyl-orange) !important;
+  padding-left: 0.5rem !important;
+  border-bottom: none !important;
+}
+
+starlight-toc a[aria-current="true"] span,
+starlight-toc a[aria-current="page"] span {
+  color: var(--fossyl-brown) !important;
+}
+
+/* Remove bottom borders from all navigation elements */
+.sidebar li a,
+.sidebar li a:hover,
+.sidebar details summary,
+.right-sidebar a,
+.right-sidebar li,
+.right-sidebar-panel a,
+.right-sidebar-panel li,
+starlight-toc a,
+starlight-toc li,
+starlight-toc details summary {
+  border-bottom: none !important;
+}
+
+/* Remove bottom border from sidebar group labels */
+.sidebar-group-label,
+.sidebar > ul > li > a,
+.sidebar > ul > li > details > summary {
+  border-bottom: none !important;
+}
+
+/* Remove any remaining bottom borders from sidebar containers */
+.sidebar-content,
+.right-sidebar-panel > *,
+starlight-toc > *,
+.sidebar > ul > li {
+  border-bottom: none !important;
+}
+
+/* Override any Starlight default borders on nav items */
+nav.sidebar a,
+nav.sidebar summary,
+nav.sidebar li {
+  border-bottom: 0 !important;
+}
+
+/* ===== TS Type Hints (hover tooltip) ===== */
+.ec-line [data-ts-type] {
+  position: relative;
+  cursor: help;
+  border-bottom: 1px dashed rgba(110, 66, 4, 0.3);
+  transition: border-color 150ms;
+}
+
+.ec-line [data-ts-type]:hover {
+  border-bottom-color: var(--fossyl-orange);
+}
+
+/* When hovering a tooltip, unclip containers so the tooltip isn't cut off */
+.expressive-code:has(.ec-line [data-ts-type]:hover) pre,
+.expressive-code:has(.ec-line [data-ts-type]:hover) pre > code {
+  overflow: visible !important;
+}
+
+.ec-line [data-ts-type] > .ts-tooltip {
+  position: absolute;
+  z-index: 100;
+  bottom: calc(100% + 5px);
+  left: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.7rem;
+  font-weight: 500;
+  padding: 3px 8px;
+  background: #2d1b06;
+  border: 1px solid #6d4204;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 100ms;
+  line-height: 1.5;
+  white-space: pre;
+}
+
+.ec-line [data-ts-type]:hover > .ts-tooltip {
+  opacity: 1;
 }
 
 /* ===== Hero Section (Splash Template) ===== */
@@ -317,14 +482,14 @@ blockquote {
 
 /* ===== Search ===== */
 .search-input {
-  border: 3px solid var(--fossyl-brown) !important;
+  border: 2px solid var(--fossyl-brown) !important;
   border-radius: 0 !important;
-  box-shadow: 4px 4px 0px var(--fossyl-brown) !important;
+  box-shadow: none !important;
 }
 
 .search-input:focus {
   border-color: var(--fossyl-orange) !important;
-  box-shadow: 6px 6px 0px var(--fossyl-orange) !important;
+  box-shadow: none !important;
 }
 
 /* ===== Mobile Menu ===== */

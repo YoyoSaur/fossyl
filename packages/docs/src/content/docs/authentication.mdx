@@ -1,0 +1,57 @@
+---
+title: Authentication
+description: Type-safe authentication with custom and SQL-based authenticators
+---
+
+Authentication in fossyl is a function that receives request headers and returns a branded `Authentication` object via `authWrapper()`. The return type flows into your handler — no explicit generics needed.
+
+## How It Works
+
+Authentication functions **must** return a `Promise`. This allows for async operations — JWT verification, database lookups, OAuth token exchange, and more.
+
+```typescript code-sample="authentication/01-custom-auth" segment="custom-auth"
+```
+
+The `authWrapper()` function brands the return value so the type system can distinguish authentication data from body data. This is how fossyl knows to pass auth data to the correct handler parameter position.
+
+## SQL-Based Authentication
+
+Look up users in your database using `getDb()` from the Express adapter context:
+
+```typescript code-sample="authentication/02-sql-auth" segment="sql-auth"
+```
+
+The database client is available because the database adapter provides it via AsyncLocalStorage. This works automatically when you configure a database adapter on the framework adapter.
+
+## Role-Based Access Control
+
+Compose authenticators for role-based access. Since authenticators are just functions, you can create higher-order authenticators that check roles:
+
+```typescript code-sample="authentication/03-role-based-auth" segment="role-based-auth"
+```
+
+## Route Types with Authentication
+
+Authentication is available on these route types:
+
+| Route Type | Auth | Use Case |
+|-----------|------|----------|
+| `AuthenticatedRoute` | Required | Protected GET/DELETE |
+| `FullRoute` | Required | Protected POST/PUT |
+| `AuthenticatedListRoute` | Required | Protected paginated collections |
+
+## Error Handling
+
+Throw `AuthenticationError` from your authenticator to return a 401 response:
+
+```typescript
+import { AuthenticationError } from '@fossyl/express';
+
+// The adapter catches this and returns:
+// {
+//   success: "false",
+//   error: { code: 1002, message: "Invalid token" }
+// }
+```
+
+The Express adapter's error middleware handles `AuthenticationError` automatically, returning a standardized error response with error code `1002`.

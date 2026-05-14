@@ -1,0 +1,114 @@
+---
+title: Type-Safe Routes
+description: How fossyl's type inference system makes your routes bulletproof
+---
+
+Fossyl's type system is designed to give you compile-time guarantees about your API routes. Every URL parameter, query string, request body, and authentication context is fully typed — no explicit generics required.
+
+## URL Parameter Inference
+
+Route paths use `:param` syntax for dynamic segments. Fossyl extracts these parameters at the type level and exposes them as typed fields on the `url` object.
+
+```typescript code-sample="type-safe-routes/01-url-params" segment="url-params"
+```
+
+The `Params<Path>` utility type powers this — it parses the path template at the type level and produces an object type like `{ id: string }` or `{ postId: string; commentId: string }`.
+
+## Six Route Types, One API
+
+Every HTTP method on an endpoint uses **function overloads** to give you exactly the configuration options you need — and only those. The type system guides you toward correct usage.
+
+### Open Routes — No Auth, No Body Validation
+
+For public GET/DELETE endpoints. The handler receives URL params and optionally parsed query params.
+
+```typescript code-sample="type-safe-routes/02-open-routes" segment="open-routes"
+```
+
+### Validated Routes — Body Validation, No Auth
+
+For POST/PUT endpoints where anyone can submit data, but the body must be validated.
+
+```typescript code-sample="type-safe-routes/03-validated-routes" segment="validated-routes"
+```
+
+The `validator` function's return type becomes the `body` type in the handler — inference flows through automatically.
+
+### Authenticated Routes — Auth, No Body Validation
+
+For GET/DELETE endpoints that require an authenticated user.
+
+```typescript code-sample="type-safe-routes/04-authenticated-routes" segment="authenticated-routes"
+```
+
+### Full Routes — Auth + Body Validation
+
+For POST/PUT endpoints that need both authentication and a validated body.
+
+```typescript code-sample="type-safe-routes/05-full-routes" segment="full-routes"
+```
+
+### List Routes — Paginated GET Endpoints
+
+For collection endpoints that return paginated results. Pagination params (`page`, `pageSize`) are automatically parsed from the query string.
+
+```typescript code-sample="type-safe-routes/06-list-routes" segment="list-routes"
+```
+
+List routes return `PaginatedResponse<T>` — a `{ data: T[], pagination: { page, pageSize, hasMore?, total? } }` shape.
+
+## How Inference Works
+
+Fossyl uses a few key techniques to drive type inference without explicit generics:
+
+### Function Overloads
+
+Each method (`.get()`, `.post()`, etc.) has multiple overloads ordered by specificity. The TypeScript compiler picks the correct overload based on which keys you provide in the config object:
+
+- **No `authenticator`, no `queryValidator`** → Open route (GET/DELETE) or Validated route (POST/PUT)
+- **`authenticator` only** → Authenticated route
+- **`validator` only** → Validated route
+- **`authenticator` + `validator`** → Full route
+- **`.list()`** → List route (pagination always included)
+
+Overloads with `queryValidator` are listed first so they take priority when both query and no-query variants match.
+
+### Branded Types
+
+The `Authentication` and `RequestBody` types use unique symbols as brands:
+
+```typescript
+declare const authBrand: unique symbol;
+type Authentication = { readonly [authBrand]: "Auth" };
+
+declare const requestBrand: unique symbol;
+type RequestBody = { readonly [requestBrand]: "RequestBody" };
+```
+
+`authWrapper()` and `bodyWrapper()` apply these brands at runtime. The brands are what let the type system distinguish between "data from the authenticator" and "data from the validator" — and pass them to the correct handler parameter positions.
+
+### Response Data Constraint
+
+All route handlers must return objects that include a `typeName` property:
+
+```typescript
+type ResponseData<TypeName extends string = string> = {
+  typeName: TypeName;
+};
+```
+
+This enables self-describing API responses. The `ApiResponse` wrapper automatically includes the `typeName` as a `type` field on the outer envelope:
+
+```typescript
+type ApiResponse<T extends ResponseData> = {
+  success: "true";
+  type: T["typeName"];
+  data: T;
+};
+```
+
+The Express adapter (and others) wrap all responses in this format automatically.
+
+## Error Handling
+
+Fossyl leaves error handling to you. Throw from `authenticator`, `validator`, or `handler` and handle it in your adapter's error middleware. This keeps the type system focused on what matters: **correct data flow** at compile time.

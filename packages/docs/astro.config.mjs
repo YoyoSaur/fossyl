@@ -1,6 +1,8 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
+import { tsTypeHints } from './plugins/ts-type-hints.mjs';
+import { codeSampleRemarkPlugin } from './plugins/code-sample.mjs';
 
 // https://astro.build/config
 export default defineConfig({
@@ -20,6 +22,7 @@ export default defineConfig({
         },
       ],
       expressiveCode: {
+        plugins: [tsTypeHints()],
         defaultProps: {
           frame: 'none',
         },
@@ -109,7 +112,7 @@ export default defineConfig({
         {
           label: 'GitHub',
           icon: 'github',
-          href: 'https://github.com/gHashTag/fossyl',
+          href: 'https://github.com/yoyosaur/fossyl',
         },
       ],
       sidebar: [
@@ -118,6 +121,16 @@ export default defineConfig({
           items: [
             { label: 'Introduction', link: '/' },
             { label: 'Getting Started', slug: 'getting-started' },
+            { label: 'Type-Safe Routes', slug: 'type-safe-routes' },
+          ],
+        },
+        {
+          label: 'Guides',
+          items: [
+            { label: 'Pure Functional', slug: 'pure-functional' },
+            { label: 'Query Validation', slug: 'query-validation' },
+            { label: 'Authentication', slug: 'authentication' },
+            { label: 'AI-First', slug: 'ai-first' },
           ],
         },
         {
@@ -142,5 +155,8 @@ export default defineConfig({
       },
     }),
   ],
+  markdown: {
+    remarkPlugins: [codeSampleRemarkPlugin],
+  },
   site: 'https://fossyl.dev',
 });
