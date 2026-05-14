@@ -1,0 +1,13 @@
+{
+  "name": "fossyl-eslint-test-app",
+  "private": true,
+  "type": "module",
+  "description": "Test fixture for eslint-plugin-fossyl rules",
+  "scripts": {
+    "lint": "eslint src/"
+  },
+  "dependencies": {
+    "@fossyl/core": "workspace:*",
+    "zod": "^3.23.0"
+  }
+}
