@@ -1,7 +1,7 @@
 import { createRouter } from "./router/router";
 import { authWrapper } from "./router/types/routes.types";
 
-import {zodQueryValidator, zodValidator} from "../../zod/src/index";
+import { zodQueryValidator, zodValidator } from "../../zod/src/index";
 import { z } from "../../zod/node_modules/zod";
 
 const authenticationMiddleware = async (headers: Record<string, string>) => {
@@ -14,9 +14,9 @@ const authenticationMiddleware = async (headers: Record<string, string>) => {
 const baseRouter = createRouter("/status");
 const endpoint = baseRouter.createEndpoint("/status");
 
-const _getter = endpoint.get({
+const _getter = endpoint.post({
   authenticator: authenticationMiddleware,
-  handler: async (_params, _auth) => {
+  handler: async (_params) => {
     return {
       typeName: "StatusResponse" as const,
       status: "ok",
@@ -38,8 +38,7 @@ const bodySchema = z.object({
 // Test: zodValidator inline with full inference
 const _poster = endpoint.post({
   validator: zodValidator(bodySchema),
-  queryValidator: zodQueryValidator(searchQuerySchema),
-  handler: async (_params, body) => {
+  handler: async (args) => {
     // If inference works, these should typecheck:
     const name: string = body.name;
     const email: string = body.email;

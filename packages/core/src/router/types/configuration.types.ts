@@ -46,58 +46,46 @@ export type AuthenticationFunction<T extends Authentication> = (
  * 3. Full (auth + validated), no query: authenticator + validator + handler(params, auth, body)
  * 4. Full (auth + validated), with query: authenticator + validator + queryValidator + handler(params, auth, body)
  */
+
+type Config<
+  Auth extends Authentication | undefined = undefined,
+  RequestBody extends unknown | undefined = undefined,
+  Query extends unknown | undefined = undefined,
+> = {
+  _auth: Auth;
+  _body: RequestBody;
+  _query: Query;
+  authenticator?: Auth extends Authentication ? AuthenticationFunction<Auth> : never;
+  validator?: RequestBody extends unknown ? ValidatorFunction<RequestBody> : never;
+  queryValidator?: Query extends unknown ? ValidatorFunction<Query> : never;
+};
+
+type DerivedHandler<Path extends string, C extends Config<any, any, any>> = {
+  url: Params<Path>;
+} & {
+  query: C["_query"] extends unknown ? C["_query"] : never;
+} & { auth: C["_auth"] extends Authentication ? C["_auth"] : never } & {
+  body: C["_body"] extends unknown ? C["_body"] : never;
+};
+
+type DeriveRoute<
+  Path extends string,
+  Method extends RestMethod,
+  C extends Config<any, any, any>,
+> = C["_auth"] extends Authentication
+  ? FullRoute<Path, Method, ResponseData, C["_body"], C["_auth"], C["_query"]>
+  : C["_body"] extends unknown
+    ? ValidatedRoute<Path, Method, ResponseData, C["_body"], C["_query"]>
+    : C["_query"] extends unknown
+      ? OpenRoute<Path, Method, ResponseData>
+      : never;
+
 export type EndpointCreationFunction<Path extends string, Method extends RestMethod> = {
-  // Validated route: no auth, with query (MUST be before no-query variant)
-  <Res extends ResponseData, RequestBody extends unknown, Query extends unknown>(
-    config: {
-      authenticator?: never;
-      validator: ValidatorFunction<RequestBody>;
-      queryValidator: ValidatorFunction<Query>;
-      handler: (
-        params: { url: Params<Path>; query: Query },
-        body: RequestBody
-      ) => Promise<Res>;
+  <Res extends ResponseData, C extends Config<any, any, any>>(
+    config: C & {
+      handler: (args: DerivedHandler<Path, C>) => Promise<Res>;
     }
-  ): ValidatedRoute<Path, Method, Res, RequestBody, Query>;
-
-  // Validated route: no auth, no query
-  <Res extends ResponseData, RequestBody extends unknown>(
-    config: {
-      authenticator?: never;
-      validator: ValidatorFunction<RequestBody>;
-      queryValidator?: never;
-      handler: (params: { url: Params<Path> }, body: RequestBody) => Promise<Res>;
-    }
-  ): ValidatedRoute<Path, Method, Res, RequestBody, undefined>;
-
-  // Full route: auth + body validation, with query (MUST be before no-query variant)
-  <
-    Res extends ResponseData,
-    RequestBody extends unknown,
-    Auth extends Authentication,
-    Query extends unknown,
-  >(
-    config: {
-      authenticator: AuthenticationFunction<Auth>;
-      validator: ValidatorFunction<RequestBody>;
-      queryValidator: ValidatorFunction<Query>;
-      handler: (
-        params: { url: Params<Path>; query: Query },
-        auth: Auth,
-        body: RequestBody
-      ) => Promise<Res>;
-    }
-  ): FullRoute<Path, Method, Res, RequestBody, Auth, Query>;
-
-  // Full route: auth + body validation, no query
-  <Res extends ResponseData, RequestBody extends unknown, Auth extends Authentication>(
-    config: {
-      authenticator: AuthenticationFunction<Auth>;
-      validator: ValidatorFunction<RequestBody>;
-      queryValidator?: never;
-      handler: (params: { url: Params<Path> }, auth: Auth, body: RequestBody) => Promise<Res>;
-    }
-  ): FullRoute<Path, Method, Res, RequestBody, Auth, undefined>;
+  ): DeriveRoute<Path, Method, C>;
 };
 
 /**
@@ -112,40 +100,32 @@ export type EndpointCreationFunction<Path extends string, Method extends RestMet
  */
 export type GetEndpointCreationFunction<Path extends string, Method extends RestMethod> = {
   // Open route: no auth, with query (MUST be before no-query variant)
-  <Res extends ResponseData, Query extends unknown>(
-    config: {
-      authenticator?: never;
-      queryValidator: ValidatorFunction<Query>;
-      handler: (params: { url: Params<Path>; query: Query }) => Promise<Res>;
-    }
-  ): OpenRoute<Path, Method, Res, Query>;
+  <Res extends ResponseData, Query extends unknown>(config: {
+    authenticator?: never;
+    queryValidator: ValidatorFunction<Query>;
+    handler: (params: { url: Params<Path>; query: Query }) => Promise<Res>;
+  }): OpenRoute<Path, Method, Res, Query>;
 
   // Open route: no auth, no query
-  <Res extends ResponseData>(
-    config: {
-      authenticator?: never;
-      queryValidator?: never;
-      handler: (params: { url: Params<Path> }) => Promise<Res>;
-    }
-  ): OpenRoute<Path, Method, Res, undefined>;
+  <Res extends ResponseData>(config: {
+    authenticator?: never;
+    queryValidator?: never;
+    handler: (params: { url: Params<Path> }) => Promise<Res>;
+  }): OpenRoute<Path, Method, Res, undefined>;
 
   // Authenticated route: auth, with query (MUST be before no-query variant)
-  <Res extends ResponseData, Auth extends Authentication, Query extends unknown>(
-    config: {
-      authenticator: AuthenticationFunction<Auth>;
-      queryValidator: ValidatorFunction<Query>;
-      handler: (params: { url: Params<Path>; query: Query }, auth: Auth) => Promise<Res>;
-    }
-  ): AuthenticatedRoute<Path, Method, Res, Auth, Query>;
+  <Res extends ResponseData, Auth extends Authentication, Query extends unknown>(config: {
+    authenticator: AuthenticationFunction<Auth>;
+    queryValidator: ValidatorFunction<Query>;
+    handler: (params: { url: Params<Path>; query: Query }, auth: Auth) => Promise<Res>;
+  }): AuthenticatedRoute<Path, Method, Res, Auth, Query>;
 
   // Authenticated route: auth, no query
-  <Res extends ResponseData, Auth extends Authentication>(
-    config: {
-      authenticator: AuthenticationFunction<Auth>;
-      queryValidator?: never;
-      handler: (params: { url: Params<Path> }, auth: Auth) => Promise<Res>;
-    }
-  ): AuthenticatedRoute<Path, Method, Res, Auth, undefined>;
+  <Res extends ResponseData, Auth extends Authentication>(config: {
+    authenticator: AuthenticationFunction<Auth>;
+    queryValidator?: never;
+    handler: (params: { url: Params<Path> }, auth: Auth) => Promise<Res>;
+  }): AuthenticatedRoute<Path, Method, Res, Auth, undefined>;
 };
 
 /**

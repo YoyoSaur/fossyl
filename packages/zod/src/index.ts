@@ -29,8 +29,8 @@ import type { z } from "zod";
  * });
  * ```
  */
-export function zodValidator<T extends z.ZodTypeAny>(schema: T): T["parse"] {
-  return schema.parse.bind(schema);
+export function zodValidator<T extends z.ZodTypeAny>(schema: T): (data: unknown) => z.infer<T> {
+  return (data) => schema.parse(data);
 }
 
 /**
