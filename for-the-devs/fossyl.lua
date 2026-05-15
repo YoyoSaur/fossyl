@@ -221,4 +221,4 @@ function M.setup()
   hi("NvimTreeNormalNC", { fg = c.fg, bg = c.dark_brown })
 end
 
-return M
+M.setup()
