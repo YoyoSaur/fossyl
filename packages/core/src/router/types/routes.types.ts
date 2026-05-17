@@ -92,9 +92,9 @@ export type PaginationParams = {
  */
 export type PaginationConfig = {
   /** Default page size if not specified. Defaults to 20. */
-  defaultPageSize?: number;
+  defaultPageSize: number;
   /** Maximum allowed page size. Defaults to 100. */
-  maxPageSize?: number;
+  maxPageSize: number;
 };
 
 /**
@@ -312,11 +312,7 @@ export type FullRoute<
  *
  * Use for: Collection endpoints that return multiple items.
  */
-export type ListRoute<
-  Path extends string,
-  Data,
-  Query extends unknown | undefined = undefined,
-> = {
+export type ListRoute<Path extends string, Data, Query extends unknown | undefined = undefined> = {
   type: "list";
   path: Path;
   method: "GET";
