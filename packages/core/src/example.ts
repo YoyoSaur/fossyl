@@ -29,7 +29,7 @@ endpoint
   .paginate({ defaultPageSize: 20, maxPageSize: 100 })
   .authenticator(authenticationMiddleware)
   .validator(bodyValidator)
-  .post((auth) => (body) => (query) => (paginate) => (url) => async () => {
+  .post((body) => (query) => (paginate) => (url) => async () => {
     return {
       typeName: "StatusResponse",
       status: "OK",
