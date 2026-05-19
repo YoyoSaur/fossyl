@@ -1,71 +1,92 @@
-import { AuthenticationFunction, ValidatorFunction } from "./configuration.types";
 import { EndpointParams } from "./params.types";
 import {
-  AuthenticatedRoute,
   Authentication,
-  FullRoute,
-  OpenRoute,
+  BodySupportedMethods,
+  PaginatedResponse,
   PaginationConfig,
   PaginationParams,
   ResponseData,
   RestMethod,
-  ValidatedRoute,
+  Route,
 } from "./routes.types";
+import { StripUndefined } from "./util.types";
 
-export type Handler<
-  P extends EndpointParams<string, unknown | undefined, PaginationParams | undefined>,
-  Response extends ResponseData,
-  RequestBody extends unknown | undefined,
-  Auth extends Authentication | undefined,
-> = UrlChain<[P["url"], P["query"], P["pagination"], Auth, RequestBody], Response>;
+// ---Validator Functions
 
+export type ValidatorFunction<T> = (data: unknown) => T;
+export type AuthenticationFunction<T extends Authentication> = (
+  headers: Record<string, string>
+) => Promise<T>;
+
+// ---Handler Parameters Construction
+type HandlerParams<
+  P extends Pick<
+    EndpointParams<string, unknown | undefined, PaginationParams | undefined>,
+    "url" | "query" | "pagination"
+  >,
+> =
+  StripUndefined<{
+    url: UrlParamsToken<P["url"]>;
+    query: QueryToken<P["query"]>;
+    pagination: PaginationToken<P["pagination"]>;
+  }> extends infer T
+    ? {} extends T
+      ? never
+      : T
+    : never;
+
+type ParametersToken<T> = T & { readonly __kind: "parameters" };
 type UrlParamsToken<T> = T & { readonly __kind: "url" };
 type QueryToken<T> = T & { readonly __kind: "query" };
 type PaginationToken<T> = T & { readonly __kind: "pagination" };
 type AuthToken<T> = T & { readonly __kind: "auth" };
 type BodyToken<T> = T & { readonly __kind: "body" };
 
-type UrlChain<Stack extends [any, any, any, any, any], Response> = Stack extends [
-  infer url,
-  ...infer Rest extends [any, any, any, any],
-]
-  ? undefined extends url
-    ? QueryChain<Rest, Response>
-    : (url: UrlParamsToken<url>) => QueryChain<Rest, Response>
-  : never;
+export type Handler<
+  P extends EndpointParams<string, unknown | undefined, PaginationParams | undefined>,
+  Response extends ResponseData,
+  RequestBody extends unknown | undefined,
+  Auth extends Authentication | undefined,
+> = UrlChain<
+  [P, Auth, RequestBody],
+  undefined extends P["pagination"] ? Response : PaginatedResponse<Response>
+>;
 
-type QueryChain<Stack extends [any, any, any, any], Response> = Stack extends [
-  infer query,
-  ...infer Rest extends [any, any, any],
-]
-  ? undefined extends query
-    ? PaginationChain<Rest, Response>
-    : (query: QueryToken<query>) => PaginationChain<Rest, Response>
-  : never;
+// ----Currying Chain
 
-type PaginationChain<Stack extends [any, any, any], Response> = Stack extends [
-  infer pagination,
-  ...infer Rest extends [any, any],
-]
-  ? undefined extends pagination
-    ? AuthenticationChain<Rest, Response>
-    : (pagination: PaginationToken<pagination>) => AuthenticationChain<Rest, Response>
-  : never;
+type UrlChain<
+  Stack extends [
+    EndpointParams<string, unknown | undefined, PaginationParams | undefined>,
+    any,
+    any,
+  ],
+  Response,
+> =
+  HandlerParams<Stack[0]> extends never
+    ? AuthenticationChain<[Stack[1], Stack[2]], Response>
+    : (
+        parameters: ParametersToken<HandlerParams<Stack[0]>>
+      ) => AuthenticationChain<[Stack[1], Stack[2]], Response>;
 
-type AuthenticationChain<Stack extends [any, any], Response> = Stack extends [
-  infer auth,
-  ...infer Rest extends [any],
-]
-  ? undefined extends auth
-    ? BodyChain<Rest, Response>
-    : (auth: AuthToken<auth>) => BodyChain<Rest, Response>
-  : never;
+type AuthenticationChain<Stack extends [any, any], Response> = undefined extends Stack[0]
+  ? BodyChain<[Stack[1]], Response>
+  : (auth: AuthToken<Stack[0]>) => BodyChain<[Stack[1]], Response>;
 
-type BodyChain<Stack extends [any], Response> = Stack extends [infer body]
-  ? undefined extends body
-    ? () => Promise<Response>
-    : (body: BodyToken<body>) => () => Promise<Response>
-  : never;
+type BodyChain<Stack extends [any], Response> = undefined extends Stack[0]
+  ? () => Promise<Response>
+  : (body: BodyToken<Stack[0]>) => () => Promise<Response>;
+
+// ----Route Builder
+
+export type QueryableRouter<P extends EndpointParams<string, unknown>> = {
+  paginate: (
+    paginationConfig: PaginationConfig
+  ) => PaginatedRouter<EndpointParams<P["path"], P["query"], PaginationParams>>;
+} & OpenRouter<P>;
+
+export type PaginatedRouter<
+  P extends EndpointParams<string, unknown | undefined, PaginationParams>,
+> = OpenRouter<P>;
 
 export type OpenRouter<
   P extends EndpointParams<string, unknown | undefined, PaginationParams | undefined>,
@@ -79,19 +100,8 @@ export type OpenRouter<
 } & {
   [Method in RestMethod as Lowercase<Method>]: <Response extends ResponseData>(
     handler: Handler<P, Response, undefined, undefined>
-  ) => OpenRoute<P["path"], Method, Response>;
+  ) => Route;
 };
-
-export type PaginatedRouter<
-  P extends EndpointParams<string, unknown | undefined, PaginationParams>,
-> = OpenRouter<P>;
-
-export type QueryableRouter<P extends EndpointParams<string, unknown>> = {
-  paginate: (
-    paginationConfig: PaginationConfig
-  ) => PaginatedRouter<EndpointParams<P["path"], P["query"], PaginationParams>>;
-} & OpenRouter<P>;
-
 export type AuthenticatedRouter<
   P extends EndpointParams<string, unknown | undefined, PaginationParams | undefined>,
   Auth extends Authentication,
@@ -102,16 +112,16 @@ export type AuthenticatedRouter<
 } & {
   [Method in RestMethod as Lowercase<Method>]: <Response extends ResponseData>(
     handler: Handler<P, Response, undefined, Auth>
-  ) => AuthenticatedRoute<P["path"], Method, Response, Auth>;
+  ) => Route;
 };
 
 export type ValidatedRouter<
   P extends EndpointParams<string, unknown | undefined, PaginationParams | undefined>,
   RequestBody extends unknown,
 > = {
-  [Method in RestMethod as Lowercase<Method>]: <Response extends ResponseData>(
+  [Method in BodySupportedMethods as Lowercase<Method>]: <Response extends ResponseData>(
     handler: Handler<P, Response, RequestBody, undefined>
-  ) => ValidatedRoute<P["path"], Method, Response, RequestBody>;
+  ) => Route;
 };
 
 export type FullRouter<
@@ -119,10 +129,12 @@ export type FullRouter<
   RequestBody extends unknown,
   Auth extends Authentication,
 > = {
-  [Method in RestMethod as Lowercase<Method>]: <Response extends ResponseData>(
+  [Method in BodySupportedMethods as Lowercase<Method>]: <Response extends ResponseData>(
     handler: Handler<P, Response, RequestBody, Auth>
-  ) => FullRoute<P["path"], Method, Response, RequestBody, Auth>;
+  ) => Route;
 };
+
+// ----Entrypoints
 
 /* Endpoint seems more complex than it is from its type signature.
  * It has 5 Major functions on offer. The different HTTP methods + list

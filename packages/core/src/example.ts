@@ -26,10 +26,10 @@ const bodyValidator = zodValidator(bodySchema);
 
 endpoint
   .query(searchQueryValidator)
-  .paginate({ defaultPageSize: 20, maxPageSize: 100 })
   .authenticator(authenticationMiddleware)
   .validator(bodyValidator)
-  .post((body) => (query) => (paginate) => (url) => async () => {
+  .post((parameters) => (auth) => (body) => async () => {
+    const { url, query } = parameters;
     return {
       typeName: "StatusResponse",
       status: "OK",
@@ -37,7 +37,6 @@ endpoint
         auth,
         body,
         query,
-        paginate,
         url,
       },
     };

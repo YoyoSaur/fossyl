@@ -20,7 +20,6 @@ export type {
 export type {
   Authentication,
   ResponseData,
-  ApiResponse,
   OpenRoute,
   AuthenticatedRoute,
   ValidatedRoute,
@@ -35,21 +34,14 @@ export type {
   PaginatedResponse,
 } from "./router/types/routes.types";
 
-export type {
-  ValidatorFunction,
-  AuthenticationFunction,
-} from "./router/types/configuration.types";
+export type { ValidatorFunction, AuthenticationFunction } from "./router/types/configuration.types";
 
 export type { Endpoint, Router } from "./router/types/router-creation.types";
 
 export type { Params } from "./router/types/params.types";
 
 // Validation types
-export type {
-  ValidationResult,
-  ValidationError,
-  ValidationWarning,
-} from "./validation";
+export type { ValidationResult, ValidationError, ValidationWarning } from "./validation";
 
 // Utility exports
 export { authWrapper } from "./router/types/routes.types";

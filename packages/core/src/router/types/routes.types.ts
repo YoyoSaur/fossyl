@@ -1,5 +1,4 @@
-import { AuthenticationFunction, ValidatorFunction } from "./configuration.types";
-import { Params } from "./params.types";
+import { AuthenticationFunction, ValidatorFunction } from "./router-creation.types";
 
 declare const authBrand: unique symbol;
 declare const requestBrand: unique symbol;
@@ -73,6 +72,7 @@ export function bodyWrapper<T>(body: T): T & RequestBody {
 }
 
 export type RestMethod = "GET" | "POST" | "PUT" | "DELETE";
+export type BodySupportedMethods = Extract<RestMethod, "POST" | "PUT">;
 
 // ============================================================================
 // Pagination Types
@@ -105,7 +105,7 @@ export type PaginationConfig = {
  *   - hasMore: Optional, use N+1 trick to compute cheaply
  *   - total: Optional, requires COUNT query (expensive)
  */
-export type PaginatedResponse<T> = {
+export type PaginatedResponse<T extends ResponseData> = {
   data: T[];
   pagination: {
     page: number;
@@ -135,238 +135,15 @@ export type ResponseData<TypeName extends string = string> = {
   typeName: TypeName;
 };
 
-/**
- * Standard API response wrapper.
- *
- * All fossyl route responses are wrapped in this format for consistency.
- * The adapter extracts `typeName` from the data and includes it in the wrapper.
- *
- * @example
- * // Handler returns: { typeName: 'User', id: '123', name: 'John' }
- * // Client receives:
- * {
- *   success: "true",
- *   type: "User",
- *   data: { typeName: 'User', id: '123', name: 'John' }
- * }
- */
-export type ApiResponse<T extends ResponseData> = {
-  success: "true";
-  type: T["typeName"];
-  data: T;
-};
-
-/**
- * Open routes are completely open - no authentication or validation required.
- *
- * Handler receives: (params: { url, query })
- *
- * These need no Authentication, no Body Validation, but may have a Query.
- *
- * In practice you're unlikely to use this with POST or PUT,
- * but there are times it can be useful like triggering a status update.
- *
- * It's also likely unwise to use this with DELETE, but that's a dealer's choice.
- */
-export type OpenRoute<
-  Path extends string,
-  Method extends RestMethod,
-  Res extends ResponseData,
-  Query extends unknown | undefined = undefined,
-> = {
-  type: "open";
-  path: Path;
-  method: Method;
-  validator?: never;
-  authenticator?: never;
-  handler: (params: { url: Params<Path>; query: Query }) => Promise<Res>;
-};
-
-/**
- * Authenticated routes require an authenticated user to call.
- *
- * Handler receives: (params: { url, query }, auth)
- *
- * Authentication functions are async functions that return an Authentication promise.
- * This Authentication is then usable inside the Handler.
- *
- * These routes need no Body Validation, but may have a Query.
- *
- * In practice these will be routes for your logged in users, or external applications that can
- * validate their security with your application.
- */
-export type AuthenticatedRoute<
-  Path extends string,
-  Method extends RestMethod,
-  Res extends ResponseData,
-  Auth extends Authentication,
-  Query extends unknown | undefined = undefined,
-> = {
-  type: "authenticated";
-  path: Path;
-  method: Method;
-  validator?: never;
-  authenticator: AuthenticationFunction<Auth>;
-  handler: (
-    params: {
-      url: Params<Path>;
-      query: Query;
-    },
-    auth: Auth
-  ) => Promise<Res>;
-};
-
-/**
- * Validated routes require a validated body to be called.
- *
- * Handler receives: (params: { url, query }, body)
- *
- * Validation functions are synchronous functions that return a RequestBody.
- * This RequestBody is then usable inside the Handler.
- *
- * These routes need no Authentication, but may have a Query.
- *
- * In practice these will be routes for non-logged in users, or unauthenticated external applications.
- * Something like a third party app that needs to get a token from your system.
- */
-export type ValidatedRoute<
-  Path extends string,
-  Method extends RestMethod,
-  Res extends ResponseData,
-  RequestBody extends unknown,
-  Query extends unknown | undefined = undefined,
-> = {
-  type: "validated";
-  path: Path;
-  method: Method;
-  validator: ValidatorFunction<RequestBody>;
-  authenticator?: never;
-  handler: (
-    params: {
-      url: Params<Path>;
-      query: Query;
-    },
-    body: RequestBody
-  ) => Promise<Res>;
-};
-
-/**
- * Full routes require a validated body and an authenticated user to call.
- *
- * Handler receives: (params: { url, query }, auth, body)
- *
- * Validation functions are synchronous functions that return a RequestBody.
- * This RequestBody is then usable inside the Handler.
- *
- * Authentication functions are async functions that return an Authentication promise.
- * This Authentication is then usable inside the Handler.
- *
- * These may have a Query.
- *
- * In practice these will be routes for logged in users, or authenticated external applications,
- * that also need to send a request body. This is likely the most common route type for POST and PUT routes.
- */
-export type FullRoute<
-  Path extends string,
-  Method extends RestMethod,
-  Res extends ResponseData,
-  RequestBody extends unknown,
-  Auth extends Authentication,
-  Query extends unknown | undefined = undefined,
-> = {
-  type: "full";
-  path: Path;
-  method: Method;
-  validator: ValidatorFunction<RequestBody>;
-  authenticator: AuthenticationFunction<Auth>;
-  handler: Query extends undefined
-    ? (
-        params: {
-          url: Params<Path>;
-        },
-        auth: Auth,
-        body: RequestBody
-      ) => Promise<Res>
-    : (
-        params: {
-          url: Params<Path>;
-          query: Query;
-        },
-        auth: Auth,
-        body: RequestBody
-      ) => Promise<Res>;
-};
-
-// ============================================================================
-// List Route Types (Paginated)
-// ============================================================================
-
-/**
- * List routes are paginated GET endpoints.
- *
- * Handler receives: (params: { url, query, pagination })
- *
- * These are GET-only routes that enforce pagination semantics:
- * - Pagination params (page, pageSize) are automatically parsed from query string
- * - Handler must return PaginatedResponse<T>
- *
- * Use for: Collection endpoints that return multiple items.
- */
-export type ListRoute<Path extends string, Data, Query extends unknown | undefined = undefined> = {
-  type: "list";
-  path: Path;
-  method: "GET";
+export type Route = {
+  path: string;
+  method: RestMethod;
+  steps: Array<"params" | "auth" | "body">;
+  handler: Function;
+  authenticator?: AuthenticationFunction<any>;
+  validator?: ValidatorFunction<any>;
+  queryValidator?: ValidatorFunction<any>;
+  urlParamValidator?: ValidatorFunction<any>;
   paginationConfig?: PaginationConfig;
-  validator?: never;
-  authenticator?: never;
-  queryValidator?: (data: unknown) => Query;
-  handler: (params: {
-    url: Params<Path>;
-    query: Query;
-    pagination: PaginationParams;
-  }) => Promise<PaginatedResponse<Data>>;
+  noTransaction?: boolean;
 };
-
-/**
- * Authenticated list routes are paginated GET endpoints that require authentication.
- *
- * Handler receives: (params: { url, query, pagination }, auth)
- *
- * Use for: Protected collection endpoints.
- */
-export type AuthenticatedListRoute<
-  Path extends string,
-  Data,
-  Auth extends Authentication,
-  Query extends unknown | undefined = undefined,
-> = {
-  type: "authenticated-list";
-  path: Path;
-  method: "GET";
-  paginationConfig?: PaginationConfig;
-  validator?: never;
-  authenticator: AuthenticationFunction<Auth>;
-  queryValidator?: (data: unknown) => Query;
-  handler: (
-    params: {
-      url: Params<Path>;
-      query: Query;
-      pagination: PaginationParams;
-    },
-    auth: Auth
-  ) => Promise<PaginatedResponse<Data>>;
-};
-
-/**
- * Union of all route types.
- * Used by adapters and CLI for route processing.
- * Uses `any` for generic parameters since this type is for runtime consumption
- * where exact types aren't statically known.
- */
-export type Route =
-  | OpenRoute<string, RestMethod, ResponseData, any>
-  | AuthenticatedRoute<string, RestMethod, ResponseData, any, any>
-  | ValidatedRoute<string, RestMethod, ResponseData, any, any>
-  | FullRoute<string, RestMethod, ResponseData, any, any, any>
-  | ListRoute<string, any, any>
-  | AuthenticatedListRoute<string, any, any, any>;
