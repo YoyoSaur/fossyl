@@ -25,16 +25,16 @@ import { EndpointParams } from "./types/params.types";
  * @param path
  */
 
-function buildMethods(
-  path: string,
-  state: {
-    steps: Array<"params" | "auth" | "body">;
-    authenticator?: AuthenticationFunction<any>;
-    validator?: ValidatorFunction<any>;
-    queryValidator?: ValidatorFunction<any>;
-    paginationConfig?: PaginationConfig;
-  }
-) {
+type BuildMethodsState = {
+  steps: Array<"params" | "auth" | "body">;
+  authenticator?: AuthenticationFunction<any>;
+  validator?: ValidatorFunction<any>;
+  queryValidator?: ValidatorFunction<any>;
+  paginationConfig?: PaginationConfig;
+  noTransaction?: boolean;
+};
+
+function buildMethods(path: string, state: BuildMethodsState) {
   const make = (method: RestMethod) => (handler: Function) =>
     ({
       path,
@@ -49,21 +49,12 @@ function buildMethods(
     delete: make("DELETE"),
   };
 }
+
 function fullBuilder<
   P extends EndpointParams<string, unknown | undefined, PaginationParams | undefined>,
   Auth extends Authentication,
   Body extends unknown,
->(
-  path: string,
-  state: {
-    steps: Array<"params" | "auth" | "body">;
-    authenticator: AuthenticationFunction<any>;
-    validator: ValidatorFunction<any>;
-    queryValidator?: ValidatorFunction<any>;
-    paginationConfig?: PaginationConfig;
-    noTransaction?: boolean;
-  }
-): FullRouter<P, Body, Auth> {
+>(path: string, state: BuildMethodsState): FullRouter<P, Body, Auth> {
   return {
     ...buildMethods(path, state),
   };
@@ -72,41 +63,21 @@ function fullBuilder<
 function validatedBuilder<
   P extends EndpointParams<string, unknown | undefined, PaginationParams | undefined>,
   Body extends unknown,
->(
-  path: string,
-  state: {
-    steps: Array<"params" | "auth" | "body">;
-    authenticator?: undefined;
-    validator: ValidatorFunction<Body>;
-    queryValidator?: ValidatorFunction<any>;
-    paginationConfig?: PaginationConfig;
-    noTransaction?: boolean;
-  }
-): ValidatedRouter<P, Body> {
+>(path: string, state: BuildMethodsState): ValidatedRouter<P, Body> {
   return {
-    ...buildMethods(path, { ...state, steps: state.steps.concat("body") }),
+    ...buildMethods(path, state),
   };
 }
 
 function authenticatedBuilder<
   P extends EndpointParams<string, unknown | undefined, PaginationParams | undefined>,
   Auth extends Authentication,
->(
-  path: string,
-  state: {
-    steps: Array<"params" | "auth" | "body">;
-    authenticator: AuthenticationFunction<Auth>;
-    validator?: undefined;
-    queryValidator?: ValidatorFunction<any>;
-    paginationConfig?: PaginationConfig;
-    noTransaction?: boolean;
-  }
-): AuthenticatedRouter<P, Auth> {
+>(path: string, state: BuildMethodsState): AuthenticatedRouter<P, Auth> {
   return {
     validator: <Body>(validatorFunction: ValidatorFunction<Body>) =>
       fullBuilder<P, Auth, Body>(path, {
         ...state,
-        steps: state.steps.concat("auth"),
+        steps: state.steps.concat("body"),
         validator: validatorFunction,
       }),
     ...buildMethods(path, state),
@@ -115,26 +86,18 @@ function authenticatedBuilder<
 
 function openBuilder<
   P extends EndpointParams<string, unknown | undefined, PaginationParams | undefined>,
->(
-  path: string,
-  state: {
-    steps: Array<"params" | "auth" | "body">;
-    authenticator?: undefined;
-    validator?: undefined;
-    queryValidator?: ValidatorFunction<any>;
-    paginationConfig?: PaginationConfig;
-    noTransaction?: boolean;
-  }
-): OpenRouter<P> {
+>(path: string, state: BuildMethodsState): OpenRouter<P> {
   return {
     authenticator: (authenticatorFunction: AuthenticationFunction<any>) =>
       authenticatedBuilder(path, {
         ...state,
+        steps: state.steps.concat("auth"),
         authenticator: authenticatorFunction,
       }),
     validator: (validatorFunction: ValidatorFunction<any>) =>
       validatedBuilder(path, {
         ...state,
+        steps: state.steps.concat("body"),
         validator: validatorFunction,
       }),
     ...buildMethods(path, state),
@@ -143,14 +106,7 @@ function openBuilder<
 
 function paginatedBuidler<P extends EndpointParams<string, unknown | undefined, PaginationParams>>(
   path: string,
-  state: {
-    steps: ["params"] | [];
-    authenticator?: undefined;
-    validator?: undefined;
-    queryValidator?: ValidatorFunction<any>;
-    paginationConfig: PaginationConfig;
-    noTransaction?: boolean;
-  }
+  state: BuildMethodsState
 ): PaginatedRouter<P> {
   return {
     ...openBuilder<P>(path, { ...state, steps: ["params"] }),
@@ -159,14 +115,7 @@ function paginatedBuidler<P extends EndpointParams<string, unknown | undefined, 
 
 function queryableBuilder<P extends EndpointParams<string, unknown, undefined>>(
   path: string,
-  state: {
-    steps: ["params"] | [];
-    authenticator?: undefined;
-    validator?: undefined;
-    queryValidator: ValidatorFunction<P["query"]>;
-    paginationConfig?: PaginationConfig;
-    noTransaction?: boolean;
-  }
+  state: BuildMethodsState
 ): QueryableRouter<EndpointParams<P["path"], P["query"]>> {
   return {
     paginate: (paginationConfig: PaginationConfig) =>
@@ -181,14 +130,7 @@ function queryableBuilder<P extends EndpointParams<string, unknown, undefined>>(
 
 function endpointBuilder<Path extends string>(
   path: Path,
-  state: {
-    steps: ["params"] | [];
-    authenticator?: undefined;
-    validator?: undefined;
-    queryValidator?: undefined;
-    paginationConfig?: PaginationConfig;
-    noTransaction?: boolean;
-  }
+  state: BuildMethodsState
 ): Endpoint<Path> {
   return {
     query: <Query extends unknown>(queryValidator: ValidatorFunction<Query>) =>
