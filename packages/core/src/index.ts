@@ -1,5 +1,5 @@
 // Router creation
-export { createRouter } from "./router/router";
+export { createRouter, executeRoute } from "./router/router";
 
 // Config
 export { defineConfig } from "./config";
@@ -20,23 +20,21 @@ export type {
 export type {
   Authentication,
   ResponseData,
-  OpenRoute,
-  AuthenticatedRoute,
-  ValidatedRoute,
-  FullRoute,
-  ListRoute,
-  AuthenticatedListRoute,
   RestMethod,
   Route,
+  RequestExtractor,
   // Pagination types
   PaginationParams,
   PaginationConfig,
   PaginatedResponse,
 } from "./router/types/routes.types";
 
-export type { ValidatorFunction, AuthenticationFunction } from "./router/types/configuration.types";
-
-export type { Endpoint, Router } from "./router/types/router-creation.types";
+export type {
+  Endpoint,
+  Router,
+  ValidatorFunction,
+  AuthenticationFunction,
+} from "./router/types/router-creation.types";
 
 export type { Params } from "./router/types/params.types";
 

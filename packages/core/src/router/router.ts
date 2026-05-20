@@ -4,6 +4,8 @@ import {
   Authentication,
   RestMethod,
   PaginationParams,
+  Steps,
+  RequestExtractor,
 } from "./types/routes.types";
 import {
   AuthenticatedRouter,
@@ -18,20 +20,15 @@ import {
   Router,
 } from "./types/router-creation.types";
 import { EndpointParams } from "./types/params.types";
-
-/**
- * Creates an endpoint which can be used to create final routes from.
- * Routes must be fully qualified. This is provided as a helper function
- * @param path
- */
+import { DatabaseAdapter } from "../adapters";
 
 type BuildMethodsState = {
-  steps: Array<"params" | "auth" | "body">;
+  steps: Steps[];
   authenticator?: AuthenticationFunction<any>;
   validator?: ValidatorFunction<any>;
   queryValidator?: ValidatorFunction<any>;
   paginationConfig?: PaginationConfig;
-  noTransaction?: boolean;
+  hasTransaction: boolean;
 };
 
 function buildMethods(path: string, state: BuildMethodsState) {
@@ -91,7 +88,7 @@ function openBuilder<
     authenticator: (authenticatorFunction: AuthenticationFunction<any>) =>
       authenticatedBuilder(path, {
         ...state,
-        steps: state.steps.concat("auth"),
+        steps: state.steps.concat("headers"),
         authenticator: authenticatorFunction,
       }),
     validator: (validatorFunction: ValidatorFunction<any>) =>
@@ -131,8 +128,8 @@ function queryableBuilder<P extends EndpointParams<string, unknown, undefined>>(
 function endpointBuilder<Path extends string>(
   path: Path,
   state: BuildMethodsState
-): Endpoint<Path> {
-  return {
+): Endpoint<Path, true> | Endpoint<Path, false> {
+  const endpoint = {
     query: <Query extends unknown>(queryValidator: ValidatorFunction<Query>) =>
       queryableBuilder<EndpointParams<Path, Query>>(path, {
         ...state,
@@ -146,7 +143,18 @@ function endpointBuilder<Path extends string>(
         paginationConfig,
       }),
     ...openBuilder(path, state),
-  };
+  } satisfies Endpoint<Path, false>;
+  if (!state.hasTransaction) {
+    return endpoint;
+  }
+  return {
+    ...endpoint,
+    noTransaction: () =>
+      endpointBuilder(path, {
+        ...state,
+        hasTransaction: false,
+      }),
+  } as Endpoint<Path, true>;
 }
 
 function createEndpoint<Path extends string>(path: Path): Endpoint<Path> {
@@ -156,27 +164,68 @@ function createEndpoint<Path extends string>(path: Path): Endpoint<Path> {
     validator: undefined,
     queryValidator: undefined,
     paginationConfig: undefined,
-    noTransaction: undefined,
+    hasTransaction: true,
   });
 }
 
-// async function executeRoute<TReq>(
-//   route: Route, req: TReq,
-//   extract: RequestExtractor<TReq>,
-//   db?: DatabaseAdapter,
-// ): Promise<unknown> {
-//   const exec = await route.steps.reduce(async (fnPromise, step) => {
-//     const fn = await fnPromise;
-//     const arg = await /* dispatch[step] or switch */;
-//     return fn(arg);
-//   }, Promise.resolve(route.handler));
-//   if (db && !route.noTransaction) {
-//     const wrap = route.steps.includes("body")
-//       ? db.withTransaction : db.withClient;
-//     return wrap(exec);
-//   }
-//   return exec();
-// }
+function parseQueryParams(query: Record<string, string>): {
+  query?: Record<string, string>;
+  pagination?: PaginationParams;
+} {
+  const { page, pageSize, ...rest } = query;
+  return {
+    query: Object.keys(rest).length === 0 ? undefined : rest,
+    pagination:
+      pageSize && page
+        ? {
+            page: Number(page),
+            pageSize: Number(pageSize),
+          }
+        : undefined,
+  };
+}
+
+async function getStepArg<TReq>(
+  step: Steps,
+  route: Route,
+  req: TReq,
+  extract: RequestExtractor<TReq>
+) {
+  switch (step) {
+    case "params":
+      const raw = extract.params(req);
+      const { query, pagination } = parseQueryParams(raw.query);
+      return {
+        url: raw.url,
+        query: route.queryValidator?.(query),
+        pagination,
+      };
+    case "headers":
+      return route.authenticator!(extract.headers(req));
+    case "body":
+      return route.validator!(extract.body(req));
+  }
+}
+
+export async function executeRoute<TReq>(
+  route: Route,
+  req: TReq,
+  extract: RequestExtractor<TReq>,
+  db?: DatabaseAdapter
+): Promise<unknown> {
+  const exec = await route.steps.reduce(async (fnPromise, step) => {
+    const fn = await fnPromise;
+    const arg = await getStepArg(step, route, req, extract);
+    return fn(arg);
+  }, Promise.resolve(route.handler));
+  if (!db) {
+    return exec;
+  }
+  if (!route.noTransaction) {
+    return db.withTransaction(exec);
+  }
+  return db.withClient(exec);
+}
 
 /**
  * Provides an Ednpoint creater. Would maybe like some other internal stuff? Lowkey... I think we

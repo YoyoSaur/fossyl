@@ -13,10 +13,10 @@ import { StripUndefined } from "./util.types";
 
 // ---Validator Functions
 
-export type ValidatorFunction<T> = (data: unknown) => T;
+export type ValidatorFunction<T> = (data: unknown) => T | Promise<T>;
 export type AuthenticationFunction<T extends Authentication> = (
   headers: Record<string, string>
-) => Promise<T>;
+) => T | Promise<T>;
 
 // ---Handler Parameters Construction
 type HandlerParams<
@@ -141,7 +141,8 @@ export type FullRouter<
  *
  * These use the EndpointCreationFunction
  */
-export type Endpoint<Path extends string> = {
+export type Endpoint<Path extends string, HasTransactions extends boolean = true> = {
+  noTransaction?: false extends HasTransactions ? never : () => Endpoint<Path, false>;
   query: <Query>(
     queryValidator: ValidatorFunction<Query>
   ) => QueryableRouter<EndpointParams<Path, Query>>;

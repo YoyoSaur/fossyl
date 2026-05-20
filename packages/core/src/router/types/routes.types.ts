@@ -135,10 +135,12 @@ export type ResponseData<TypeName extends string = string> = {
   typeName: TypeName;
 };
 
+export type Steps = "params" | "headers" | "body";
+
 export type Route = {
   path: string;
   method: RestMethod;
-  steps: Array<"params" | "auth" | "body">;
+  steps: Steps[];
   handler: Function;
   authenticator?: AuthenticationFunction<any>;
   validator?: ValidatorFunction<any>;
@@ -146,4 +148,10 @@ export type Route = {
   urlParamValidator?: ValidatorFunction<any>;
   paginationConfig?: PaginationConfig;
   noTransaction?: boolean;
+};
+
+export type RequestExtractor<TReq> = {
+  params: (req: TReq) => { url: Record<string, string>; query: Record<string, string> };
+  headers: (req: TReq) => Record<string, string>;
+  body: (req: TReq) => unknown;
 };
