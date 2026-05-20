@@ -221,7 +221,7 @@ export async function executeRoute<TReq>(
   if (!db) {
     return exec;
   }
-  if (!route.noTransaction) {
+  if (!route.hasTransaction) {
     return db.withTransaction(exec);
   }
   return db.withClient(exec);

@@ -147,7 +147,7 @@ export type Route = {
   queryValidator?: ValidatorFunction<any>;
   urlParamValidator?: ValidatorFunction<any>;
   paginationConfig?: PaginationConfig;
-  noTransaction?: boolean;
+  hasTransaction: boolean;
 };
 
 export type RequestExtractor<TReq> = {
