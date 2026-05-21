@@ -5,7 +5,7 @@ export function generateExpressIndex(options: ProjectOptions): string {
 
   if (options.database === 'kysely') {
     imports.push("import { kyselyAdapter } from '@fossyl/kysely';");
-    imports.push("import { db } from './db';");
+    imports.push("import { client } from './db';");
     imports.push("import { migrations } from './migrations';");
   }
 
@@ -14,8 +14,8 @@ export function generateExpressIndex(options: ProjectOptions): string {
   const adapterConfig: string[] = [];
 
   if (options.database === 'kysely') {
-    adapterConfig.push(`const database = kyselyAdapter({
-  client: db,
+    adapterConfig.push(`const { adapter: database } = kyselyAdapter({
+  client,
   migrations,
   autoMigrate: true,
 });`);
@@ -30,16 +30,13 @@ export function generateExpressIndex(options: ProjectOptions): string {
 
 ${adapterConfig.join('\n\n')}
 
-// Create Express adapter
 const adapter = expressAdapter({
   ${expressOptions.join(',\n  ')},
 });
 
-// Register all routes
 const routes = [...pingRoutes];
 adapter.register(routes);
 
-// Start server
 const PORT = process.env.PORT ?? 3000;
 adapter.listen(Number(PORT)).then(() => {
   console.log(\`Server running on http://localhost:\${PORT}\`);

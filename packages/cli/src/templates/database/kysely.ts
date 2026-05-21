@@ -8,7 +8,7 @@ import type { DB } from './types/db';
 
 const databasePath = process.env.DATABASE_PATH || './data/app.db';
 
-export const db = new Kysely<DB>({
+export const client = new Kysely<DB>({
   dialect: new SqliteDialect({
     database: new Database(databasePath),
   }),
@@ -27,7 +27,7 @@ if (!connectionString) {
   throw new Error('DATABASE_URL environment variable is required');
 }
 
-export const db = new Kysely<DB>({
+export const client = new Kysely<DB>({
   dialect: new MysqlDialect({
     pool: createPool(connectionString),
   }),
@@ -46,7 +46,7 @@ if (!connectionString) {
   throw new Error('DATABASE_URL environment variable is required');
 }
 
-export const db = new Kysely<DB>({
+export const client = new Kysely<DB>({
   dialect: new PostgresDialect({
     pool: new Pool({ connectionString }),
   }),

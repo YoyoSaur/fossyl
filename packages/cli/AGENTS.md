@@ -2,45 +2,45 @@
 
 **CLI for scaffolding fossyl projects**
 
-> **AI Collaboration:** This package is in the **Green Zone** - contributions welcome. See `/CONTRIBUTING.md` for guidelines. Do not modify `@fossyl/core`.
+> Do not modify `@fossyl/core`.
 
 ## Source Structure
 
 ```
 src/
 ├── index.ts           # CLI entry point and arg parsing
-├── prompts.ts         # Interactive prompts (inquirer)
-├── generator.ts       # Project generation logic
+├── prompts.ts         # Interactive prompts (@clack/prompts)
+├── scaffold.ts        # File generation orchestration + disk writing
 ├── versions.ts        # Auto-generated package versions
 └── templates/
     ├── base.ts        # Base project files (package.json, tsconfig, etc.)
-    ├── feature/       # Feature scaffolding templates
-    │   └── ping.ts    # Example ping feature
-    ├── server/        # Server adapter templates
+    ├── feature/
+    │   └── ping.ts    # Ping feature (routes, services, repo)
+    ├── server/
     │   ├── express.ts
     │   └── byo.ts
-    ├── validator/     # Validation adapter templates
+    ├── validator/
     │   ├── zod.ts
     │   └── byo.ts
-    └── database/      # Database adapter templates
+    └── database/
         ├── kysely.ts
         └── byo.ts
 ```
 
 ## Template System
 
-Templates are functions that return file content strings:
+Templates are functions that return file content strings. Each adapter choice (express/byo, zod/byo, kysely/byo) has corresponding template files.
 
-```typescript
-export const getPackageJson = (options: ProjectOptions): string => {
-  return JSON.stringify({
-    name: options.name,
-    // ...
-  }, null, 2);
-};
-```
+Templates for `@fossyl/core`, `@fossyl/express`, `@fossyl/zod`, and `@fossyl/kysely` should reference their respective AGENTS.md files in `packages/<name>/AGENTS.md`.
 
-Each adapter choice (express/byo, zod/byo, kysely/byo) has corresponding template files.
+## Package AGENTS.md Files
+
+When generating template code for a fossyl package, load that package's AGENTS.md for implementation details:
+
+- `packages/core/AGENTS.md` — Route types, chain API, handler signatures
+- `packages/express/AGENTS.md` — Express adapter, handler wrapping, response formatting
+- `packages/zod/AGENTS.md` — Zod adapter, validators
+- `packages/kysely/AGENTS.md` — Kysely adapter, `db` proxy, transaction context, migrations
 
 ## Auto-generated versions.ts
 
@@ -59,7 +59,6 @@ node bin/fossyl.js --create /tmp/test-app
 
 ## Contributing
 
-When adding features:
 - Keep prompts clear and concise
 - Test generated projects actually build and run
 - Update BYO templates with helpful TODO comments
