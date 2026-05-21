@@ -1,5 +1,5 @@
-import type { TSESTree } from '@typescript-eslint/utils';
-import path from 'node:path';
+import type { TSESTree } from "@typescript-eslint/utils";
+import path from "node:path";
 
 export interface CollectedRoute {
   filePath: string;
@@ -75,8 +75,8 @@ class RouteCollectorStore {
 
     for (const [key, occurrences] of routeMap.entries()) {
       if (occurrences.length > 1) {
-        const [method, ...pathParts] = key.split(' ');
-        duplicates.push({ method, path: pathParts.join(' '), occurrences });
+        const [method, ...pathParts] = key.split(" ");
+        duplicates.push({ method, path: pathParts.join(" "), occurrences });
       }
     }
 
@@ -93,67 +93,36 @@ export interface RouteInfo {
 }
 
 export function getRouteInfo(node: TSESTree.CallExpression): RouteInfo | null {
-  if (
-    node.callee.type !== 'MemberExpression' ||
-    node.callee.property.type !== 'Identifier'
-  ) return null;
+  if (node.callee.type !== "MemberExpression" || node.callee.property.type !== "Identifier")
+    return null;
 
-  const validMethods = ['get', 'post', 'put', 'delete', 'list'];
+  const validMethods = ["get", "post", "put", "delete"];
   if (!validMethods.includes(node.callee.property.name)) return null;
 
-  const object = node.callee.object;
-  if (
-    object.type !== 'CallExpression' ||
-    object.callee.type !== 'MemberExpression' ||
-    object.callee.property.type !== 'Identifier' ||
-    object.callee.property.name !== 'createEndpoint'
-  ) return null;
-
-  const arg = object.arguments[0];
-  if (!arg || arg.type !== 'Literal' || typeof arg.value !== 'string') return null;
-
-  return {
-    method: node.callee.property.name.toUpperCase(),
-    path: arg.value,
-    node,
-  };
-}
-
-export function getEndpointPath(node: TSESTree.CallExpression): string | null {
-  if (
-    node.callee.type === 'MemberExpression' &&
-    node.callee.property.type === 'Identifier' &&
-    node.callee.property.name === 'createEndpoint'
-  ) {
-    const arg = node.arguments[0];
-    if (arg && arg.type === 'Literal' && typeof arg.value === 'string') {
-      return arg.value;
+  let current = node.callee.object;
+  while (current.type === "CallExpression" && current.callee.type === "MemberExpression") {
+    if (
+      current.callee.property.type === "Identifier" &&
+      current.callee.property.name === "createEndpoint"
+    ) {
+      const arg = current.arguments[0];
+      if (!arg || arg.type !== "Literal" || typeof arg.value !== "string") return null;
+      return {
+        method: node.callee.property.name.toUpperCase(),
+        path: arg.value,
+        node,
+      };
     }
+    current = current.callee.object;
   }
-  return null;
-}
 
-export function getMethodFromEndpointCall(node: TSESTree.CallExpression): string | null {
-  if (
-    node.callee.type === 'MemberExpression' &&
-    node.callee.property.type === 'Identifier'
-  ) {
-    const method = node.callee.property.name;
-    const validMethods = ['get', 'post', 'put', 'delete', 'list'];
-    if (validMethods.includes(method)) {
-      return method.toUpperCase();
-    }
-  }
   return null;
 }
 
 export function getCreateRouterPrefix(node: TSESTree.CallExpression): string | null {
-  if (
-    node.callee.type === 'Identifier' &&
-    node.callee.name === 'createRouter'
-  ) {
+  if (node.callee.type === "Identifier" && node.callee.name === "createRouter") {
     const arg = node.arguments[0];
-    if (arg && arg.type === 'Literal' && typeof arg.value === 'string') {
+    if (arg && arg.type === "Literal" && typeof arg.value === "string") {
       return arg.value;
     }
   }
@@ -163,5 +132,5 @@ export function getCreateRouterPrefix(node: TSESTree.CallExpression): string | n
 export function getRelativeFilePath(absolutePath: string): string {
   const cwd = process.cwd();
   const relative = path.relative(cwd, absolutePath);
-  return relative.replace(/\\/g, '/');
+  return relative.replace(/\\/g, "/");
 }

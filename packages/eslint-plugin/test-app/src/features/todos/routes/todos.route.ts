@@ -5,9 +5,15 @@ import { authenticator } from "../../../auth";
 
 const router = createRouter("/api/todos");
 
-export const listTodos = router.createEndpoint("/api/todos").list({
-  paginationConfig: { defaultPageSize: 20, maxPageSize: 100 },
-  handler: async ({ pagination }): Promise<PaginatedResponse<todoService.Todo>> => {
+const todoValidator = (data: unknown) => data as { title: string };
+
+export const listTodos = router
+  .createEndpoint("/api/todos")
+  .paginate({
+    defaultPageSize: 20,
+    maxPageSize: 100,
+  })
+  .get(({ pagination }) => async (): Promise<PaginatedResponse<todoService.Todo>> => {
     const result = await todoService.listTodos(pagination, {});
     return {
       data: result.data,
@@ -18,42 +24,40 @@ export const listTodos = router.createEndpoint("/api/todos").list({
         total: result.total,
       },
     };
-  },
-});
+  });
 
-export const getTodo = router.createEndpoint("/api/todos/:id").get({
-  handler: async ({ url }, auth) => {
+export const getTodo = router
+  .createEndpoint("/api/todos/:id")
+  .authenticator(authenticator)
+  .get(({ url }) => (auth) => async () => {
     const todo = await todoService.getTodo(url.id);
     return { typeName: "Todo" as const, ...todo };
-  },
-});
+  });
 
-const todoValidator = (data: unknown) => data as { title: string };
-
-export const createTodo = router.createEndpoint("/api/todos").post({
-  authenticator,
-  validator: todoValidator,
-  handler: async ({ url }, auth, body) => {
+export const createTodo = router
+  .createEndpoint("/api/todos")
+  .authenticator(authenticator)
+  .validator(todoValidator)
+  .post((auth) => (body) => async () => {
     const todo = await todoService.createTodo(body.title);
     return { typeName: "Todo" as const, ...todo };
-  },
-});
+  });
 
-export const updateTodo = router.createEndpoint("/api/todos/:id").put({
-  authenticator,
-  validator: todoValidator,
-  handler: async ({ url }, auth, body) => {
+export const updateTodo = router
+  .createEndpoint("/api/todos/:id")
+  .authenticator(authenticator)
+  .validator(todoValidator)
+  .put(({ url }) => (auth) => (body) => async () => {
     const todo = await todoService.updateTodo(url.id, body);
     return { typeName: "Todo" as const, ...todo };
-  },
-});
+  });
 
-export const deleteTodo = router.createEndpoint("/api/todos/:id").delete({
-  authenticator,
-  handler: async ({ url }, auth) => {
+export const deleteTodo = router
+  .createEndpoint("/api/todos/:id")
+  .authenticator(authenticator)
+  .delete(({ url }) => (auth) => async () => {
     await todoService.deleteTodo(url.id);
     return { typeName: "DeleteResult" as const, id: url.id, deleted: true };
-  },
-});
+  });
 
 export default [listTodos, getTodo, createTodo, updateTodo, deleteTodo];
