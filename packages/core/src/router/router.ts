@@ -28,17 +28,22 @@ type BuildMethodsState = {
   validator?: ValidatorFunction<any>;
   queryValidator?: ValidatorFunction<any>;
   paginationConfig?: PaginationConfig;
-  hasTransaction: boolean;
+  hasTransaction?: boolean;
 };
 
 function buildMethods(path: string, state: BuildMethodsState) {
-  const make = (method: RestMethod) => (handler: Function) =>
-    ({
+  const { hasTransaction: stateTransaction } = state;
+
+  const make = (method: RestMethod) => (handler: Function) => {
+    const hasTransaction = stateTransaction ?? method !== "GET";
+    return {
       path,
       method,
       ...state,
+      hasTransaction,
       handler,
-    }) satisfies Route;
+    } satisfies Route;
+  };
   return {
     get: make("GET"),
     post: make("POST"),
@@ -101,7 +106,7 @@ function openBuilder<
   };
 }
 
-function paginatedBuidler<P extends EndpointParams<string, unknown | undefined, PaginationParams>>(
+function paginatedBuilder<P extends EndpointParams<string, unknown | undefined, PaginationParams>>(
   path: string,
   state: BuildMethodsState
 ): PaginatedRouter<P> {
@@ -116,7 +121,7 @@ function queryableBuilder<P extends EndpointParams<string, unknown, undefined>>(
 ): QueryableRouter<EndpointParams<P["path"], P["query"]>> {
   return {
     paginate: (paginationConfig: PaginationConfig) =>
-      paginatedBuidler<EndpointParams<P["path"], P["query"], PaginationParams>>(path, {
+      paginatedBuilder<EndpointParams<P["path"], P["query"], PaginationParams>>(path, {
         ...state,
         steps: ["params"],
         paginationConfig,
@@ -137,7 +142,7 @@ function endpointBuilder<Path extends string>(
         queryValidator,
       }),
     paginate: (paginationConfig: PaginationConfig) =>
-      paginatedBuidler<EndpointParams<Path, undefined, PaginationParams>>(path, {
+      paginatedBuilder<EndpointParams<Path, undefined, PaginationParams>>(path, {
         ...state,
         steps: ["params"],
         paginationConfig,
@@ -168,11 +173,22 @@ function createEndpoint<Path extends string>(path: Path): Endpoint<Path> {
   });
 }
 
-function parseQueryParams(query: Record<string, string>): {
+function parseQueryParams(
+  route: Route,
+  query: Record<string, string>
+): {
   query?: Record<string, string>;
   pagination?: PaginationParams;
 } {
-  const { page, pageSize, ...rest } = query;
+  const { maxPageSize, defaultPageSize } = route.paginationConfig || {};
+  const { page: pageParam, pageSize: pageSizeParam, ...rest } = query;
+  const page = pageParam ? Number(pageParam) : undefined;
+  const pageSize = pageSizeParam ? Number(pageSizeParam) : defaultPageSize;
+  if (pageSize && maxPageSize && pageSize > maxPageSize) {
+    throw new Error(
+      `Page size ${pageSize} is greater than the maximum page size of ${maxPageSize}`
+    );
+  }
   return {
     query: Object.keys(rest).length === 0 ? undefined : rest,
     pagination:
@@ -194,7 +210,7 @@ async function getStepArg<TReq>(
   switch (step) {
     case "params":
       const raw = extract.params(req);
-      const { query, pagination } = parseQueryParams(raw.query);
+      const { query, pagination } = parseQueryParams(route, raw.query);
       return {
         url: raw.url,
         query: route.queryValidator?.(query),
@@ -219,7 +235,7 @@ export async function executeRoute<TReq>(
     return fn(arg);
   }, Promise.resolve(route.handler));
   if (!db) {
-    return exec;
+    return exec();
   }
   if (!route.hasTransaction) {
     return db.withClient(exec);
