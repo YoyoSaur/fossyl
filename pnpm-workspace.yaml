@@ -3,6 +3,7 @@ packages:
   - 'examples/*'
   - 'packages/eslint-plugin/test-app'
 allowBuilds:
+  better-sqlite3: set this to true or false
   esbuild: false
   sharp: false
 patchedDependencies:
