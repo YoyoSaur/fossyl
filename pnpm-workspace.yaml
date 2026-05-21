@@ -1,6 +1,7 @@
 packages:
   - 'packages/*'
   - 'examples/*'
+  - 'packages/eslint-plugin/test-app'
 allowBuilds:
   esbuild: false
   sharp: false
