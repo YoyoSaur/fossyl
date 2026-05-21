@@ -1,9 +1,9 @@
 // Main adapter
-export { kyselyAdapter } from './adapter';
+export { kyselyAdapter } from "./adapter";
 
 // Context
-export { getTransaction, transactionContext } from './context';
-export type { TransactionContext } from './context';
+export { getDb, getTransaction, transactionContext, db, setBaseClient } from "./context";
+export type { TransactionContext } from "./context";
 
 // Migrations
 export {
@@ -12,12 +12,8 @@ export {
   runMigrations,
   rollbackMigration,
   getMigrationStatus,
-} from './migrations';
-export type {
-  KyselyMigration,
-  MigrationRecord,
-  MigrationResult,
-} from './migrations';
+} from "./migrations";
+export type { KyselyMigration, MigrationRecord, MigrationResult } from "./migrations";
 
 // Types
-export type { KyselyAdapterOptions } from './types';
+export type { KyselyAdapterOptions } from "./types";

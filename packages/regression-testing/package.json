@@ -1,0 +1,29 @@
+{
+  "name": "@fossyl/regression-testing",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Regression tests that exercise the full fossyl framework as a consumer would",
+  "scripts": {
+    "test": "vitest run",
+    "server": "tsx src/server.ts",
+    "test:docker": "docker compose up -d && REGRESSION_BASE_URL=http://localhost:9877 vitest run && docker compose down -v",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@fossyl/core": "workspace:*",
+    "@fossyl/express": "workspace:*",
+    "@fossyl/kysely": "workspace:*",
+    "@fossyl/zod": "workspace:*",
+    "better-sqlite3": "^12.10.0",
+    "kysely": "^0.27.6",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "express": "^4.21.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.8.0",
+    "vitest": "^3.0.0"
+  }
+}

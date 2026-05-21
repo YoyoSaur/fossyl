@@ -1,0 +1,9 @@
+services:
+  regression-api:
+    build:
+      context: ../..
+      dockerfile: packages/regression-testing/Dockerfile
+    ports:
+      - "9877:9877"
+    environment:
+      - PORT=9877
