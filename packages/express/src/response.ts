@@ -1,8 +1,11 @@
-import type { ResponseData, ApiResponse } from '@fossyl/core';
+import type { ResponseData } from '@fossyl/core';
 
-/**
- * Wraps handler response data in the standard API response format.
- */
+type ApiResponse<T extends ResponseData> = {
+  success: 'true';
+  type: T['typeName'];
+  data: T;
+};
+
 export function wrapResponse<T extends ResponseData>(data: T): ApiResponse<T> {
   return {
     success: 'true',

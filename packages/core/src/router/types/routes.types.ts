@@ -130,7 +130,7 @@ export type PaginatedResponse<T extends ResponseData> = {
  * that identifies the response type. This enables:
  * - Self-describing API responses
  * - Easy ESLint enforcement
- * - Type extraction for ApiResponse wrapper
+ * - Type extraction for Api Response wrapper
  *
  * @example
  * type User = {

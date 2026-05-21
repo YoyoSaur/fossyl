@@ -1,45 +1,22 @@
 import type { Request, Response, NextFunction, RequestHandler } from 'express';
-import type { Route, ResponseData, PaginatedResponse, PaginationParams } from '@fossyl/core';
+import type { Route, RequestExtractor, ResponseData } from '@fossyl/core';
+import { executeRoute } from '@fossyl/core';
 import { requestContext, type RequestContext, createDefaultLogger } from './context';
 import { wrapResponse } from './response';
 import { handleError } from './errors';
 import type { ExpressAdapterOptions } from './types';
 
-/**
- * Parses pagination parameters from query string.
- * Applies defaults and bounds checking.
- */
-function parsePagination(
-  query: Record<string, unknown>,
-  config?: { defaultPageSize?: number; maxPageSize?: number }
-): PaginationParams {
-  const defaultPageSize = config?.defaultPageSize ?? 20;
-  const maxPageSize = config?.maxPageSize ?? 100;
+const expressExtractor: RequestExtractor<Request> = {
+  params: (req) => ({
+    url: req.params as Record<string, string>,
+    query: req.query as Record<string, string>,
+  }),
+  headers: (req) => req.headers as Record<string, string>,
+  body: (req) => req.body,
+};
 
-  const page = Math.max(1, parseInt(String(query.page)) || 1);
-  const pageSize = Math.min(
-    maxPageSize,
-    Math.max(1, parseInt(String(query.pageSize)) || defaultPageSize)
-  );
-
-  return { page, pageSize };
-}
-
-/**
- * Strips pagination params from query object.
- */
-function stripPaginationFromQuery(
-  query: Record<string, unknown>
-): Record<string, unknown> {
-  const { page: _, pageSize: __, ...rest } = query;
-  return rest;
-}
-
-/**
- * Creates an Express request handler for a fossyl route.
- */
 export function createHandler(route: Route, options: ExpressAdapterOptions): RequestHandler {
-  const isListRoute = route.type === 'list' || route.type === 'authenticated-list';
+  const isPaginated = !!route.paginationConfig;
 
   return async (req: Request, res: Response, _next: NextFunction) => {
     const startTime = Date.now();
@@ -57,11 +34,10 @@ export function createHandler(route: Route, options: ExpressAdapterOptions): Req
 
     try {
       const result = await requestContext.run(ctx, async () => {
-        return executeRoute(route, req, options);
+        return executeRoute(route, req, expressExtractor, options.database);
       });
 
-      // List routes return PaginatedResponse directly, others get wrapped
-      if (isListRoute) {
+      if (isPaginated) {
         res.json(result);
       } else {
         res.json(wrapResponse(result as ResponseData));
@@ -74,7 +50,6 @@ export function createHandler(route: Route, options: ExpressAdapterOptions): Req
       });
     } catch (error) {
       handleError(error, res, logger);
-
       options.metrics?.onRequestError({
         ...metricsInfo,
         error: error instanceof Error ? error : new Error(String(error)),
@@ -82,77 +57,4 @@ export function createHandler(route: Route, options: ExpressAdapterOptions): Req
       });
     }
   };
-}
-
-/**
- * Executes a route handler based on route type.
- */
-async function executeRoute(
-  route: Route,
-  req: Request,
-  options: ExpressAdapterOptions
-): Promise<ResponseData | PaginatedResponse<unknown>> {
-  const params = { url: req.params, query: req.query };
-
-  switch (route.type) {
-    case 'full': {
-      const auth = await route.authenticator(req.headers as Record<string, string>);
-      const body = route.validator(req.body);
-
-      return options.database
-        ? options.database.withTransaction(() => route.handler(params, auth, body))
-        : route.handler(params, auth, body);
-    }
-
-    case 'authenticated': {
-      const auth = await route.authenticator(req.headers as Record<string, string>);
-
-      return options.database
-        ? options.database.withClient(() => route.handler(params, auth))
-        : route.handler(params, auth);
-    }
-
-    case 'validated': {
-      const body = route.validator(req.body);
-
-      return options.database
-        ? options.database.withTransaction(() => route.handler(params, body))
-        : route.handler(params, body);
-    }
-
-    case 'open': {
-      return options.database
-        ? options.database.withClient(() => route.handler(params))
-        : route.handler(params);
-    }
-
-    case 'list': {
-      const pagination = parsePagination(
-        req.query as Record<string, unknown>,
-        route.paginationConfig
-      );
-      const strippedQuery = stripPaginationFromQuery(req.query as Record<string, unknown>);
-      const query = route.queryValidator ? route.queryValidator(strippedQuery) : undefined;
-      const listParams = { url: req.params, query, pagination };
-
-      return options.database
-        ? options.database.withClient(() => route.handler(listParams))
-        : route.handler(listParams);
-    }
-
-    case 'authenticated-list': {
-      const auth = await route.authenticator(req.headers as Record<string, string>);
-      const pagination = parsePagination(
-        req.query as Record<string, unknown>,
-        route.paginationConfig
-      );
-      const strippedQuery = stripPaginationFromQuery(req.query as Record<string, unknown>);
-      const query = route.queryValidator ? route.queryValidator(strippedQuery) : undefined;
-      const listParams = { url: req.params, query, pagination };
-
-      return options.database
-        ? options.database.withClient(() => route.handler(listParams, auth))
-        : route.handler(listParams, auth);
-    }
-  }
 }
