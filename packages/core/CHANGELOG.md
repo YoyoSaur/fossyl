@@ -1,5 +1,20 @@
 # fossyl
 
+## 1.0.0
+
+### Major Changes
+
+- First stable release!
+
+### BREAKING CHANGES
+
+- PaginationConfig fields required — defaultPageSize/maxPageSize changed from ?number to number
+- PaginatedResponse<T> constrains T extends ResponseData — was unconstrained
+- ApiResponse type removed from core — moved to express adapter
+- .list() method removed — replaced with .paginate(config).get(handler)
+- 6 route types → single Route with steps — any code pattern-matching on route.type breaks
+- Handler signature changes — from positional args (params, auth, body) to curried (params) => (auth) => (body) => () => Res
+
 ## 0.16.0
 
 ### Minor Changes

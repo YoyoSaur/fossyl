@@ -1,330 +1,246 @@
 import {
-  Authentication,
-  ResponseData,
-  FullRoute,
-  ValidatedRoute,
-  AuthenticatedRoute,
-  OpenRoute,
-  ListRoute,
-  AuthenticatedListRoute,
   PaginationConfig,
+  Route,
+  Authentication,
+  RestMethod,
   PaginationParams,
-  PaginatedResponse,
+  Steps,
+  RequestExtractor,
 } from "./types/routes.types";
-import { Endpoint, Router } from "./types/router-creation.types";
-import { AuthenticationFunction, ValidatorFunction } from "./types/configuration.types";
-import { Params } from "./types/params.types";
+import {
+  AuthenticatedRouter,
+  AuthenticationFunction,
+  ValidatorFunction,
+  Endpoint,
+  OpenRouter,
+  FullRouter,
+  ValidatedRouter,
+  PaginatedRouter,
+  QueryableRouter,
+  Router,
+} from "./types/router-creation.types";
+import { EndpointParams } from "./types/params.types";
+import { DatabaseAdapter } from "../adapters";
 
-/**
- * Creates an endpoint which can be used to create final routes from.
- * Routes must be fully qualified. This is provided as a helper function
- * @param path
- */
+type BuildMethodsState = {
+  steps: Steps[];
+  authenticator?: AuthenticationFunction<any>;
+  validator?: ValidatorFunction<any>;
+  queryValidator?: ValidatorFunction<any>;
+  paginationConfig?: PaginationConfig;
+  hasTransaction?: boolean;
+};
 
-// Function overloads in TypeScript are only allowed for functions, not for object properties.
-// When you try to declare multiple properties with the same name (like `get`) in an object literal,
-// you get a syntax error: "An object literal cannot have multiple properties with the same name."
-// Additionally, the type signatures for overloaded methods must be declared as overloads on a function, not as separate properties.
-// The correct way is to define a single function for `get` that matches the overload signatures, and then assign it as the property.
-//
+function buildMethods(path: string, state: BuildMethodsState) {
+  const { hasTransaction: stateTransaction } = state;
+
+  const make = (method: RestMethod) => (handler: Function) => {
+    const hasTransaction = stateTransaction ?? method !== "GET";
+    return {
+      path,
+      method,
+      ...state,
+      hasTransaction,
+      handler,
+    } satisfies Route;
+  };
+  return {
+    get: make("GET"),
+    post: make("POST"),
+    put: make("PUT"),
+    delete: make("DELETE"),
+  };
+}
+
+function fullBuilder<
+  P extends EndpointParams<string, unknown | undefined, PaginationParams | undefined>,
+  Auth extends Authentication,
+  Body extends unknown,
+>(path: string, state: BuildMethodsState): FullRouter<P, Body, Auth> {
+  return {
+    ...buildMethods(path, state),
+  };
+}
+
+function validatedBuilder<
+  P extends EndpointParams<string, unknown | undefined, PaginationParams | undefined>,
+  Body extends unknown,
+>(path: string, state: BuildMethodsState): ValidatedRouter<P, Body> {
+  return {
+    ...buildMethods(path, state),
+  };
+}
+
+function authenticatedBuilder<
+  P extends EndpointParams<string, unknown | undefined, PaginationParams | undefined>,
+  Auth extends Authentication,
+>(path: string, state: BuildMethodsState): AuthenticatedRouter<P, Auth> {
+  return {
+    validator: <Body>(validatorFunction: ValidatorFunction<Body>) =>
+      fullBuilder<P, Auth, Body>(path, {
+        ...state,
+        steps: state.steps.concat("body"),
+        validator: validatorFunction,
+      }),
+    ...buildMethods(path, state),
+  };
+}
+
+function openBuilder<
+  P extends EndpointParams<string, unknown | undefined, PaginationParams | undefined>,
+>(path: string, state: BuildMethodsState): OpenRouter<P> {
+  return {
+    authenticator: (authenticatorFunction: AuthenticationFunction<any>) =>
+      authenticatedBuilder(path, {
+        ...state,
+        steps: state.steps.concat("headers"),
+        authenticator: authenticatorFunction,
+      }),
+    validator: (validatorFunction: ValidatorFunction<any>) =>
+      validatedBuilder(path, {
+        ...state,
+        steps: state.steps.concat("body"),
+        validator: validatorFunction,
+      }),
+    ...buildMethods(path, state),
+  };
+}
+
+function paginatedBuilder<P extends EndpointParams<string, unknown | undefined, PaginationParams>>(
+  path: string,
+  state: BuildMethodsState
+): PaginatedRouter<P> {
+  return {
+    ...openBuilder<P>(path, { ...state, steps: ["params"] }),
+  };
+}
+
+function queryableBuilder<P extends EndpointParams<string, unknown, undefined>>(
+  path: string,
+  state: BuildMethodsState
+): QueryableRouter<EndpointParams<P["path"], P["query"]>> {
+  return {
+    paginate: (paginationConfig: PaginationConfig) =>
+      paginatedBuilder<EndpointParams<P["path"], P["query"], PaginationParams>>(path, {
+        ...state,
+        steps: ["params"],
+        paginationConfig,
+      }),
+    ...openBuilder(path, state),
+  };
+}
+
+function endpointBuilder<Path extends string>(
+  path: Path,
+  state: BuildMethodsState
+): Endpoint<Path, true> | Endpoint<Path, false> {
+  const endpoint = {
+    query: <Query extends unknown>(queryValidator: ValidatorFunction<Query>) =>
+      queryableBuilder<EndpointParams<Path, Query>>(path, {
+        ...state,
+        steps: ["params"],
+        queryValidator,
+      }),
+    paginate: (paginationConfig: PaginationConfig) =>
+      paginatedBuilder<EndpointParams<Path, undefined, PaginationParams>>(path, {
+        ...state,
+        steps: ["params"],
+        paginationConfig,
+      }),
+    ...openBuilder(path, state),
+  } satisfies Endpoint<Path, false>;
+  if (!state.hasTransaction) {
+    return endpoint;
+  }
+  return {
+    ...endpoint,
+    noTransaction: () =>
+      endpointBuilder(path, {
+        ...state,
+        hasTransaction: false,
+      }),
+  } as Endpoint<Path, true>;
+}
 
 function createEndpoint<Path extends string>(path: Path): Endpoint<Path> {
-  function createNoBodyMethod<Method extends "GET" | "DELETE">(method: Method) {
-    function noBodyMethod<Res extends ResponseData>(config: {
-      authenticator?: never;
-      queryValidator?: never;
-      handler: (params: { url: Params<Path> }) => Promise<Res>;
-    }): OpenRoute<Path, Method, Res, undefined>;
+  return endpointBuilder(path, {
+    steps: path.includes(":") ? ["params"] : [],
+    authenticator: undefined,
+    validator: undefined,
+    queryValidator: undefined,
+    paginationConfig: undefined,
+    hasTransaction: true,
+  });
+}
 
-    // Open route: no auth, with query
-    function noBodyMethod<Res extends ResponseData, Query extends unknown>(config: {
-      authenticator?: never;
-      queryValidator: ValidatorFunction<Query>;
-      handler: (params: { url: Params<Path>; query: Query }) => Promise<Res>;
-    }): OpenRoute<Path, Method, Res, Query>;
-
-    // Authenticated route: auth, no query
-    function noBodyMethod<Res extends ResponseData, Auth extends Authentication>(config: {
-      authenticator: AuthenticationFunction<Auth>;
-      queryValidator?: never;
-      handler: (params: { url: Params<Path> }, auth: Auth) => Promise<Res>;
-    }): AuthenticatedRoute<Path, Method, Res, Auth, undefined>;
-
-    // Authenticated route: auth, with query
-    function noBodyMethod<
-      Res extends ResponseData,
-      Auth extends Authentication,
-      Query extends unknown,
-    >(config: {
-      authenticator: AuthenticationFunction<Auth>;
-      queryValidator: ValidatorFunction<Query>;
-      handler: (params: { url: Params<Path>; query: Query }, auth: Auth) => Promise<Res>;
-    }): AuthenticatedRoute<Path, Method, Res, Auth, Query>;
-
-    function noBodyMethod(
-      config:
-        | { handler: (params: { url: Params<Path> }) => Promise<any> }
-        | {
-            queryValidator: ValidatorFunction<any>;
-            handler: (params: { url: Params<Path>; query: any }) => Promise<any>;
-          }
-        | {
-            authenticator: AuthenticationFunction<any>;
-            handler: (params: { url: Params<Path> }, auth: any) => Promise<any>;
-          }
-        | {
-            authenticator: AuthenticationFunction<any>;
-            queryValidator: ValidatorFunction<any>;
-            handler: (params: { url: Params<Path>; query: any }, auth: any) => Promise<any>;
-          }
-    ): OpenRoute<Path, Method, any, any> | AuthenticatedRoute<Path, Method, any, any, any> {
-      if ("authenticator" in config) {
-        return {
-          ...config,
-          type: "authenticated",
-          path,
-          method,
-        } satisfies AuthenticatedRoute<Path, Method, any, any, any>;
-      } else {
-        return { ...config, type: "open", path, method } satisfies OpenRoute<
-          Path,
-          Method,
-          any,
-          any
-        >;
-      }
-    }
-
-    return noBodyMethod;
+function parseQueryParams(
+  route: Route,
+  query: Record<string, string>
+): {
+  query?: Record<string, string>;
+  pagination?: PaginationParams;
+} {
+  const { maxPageSize, defaultPageSize } = route.paginationConfig || {};
+  const { page: pageParam, pageSize: pageSizeParam, ...rest } = query;
+  const page = pageParam ? Number(pageParam) : undefined;
+  const pageSize = pageSizeParam ? Number(pageSizeParam) : defaultPageSize;
+  if (pageSize && maxPageSize && pageSize > maxPageSize) {
+    throw new Error(
+      `Page size ${pageSize} is greater than the maximum page size of ${maxPageSize}`
+    );
   }
-
-  function createBodyMethod<Method extends "POST" | "PUT">(method: Method) {
-    // Validated route: no auth, no query
-    function bodyMethod<Res extends ResponseData, RequestBody extends unknown>(config: {
-      authenticator?: never;
-      validator: ValidatorFunction<RequestBody>;
-      queryValidator?: never;
-      handler: (params: { url: Params<Path> }, body: RequestBody) => Promise<Res>;
-    }): ValidatedRoute<Path, Method, Res, RequestBody, undefined>;
-
-    // Validated route: no auth, with query
-    function bodyMethod<
-      Res extends ResponseData,
-      RequestBody extends unknown,
-      Query extends unknown,
-    >(config: {
-      authenticator?: never;
-      validator: ValidatorFunction<RequestBody>;
-      queryValidator: ValidatorFunction<Query>;
-      handler: (params: { url: Params<Path>; query: Query }, body: RequestBody) => Promise<Res>;
-    }): ValidatedRoute<Path, Method, Res, RequestBody, Query>;
-
-    // Full route: auth + body validation, no query
-    function bodyMethod<
-      Res extends ResponseData,
-      RequestBody extends unknown,
-      Auth extends Authentication,
-    >(config: {
-      authenticator: AuthenticationFunction<Auth>;
-      validator: ValidatorFunction<RequestBody>;
-      queryValidator?: never;
-      handler: (params: { url: Params<Path> }, auth: Auth, body: RequestBody) => Promise<Res>;
-    }): FullRoute<Path, Method, Res, RequestBody, Auth, undefined>;
-
-    // Full route: auth + body validation, with query
-    function bodyMethod<
-      Res extends ResponseData,
-      RequestBody extends unknown,
-      Auth extends Authentication,
-      Query extends unknown,
-    >(config: {
-      authenticator: AuthenticationFunction<Auth>;
-      validator: ValidatorFunction<RequestBody>;
-      queryValidator: ValidatorFunction<Query>;
-      handler: (
-        params: { url: Params<Path>; query: Query },
-        auth: Auth,
-        body: RequestBody
-      ) => Promise<Res>;
-    }): FullRoute<Path, Method, Res, RequestBody, Auth, Query>;
-
-    function bodyMethod(
-      config:
-        | {
-            validator: ValidatorFunction<any>;
-            handler: (params: { url: Params<Path> }, body: any) => Promise<any>;
-          }
-        | {
-            validator: ValidatorFunction<any>;
-            queryValidator: ValidatorFunction<any>;
-            handler: (params: { url: Params<Path>; query: any }, body: any) => Promise<any>;
-          }
-        | {
-            authenticator: AuthenticationFunction<any>;
-            validator: ValidatorFunction<any>;
-            handler: (params: { url: Params<Path> }, auth: any, body: any) => Promise<any>;
-          }
-        | {
-            authenticator: AuthenticationFunction<any>;
-            validator: ValidatorFunction<any>;
-            queryValidator: ValidatorFunction<any>;
-            handler: (
-              params: { url: Params<Path>; query: any },
-              auth: any,
-              body: any
-            ) => Promise<any>;
-          }
-    ): ValidatedRoute<Path, Method, any, any, any> | FullRoute<Path, Method, any, any, any, any> {
-      if ("authenticator" in config) {
-        return { ...config, type: "full", path, method } satisfies FullRoute<
-          Path,
-          Method,
-          any,
-          any,
-          any,
-          any
-        >;
-      } else {
-        return { ...config, type: "validated", path, method } satisfies ValidatedRoute<
-          Path,
-          Method,
-          any,
-          any,
-          any
-        >;
-      }
-    }
-    return bodyMethod;
-  }
-
-  function createListMethod() {
-    // List route: no auth, no query filters
-    function listMethod<Data>(config: {
-      authenticator?: never;
-      queryValidator?: never;
-      paginationConfig?: PaginationConfig;
-      handler: (params: {
-        url: Params<Path>;
-        pagination: PaginationParams;
-      }) => Promise<PaginatedResponse<Data>>;
-    }): ListRoute<Path, Data, undefined>;
-
-    // List route: no auth, with query filters
-    function listMethod<Data, Query extends unknown>(config: {
-      authenticator?: never;
-      queryValidator: ValidatorFunction<Query>;
-      paginationConfig?: PaginationConfig;
-      handler: (params: {
-        url: Params<Path>;
-        query: Query;
-        pagination: PaginationParams;
-      }) => Promise<PaginatedResponse<Data>>;
-    }): ListRoute<Path, Data, Query>;
-
-    // Authenticated list route: auth, no query filters
-    function listMethod<Data, Auth extends Authentication>(config: {
-      authenticator: AuthenticationFunction<Auth>;
-      queryValidator?: never;
-      paginationConfig?: PaginationConfig;
-      handler: (
-        params: {
-          url: Params<Path>;
-          pagination: PaginationParams;
-        },
-        auth: Auth
-      ) => Promise<PaginatedResponse<Data>>;
-    }): AuthenticatedListRoute<Path, Data, Auth, undefined>;
-
-    // Authenticated list route: auth, with query filters
-    function listMethod<Data, Auth extends Authentication, Query extends unknown>(config: {
-      authenticator: AuthenticationFunction<Auth>;
-      queryValidator: ValidatorFunction<Query>;
-      paginationConfig?: PaginationConfig;
-      handler: (
-        params: {
-          url: Params<Path>;
-          query: Query;
-          pagination: PaginationParams;
-        },
-        auth: Auth
-      ) => Promise<PaginatedResponse<Data>>;
-    }): AuthenticatedListRoute<Path, Data, Auth, Query>;
-
-    function listMethod(
-      config:
-        | {
-            paginationConfig?: PaginationConfig;
-            handler: (params: {
-              url: Params<Path>;
-              pagination: PaginationParams;
-            }) => Promise<PaginatedResponse<any>>;
-          }
-        | {
-            queryValidator: ValidatorFunction<any>;
-            paginationConfig?: PaginationConfig;
-            handler: (params: {
-              url: Params<Path>;
-              query: any;
-              pagination: PaginationParams;
-            }) => Promise<PaginatedResponse<any>>;
-          }
-        | {
-            authenticator: AuthenticationFunction<any>;
-            paginationConfig?: PaginationConfig;
-            handler: (
-              params: {
-                url: Params<Path>;
-                pagination: PaginationParams;
-              },
-              auth: any
-            ) => Promise<PaginatedResponse<any>>;
-          }
-        | {
-            authenticator: AuthenticationFunction<any>;
-            queryValidator: ValidatorFunction<any>;
-            paginationConfig?: PaginationConfig;
-            handler: (
-              params: {
-                url: Params<Path>;
-                query: any;
-                pagination: PaginationParams;
-              },
-              auth: any
-            ) => Promise<PaginatedResponse<any>>;
-          }
-    ): ListRoute<Path, any, any> | AuthenticatedListRoute<Path, any, any, any> {
-      if ("authenticator" in config) {
-        return {
-          type: "authenticated-list" as const,
-          path,
-          method: "GET" as const,
-          authenticator: config.authenticator,
-          queryValidator: "queryValidator" in config ? config.queryValidator : undefined,
-          paginationConfig: config.paginationConfig,
-          handler: config.handler,
-        } as AuthenticatedListRoute<Path, any, any, any>;
-      } else {
-        return {
-          type: "list" as const,
-          path,
-          method: "GET" as const,
-          queryValidator: "queryValidator" in config ? config.queryValidator : undefined,
-          paginationConfig: config.paginationConfig,
-          handler: config.handler,
-        } as ListRoute<Path, any, any>;
-      }
-    }
-
-    return listMethod;
-  }
-
   return {
-    get: createNoBodyMethod("GET"),
-    post: createBodyMethod("POST"),
-    put: createBodyMethod("PUT"),
-    delete: createNoBodyMethod("DELETE"),
-    list: createListMethod(),
+    query: Object.keys(rest).length === 0 ? undefined : rest,
+    pagination:
+      pageSize && page
+        ? {
+            page: Number(page),
+            pageSize: Number(pageSize),
+          }
+        : undefined,
   };
+}
+
+async function getStepArg<TReq>(
+  step: Steps,
+  route: Route,
+  req: TReq,
+  extract: RequestExtractor<TReq>
+) {
+  switch (step) {
+    case "params":
+      const raw = extract.params(req);
+      const { query, pagination } = parseQueryParams(route, raw.query);
+      return {
+        url: raw.url,
+        query: route.queryValidator?.(query),
+        pagination,
+      };
+    case "headers":
+      return route.authenticator!(extract.headers(req));
+    case "body":
+      return route.validator!(extract.body(req));
+  }
+}
+
+export async function executeRoute<TReq>(
+  route: Route,
+  req: TReq,
+  extract: RequestExtractor<TReq>,
+  db?: DatabaseAdapter
+): Promise<unknown> {
+  const exec = await route.steps.reduce(async (fnPromise, step) => {
+    const fn = await fnPromise;
+    const arg = await getStepArg(step, route, req, extract);
+    return fn(arg);
+  }, Promise.resolve(route.handler));
+  if (!db) {
+    return exec();
+  }
+  if (!route.hasTransaction) {
+    return db.withClient(exec);
+  }
+  return db.withTransaction(exec);
 }
 
 /**
