@@ -9,6 +9,7 @@ Fossyl has a unique relationship with AI-assisted development. The core package 
 > **AI must NOT modify `@fossyl/core`.**
 
 The core's type system, function overloads, and API design intentionally constrain how code is written. AI tools must respect and work within these constraints, not around them.
+The only exception is documentation such as function headers and type comments. These are allowed to be edited by AI tools.
 
 ---
 
@@ -19,27 +20,32 @@ The core's type system, function overloads, and API design intentionally constra
 AI tools are encouraged to work in these areas:
 
 **Adapter Packages**
+
 - `@fossyl/express` - Express.js adapter
 - `@fossyl/kysely` - Kysely database adapter
 - `@fossyl/zod` - Zod validation adapter
 - New adapter implementations
 
 **CLI Package** (`@fossyl/cli`)
+
 - Templates and scaffolding
 - User prompts and flows
 - New project generators
 
 **Documentation** (`packages/docs/`)
+
 - Writing and improving docs
 - Examples and tutorials
 - API reference updates
 
 **New Packages**
+
 - Creating new adapter packages
 - Utility packages that extend Fossyl
 - Integration packages
 
 **Tests**
+
 - Unit and integration tests for adapters
 - Type tests for adapter implementations
 - End-to-end testing
@@ -51,6 +57,7 @@ AI tools are encouraged to work in these areas:
 **`@fossyl/core` is off-limits to AI modification.**
 
 This includes:
+
 - Route type definitions (`routes.types.ts`)
 - Router creation logic (`router.ts`)
 - Adapter interfaces (`adapters.ts`)
@@ -59,6 +66,7 @@ This includes:
 - ANY source code in `packages/core/src/`
 
 **Exceptions** (with human review):
+
 - Typo fixes in comments
 - Documentation improvements in CLAUDE.md
 
@@ -105,14 +113,14 @@ The goal is to **use** the core's constraints to produce better, more consistent
 
 Each package has its own `CLAUDE.md` with detailed guidance:
 
-| Package | AI Status | Notes |
-|---------|-----------|-------|
-| `@fossyl/core` | Prohibited | Handcrafted, do not modify |
-| `@fossyl/express` | Welcome | Implement adapter interfaces |
-| `@fossyl/kysely` | Welcome | Database integration |
-| `@fossyl/zod` | Welcome | Validation wrapper |
-| `@fossyl/cli` | Welcome | Templates and scaffolding |
-| `packages/docs` | Welcome | Documentation site |
+| Package           | AI Status  | Notes                        |
+| ----------------- | ---------- | ---------------------------- |
+| `@fossyl/core`    | Prohibited | Handcrafted, do not modify   |
+| `@fossyl/express` | Welcome    | Implement adapter interfaces |
+| `@fossyl/kysely`  | Welcome    | Database integration         |
+| `@fossyl/zod`     | Welcome    | Validation wrapper           |
+| `@fossyl/cli`     | Welcome    | Templates and scaffolding    |
+| `packages/docs`   | Welcome    | Documentation site           |
 
 ---
 

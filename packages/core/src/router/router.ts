@@ -222,9 +222,9 @@ export async function executeRoute<TReq>(
     return exec;
   }
   if (!route.hasTransaction) {
-    return db.withTransaction(exec);
+    return db.withClient(exec);
   }
-  return db.withClient(exec);
+  return db.withTransaction(exec);
 }
 
 /**

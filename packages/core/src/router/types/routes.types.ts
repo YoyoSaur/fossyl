@@ -71,7 +71,15 @@ export function bodyWrapper<T>(body: T): T & RequestBody {
   };
 }
 
+/**
+ * Union of HTTP methods supported by fossyl routes.
+ */
 export type RestMethod = "GET" | "POST" | "PUT" | "DELETE";
+
+/**
+ * POST | PUT — methods that support a request body.
+ * Only these can be used on ValidatedRouter and FullRouter.
+ */
 export type BodySupportedMethods = Extract<RestMethod, "POST" | "PUT">;
 
 // ============================================================================
@@ -135,8 +143,31 @@ export type ResponseData<TypeName extends string = string> = {
   typeName: TypeName;
 };
 
+/**
+ * Ordered execution steps for the curry chain.
+ *
+ * "params"  — assembles { url, query, pagination } from the request.
+ * "headers" — runs the authenticator against request headers.
+ * "body"    — runs the validator against the request body.
+ */
 export type Steps = "params" | "headers" | "body";
 
+/**
+ * A fully-configured fossyl route, produced by the builder chain.
+ *
+ * Adapters receive Route[] and pass each route to executeRoute().
+ *
+ * @property path - The URL path (e.g. "/api/users/:id")
+ * @property method - HTTP method
+ * @property steps - Which curry layers exist. executeRoute iterates these in order.
+ * @property handler - The curried handler function.
+ * @property authenticator - Authenticator function (present when steps includes "headers")
+ * @property validator - Validator function (present when steps includes "body")
+ * @property queryValidator - Optional query parameter validator
+ * @property urlParamValidator - Optional URL parameter converter
+ * @property paginationConfig - Optional pagination configuration
+ * @property hasTransaction - Whether database adapter should wrap in a transaction
+ */
 export type Route = {
   path: string;
   method: RestMethod;
@@ -150,6 +181,23 @@ export type Route = {
   hasTransaction: boolean;
 };
 
+/**
+ * Interface adapter authors implement to bridge framework requests into fossyl.
+ *
+ * Each method extracts a specific slice of data from the framework's request object.
+ * executeRoute calls these internally when iterating over route.steps.
+ *
+ * @typeParam TReq - The framework's request type (e.g. Express Request)
+ *
+ * @example (Express):
+ * ```typescript
+ * const extractor: RequestExtractor<Request> = {
+ *   params: (req) => ({ url: req.params, query: req.query }),
+ *   headers: (req) => req.headers as Record<string, string>,
+ *   body: (req) => req.body,
+ * };
+ * ```
+ */
 export type RequestExtractor<TReq> = {
   params: (req: TReq) => { url: Record<string, string>; query: Record<string, string> };
   headers: (req: TReq) => Record<string, string>;
