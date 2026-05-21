@@ -1,4 +1,4 @@
-import { db } from "@fossyl/kysely";
+import { db } from "@db";
 
 export type UserRow = {
   id: number;

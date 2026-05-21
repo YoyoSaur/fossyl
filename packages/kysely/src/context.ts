@@ -69,19 +69,23 @@ function isGetter(obj: any, prop: string | symbol): boolean {
   return false;
 }
 
-export const db = new Proxy({} as Kysely<any>, {
-  get(_, prop) {
-    const store = transactionContext.getStore();
-    const source = store?.trx ?? _baseClient;
-    if (!source) {
-      throw new Error(
-        "No database context available. Call kyselyAdapter() or provide a database client first."
-      );
-    }
-    const value = Reflect.get(source, prop, source);
-    if (typeof value === "function" && !isGetter(source, prop)) {
-      return value.bind(source);
-    }
-    return value;
-  },
-});
+export function createDbProxy<DB>(): Kysely<DB> {
+  return new Proxy({} as Kysely<DB>, {
+    get(_, prop) {
+      const store = transactionContext.getStore();
+      const source = store?.trx ?? _baseClient;
+      if (!source) {
+        throw new Error(
+          "No database context available. Call kyselyAdapter() or provide a database client first."
+        );
+      }
+      const value = Reflect.get(source, prop, source);
+      if (typeof value === "function" && !isGetter(source, prop)) {
+        return value.bind(source);
+      }
+      return value;
+    },
+  }) as Kysely<DB>;
+}
+
+export const db = createDbProxy<any>();

@@ -10,6 +10,10 @@ export function generatePackageJson(options: ProjectOptions): string {
     '@types/node': '^22.0.0',
     tsx: '^4.0.0',
     typescript: '^5.8.0',
+    eslint: '^9.0.0',
+    'eslint-plugin-fossyl': `^${VERSIONS.eslintPlugin}`,
+    '@typescript-eslint/parser': '^8.0.0',
+    '@typescript-eslint/eslint-plugin': '^8.0.0',
   };
 
   if (options.server === 'express') {
@@ -39,15 +43,23 @@ export function generatePackageJson(options: ProjectOptions): string {
     }
   }
 
+  const scripts: Record<string, string> = {
+    dev: 'tsx watch src/index.ts',
+    build: 'tsc',
+    start: 'node dist/index.js',
+    typecheck: 'tsc --noEmit',
+    lint: 'eslint src/',
+  };
+
+  if (options.database === 'kysely') {
+    scripts.migrate = 'tsx src/migrate.ts';
+  }
+
   const pkg = {
     name: options.name === '.' ? 'my-fossyl-api' : options.name,
     version: '0.1.0',
     type: 'module',
-    scripts: {
-      dev: 'tsx watch src/index.ts',
-      build: 'tsc',
-      start: 'node dist/index.js',
-    },
+    scripts,
     dependencies,
     devDependencies,
   };
@@ -67,6 +79,9 @@ export function generateTsConfig(): string {
       outDir: './dist',
       rootDir: './src',
       declaration: true,
+      paths: {
+        '@db': ['./src/db'],
+      },
     },
     include: ['src/**/*'],
     exclude: ['node_modules', 'dist'],
@@ -114,6 +129,37 @@ export const authenticator = async (headers: Record<string, string>) => {
 `;
 }
 
+export function generateEslintConfig(): string {
+  return `import tsparser from '@typescript-eslint/parser';
+import fossyl from 'eslint-plugin-fossyl';
+
+export default [
+  {
+    ignores: ['**/dist/**'],
+  },
+  {
+    files: ['**/*.ts'],
+    languageOptions: {
+      parser: tsparser,
+      parserOptions: {
+        ecmaVersion: 2022,
+        sourceType: 'module',
+      },
+    },
+    plugins: { fossyl },
+    rules: {
+      'fossyl/no-repo-import-outside-service': 'error',
+      'fossyl/no-duplicate-routes': 'error',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
+    },
+  },
+];
+`;
+}
+
 export function generateClaudeMd(options: ProjectOptions): string {
   const refs = ['packages/core/AGENTS.md — Route types, chain API, handler signatures (do not modify core)'];
   if (options.server === 'express') refs.push('packages/express/AGENTS.md — Express adapter, handler wrapping, response formatting');
@@ -139,14 +185,18 @@ src/
 │       ├── routes/ping.route.ts      # Route definitions (chain API)
 │       ├── services/ping.service.ts  # Business logic
 │       ├── validators/               # Request validators
-│       └── repo/ping.repo.ts         # Database access
+│       └── repo/ping.repo.ts         # Database access (imports db from @db)
 ├── migrations/                       # Database migrations
 ├── types/
 │   └── db.ts                         # Database type definitions
-├── db.ts                             # Database setup
+├── db.ts                             # Database setup + typed db export
+├── migrate.ts                        # Migration runner (imports client from @db)
 ├── auth.ts                           # Authentication helper
+├── eslint.config.js                  # ESLint flat config (fossyl plugin)
 └── index.ts                          # Main entry point
 \`\`\`
+
+> Import \`{ db }\` from \`@db\` in your repos — it's typed \`Kysely<DB>\` via the tsconfig path alias.
 
 ## Quick Start
 

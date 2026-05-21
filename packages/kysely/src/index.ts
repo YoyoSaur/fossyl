@@ -2,7 +2,7 @@
 export { kyselyAdapter } from "./adapter";
 
 // Context
-export { getDb, getTransaction, transactionContext, db, setBaseClient } from "./context";
+export { getDb, getTransaction, transactionContext, db, setBaseClient, createDbProxy } from "./context";
 export type { TransactionContext } from "./context";
 
 // Migrations

@@ -4,6 +4,7 @@ export function generateKyselySetup(dialect: DialectChoice = 'postgres'): string
   if (dialect === 'sqlite') {
     return `import Database from 'better-sqlite3';
 import { Kysely, SqliteDialect } from 'kysely';
+import { createDbProxy } from '@fossyl/kysely';
 import type { DB } from './types/db';
 
 const databasePath = process.env.DATABASE_PATH || './data/app.db';
@@ -13,12 +14,15 @@ export const client = new Kysely<DB>({
     database: new Database(databasePath),
   }),
 });
+
+export const db = createDbProxy<DB>();
 `;
   }
 
   if (dialect === 'mysql') {
     return `import { createPool } from 'mysql2';
 import { Kysely, MysqlDialect } from 'kysely';
+import { createDbProxy } from '@fossyl/kysely';
 import type { DB } from './types/db';
 
 const connectionString = process.env.DATABASE_URL;
@@ -32,12 +36,15 @@ export const client = new Kysely<DB>({
     pool: createPool(connectionString),
   }),
 });
+
+export const db = createDbProxy<DB>();
 `;
   }
 
   // PostgreSQL (default)
   return `import { Kysely, PostgresDialect } from 'kysely';
 import { Pool } from 'pg';
+import { createDbProxy } from '@fossyl/kysely';
 import type { DB } from './types/db';
 
 const connectionString = process.env.DATABASE_URL;
@@ -51,6 +58,8 @@ export const client = new Kysely<DB>({
     pool: new Pool({ connectionString }),
   }),
 });
+
+export const db = createDbProxy<DB>();
 `;
 }
 
@@ -83,6 +92,22 @@ import { migration as m001 } from './001_create_ping';
 export const migrations = createMigrationProvider({
   '001_create_ping': m001,
 });
+`;
+}
+
+export function generateMigrateScript(): string {
+  return `import { client } from '@db';
+import { migrations } from '../migrations';
+import { runMigrations, createMigrationProvider } from '@fossyl/kysely';
+
+const result = await runMigrations(client, createMigrationProvider(migrations));
+
+if (result.error) {
+  console.error('Migration failed:', result.error.message);
+  process.exit(1);
+}
+
+console.log(\`Migrations applied: \${result.executed.join(', ')}\`);
 `;
 }
 

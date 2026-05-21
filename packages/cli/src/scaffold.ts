@@ -7,10 +7,11 @@ import {
   generateEnvExample,
   generateClaudeMd,
   generateAuth,
+  generateEslintConfig,
 } from './templates/base';
 import { generateExpressIndex, generateByoServerIndex } from './templates/server/express';
 import { generateByoServerPlaceholder } from './templates/server/byo';
-import { generateKyselySetup, generateDbTypes, generateMigrationIndex, generatePingMigration } from './templates/database/kysely';
+import { generateKyselySetup, generateDbTypes, generateMigrationIndex, generatePingMigration, generateMigrateScript } from './templates/database/kysely';
 import { generateByoDatabasePlaceholder } from './templates/database/byo';
 import { generateZodValidators } from './templates/validator/zod';
 import { generateByoValidatorPlaceholder } from './templates/validator/byo';
@@ -41,6 +42,10 @@ export function generateFiles(options: ProjectOptions): FileEntry[] {
   files.push({
     path: 'CLAUDE.md',
     content: generateClaudeMd(options),
+  });
+  files.push({
+    path: 'eslint.config.js',
+    content: generateEslintConfig(),
   });
 
   // Main entry point
@@ -83,6 +88,10 @@ export function generateFiles(options: ProjectOptions): FileEntry[] {
     files.push({
       path: 'src/migrations/001_create_ping.ts',
       content: generatePingMigration(options.dialect),
+    });
+    files.push({
+      path: 'src/migrate.ts',
+      content: generateMigrateScript(),
     });
   } else {
     files.push({

@@ -140,7 +140,7 @@ export function generatePingRepo(options: ProjectOptions): string {
 }
 
 function generateKyselyPingRepo(): string {
-  return `import { db } from '@fossyl/kysely';
+  return `import { db } from '@db';
 import type { Ping, NewPing, PingUpdate } from '../../../types/db';
 
 export type PingRow = Ping;
