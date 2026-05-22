@@ -18,7 +18,7 @@
 
 ## Route Pattern
 ```typescript
-// Always use createRouter() from 'fossyl'
+// Always use createRouter() from '@fossyl/core'
 // Always include typeName in responses
 // Use authWrapper() for authentication
 ```

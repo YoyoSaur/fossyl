@@ -9,11 +9,12 @@ const searchSchema = z.object({
   offset: z.coerce.number().int().min(0).optional().default(0),
 });
 
-const searchRoute = router.createEndpoint('/search').get({
-  queryValidator: zodQueryValidator(searchSchema),
-  handler: async ({ url, query }) => {
+const searchRoute = router.createEndpoint('/api/search').query(
+  zodQueryValidator(searchSchema),
+).get(
+  ({ query }) => async () => {
     //    query is typed as: { q: string; limit: number; offset: number }
     return { typeName: 'SearchResult' as const, results: await searchDb(query) };
   },
-});
+);
 // @code-block-end: query-with-zod

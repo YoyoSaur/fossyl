@@ -512,3 +512,38 @@ blockquote {
   transform: translate(2px, 2px);
   box-shadow: 3px 3px 0px var(--fossyl-brown) !important;
 }
+
+/* ===== Version Picker ===== */
+.version-picker select {
+  font-family: var(--sl-font-system);
+  font-size: 0.75rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--fossyl-brown);
+  background: var(--fossyl-cream);
+  border: 3px solid var(--fossyl-brown);
+  border-radius: 0;
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+  box-shadow: 3px 3px 0px var(--fossyl-brown);
+  transition: all 0.1s;
+  appearance: auto;
+  -webkit-appearance: auto;
+  -moz-appearance: auto;
+}
+
+.version-picker select:hover {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0px var(--fossyl-brown);
+}
+
+.version-picker select:active {
+  transform: translate(3px, 3px);
+  box-shadow: 0px 0px 0px var(--fossyl-brown);
+}
+
+.title-wrapper {
+  gap: 0.75rem !important;
+  align-items: center !important;
+}

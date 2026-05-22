@@ -1,0 +1,87 @@
+---
+title: Wading through sediment
+description: The legacy codebase that inspired fossyl
+date: 2026-05-21
+author: Grant Everett
+---
+
+## Preamble
+
+This is the first in a series that will explain both what and why I created fossyl.
+It's been a passion project of mine for the past year, and now it's really ready I think explaining how I got to this point would be highly valuable.
+Moreover, it's also a good insight into the design decisions and ideally give engineers insight into what I want to build and how to build it, should they wish to become contributors.
+
+Also, I will be using generic structures here instead of the nuances of my job, to make the examples simple and palatable.
+
+## The Sediment - An Untyped Codebase
+
+My last job was in an interesting place. A great product with a growing customer base, and features added frequently. There was a lot of code, and it all used different paradigms and styles. I came into it having written exclusively Kotlin for over five years, and seeing that you can just plop additional properties onto some random object was just cursed to me. That is the Javascript way though, so I grit my teeth and simply got to work. About a year into the job we finally had the time to do the incredible: Add TypeScript.
+
+But, it wasn't that useful in this codebase really. Sure you could start typing your helpers and fetchers, but without a strictly typed database layer it wasn't the most useful thing in the world. We couldn't just plop it on because of how many of the helper functions in this codebase would dynamically build objects. They'd add random parts to it, or compose it in-place with `Object.assign` or dynamic key mapping like `thingy[newThingy]`.
+
+So, around the early summer of 2025 I was tasked with building a typed layer and throwing some new paradigms at the wall. I'd learned about go in a past life, and I thought that its best feature is how it treats errors as data as opposed to just pure exception handling. The `{data, error}` was a structure I liked enough and thought bringing it over would work for our system.
+
+So I found my little fiefdom of code, and rewrote the entire suite using this new paradigm. I had two types of files from my Android days, the "Domain" and "Data" layers.
+The Domain was for business logic and where this response object was to be used primarily, creating a nice flat code. The Data was for the database access, and it was highly simplified from the intricate and complex joins we had previously.
+
+## Tangent - Complex Joins vs Many Simple Calls
+
+We've all come to the point where we have wondered if we should be using the wonderful power that is SQL relational math, or just simply get stuff using the `in` keyword. I love the complexities that are possible in SQL, and often times those are highly valuable. The struggle is that any changes to your schema propagate to dozens and dozens of different places. In the modern era with compute being as strong as it is, I find the practice of simple and reusable queries composed by the runtime to be superior for the developer experience. Yes I make two or three times the number of calls I really need to, but from a BigO perspective `N = 2N = 3N` so it wouldn't affect runtime that much. It does however produce significant readability and reusability of your codebase, and makes your types much easier to reason about.
+
+## The First Dig - A Typed Response Object
+
+Alright let's get into what really matters in this blog, types.
+
+```typescript code-sample="blog/01-response-object" segment="response-object"
+
+```
+
+This incredibly simple type I thought was a godsend. I could now reliably treat errors as data, and once I'd verified the data existed I could throw away the error. My code became flat and beautiful, for I am a [never-nester](https://www.youtube.com/watch?v=CFRhGnuXG-4). I relayed this code to my team, something like this, to get their opinion.
+
+```typescript code-sample="blog/02-get-full-todos-v1" segment="get-full-todos-v1"
+
+```
+
+Beauty.
+
+You can clearly tell what's happening here, even if you know nothing about this codebase. The types inside the ResponseObject document your code for you, the names of the functions handle it, and your errors are forced to be dealt with. But I learned about this Discriminated Union thing and thought that I could have a decent application here, because it still felt a bit off that the Error could be undefined. You could have no-data and no-error response? Wrong.
+
+```typescript code-sample="blog/03-response-object-discriminated" segment="response-object-discriminated"
+
+```
+
+Now, the previous code became a touch easier to reckon with. At least in terms of readability.
+
+```typescript code-sample="blog/04-get-full-todos-v2" segment="get-full-todos-v2"
+
+```
+
+However, this felt clunky. At my previous role I'd constructed a limited-use-case Monad — which is a monoid in the category of endofunctors — to handle this. I wanted to find a way to bring back the `bind` construct that permeated my brain after learning clojure in college. I wanted to find a way to do that bind structure, where the error was just yeeted to the caller and dealt with there. I wanted to be able to simply make function calls for business logic.
+
+```kotlin
+fun getFullTodos(userId: Int): ResponseObject<Todo> {
+    val user = getUser(userId).bind();
+    val todos = getTodos(user.id).bind();
+    val reminders = getReminders(user.id).bind();
+
+    return FullUser(user, todos, reminders);
+}
+```
+
+See how clean and clear that code is? And in that system we had a DSL, which did the wrapping and extension of `bind` for us. I don't want to go into that here, I have a talk about it somewhere and may link it. But then I realized I wasn't seeing the skeleton through the bones so-to-speak.
+
+## Async/Await - Why Was I Reinventing the Wheel?
+
+You probably saw where this was going, and it's simply that we have the await keyword. While it's not quite identically idiomatic to the monad structure, it's close enough that the yeeting of the error is built in. It just requires some good developer skills to handle the error. In an ideal world, TS would let me say the types of errors that could be thrown, and I would be able to use some kind of switch statement to handle them and have a nice codified error system so an error number is used on like, 6-10 lines of code and I could track down the exact site of an error from my Sentry logs.
+
+But that's not how TS works, so... I just worked with what the language offers.
+
+We got rid of that ResponseObject and just used async/await structure everywhere.
+
+```typescript code-sample="blog/05-get-full-todos-v3" segment="get-full-todos-v3"
+
+```
+
+This looks... exactly like the kotlin code for readability, the only issue being that you cannot handle the specific errors. But, I'd much rather use a pattern idiomatic to the language than force patterns from other languages.
+
+We did it, I was in my happy place of having a type system of some variety that could assert the truthiness of my business logic. We wrote code with this structure from here on out, and the next mission was to figure out how I enforce typing at the boundary.

@@ -1,13 +1,12 @@
 // @code-block-start: pagination
-// List routes automatically handle pagination params:
+// Paginated routes automatically handle pagination params:
 //   ?page=1&pageSize=20  →  { page: 1, pageSize: 20 }
 
-const listPostsRoute = router.createEndpoint('/posts').list({
-  paginationConfig: {
-    defaultPageSize: 20,
-    maxPageSize: 100,
-  },
-  handler: async ({ pagination }) => {
+const listPostsRoute = router.createEndpoint('/api/posts').paginate({
+  defaultPageSize: 20,
+  maxPageSize: 100,
+}).get(
+  ({ pagination }) => async () => {
     //    pagination is typed as: { page: number; pageSize: number }
     const { page, pageSize } = pagination;
 
@@ -29,12 +28,14 @@ const listPostsRoute = router.createEndpoint('/posts').list({
       },
     };
   },
-});
+);
 
 // Authenticated list routes work too
-const listMyPostsRoute = router.createEndpoint('/my-posts').list({
-  authenticator: myAuth,
-  handler: async ({ pagination }, auth) => {
+const listMyPostsRoute = router.createEndpoint('/api/my-posts').paginate({
+  defaultPageSize: 20,
+  maxPageSize: 100,
+}).authenticator(myAuth).get(
+  ({ pagination }) => (auth) => async () => {
     const items = await db
       .selectFrom('posts')
       .where('userId', '=', auth.userId)
@@ -51,5 +52,5 @@ const listMyPostsRoute = router.createEndpoint('/my-posts').list({
       },
     };
   },
-});
+);
 // @code-block-end: pagination

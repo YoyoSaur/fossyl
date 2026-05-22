@@ -1,13 +1,13 @@
 // @code-block-start: basic-usage
 // Hover any identifier to see its type
-import { createRouter } from 'fossyl';
+import { createRouter } from '@fossyl/core';
 
-const router = createRouter();
+const router = createRouter<"/api">("/api");
 
-const userRoute = router.createEndpoint('/users/:id').get({
-  handler: async ({ url }) => {
+const userRoute = router.createEndpoint('/api/users/:id').get(
+  ({ url }) => async () => {
     const userId = url.id;
-    return { id: userId, name: 'John Doe' };
+    return { typeName: 'User', id: userId, name: 'John Doe' };
   },
-});
+);
 // @code-block-end: basic-usage

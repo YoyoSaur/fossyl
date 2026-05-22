@@ -1,6 +1,6 @@
 // @code-block-start: custom-auth
 // Authentication is just an async function that returns authWrapper()
-import { authWrapper } from 'fossyl';
+import { authWrapper } from '@fossyl/core';
 
 // JWT-based auth
 const jwtAuth = async (headers: Record<string, string>) => {
@@ -15,11 +15,12 @@ const jwtAuth = async (headers: Record<string, string>) => {
 };
 
 // Use in routes — auth type is inferred
-const protectedRoute = router.createEndpoint('/profile').get({
-  authenticator: jwtAuth,
-  handler: async ({ url }, auth) => {
+const protectedRoute = router.createEndpoint('/api/profile').authenticator(
+  jwtAuth,
+).get(
+  (auth) => async () => {
     //    auth is typed as: { userId: string; role: 'admin' | 'user' }
     return { typeName: 'Profile' as const, id: auth.userId, role: auth.role };
   },
-});
+);
 // @code-block-end: custom-auth

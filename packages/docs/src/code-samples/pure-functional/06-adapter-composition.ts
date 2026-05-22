@@ -1,6 +1,6 @@
 // @code-block-start: adapter-composition
 // Adapters are standalone modules composed in src/index.ts
-import type { LoggerAdapter } from 'fossyl';
+import type { LoggerAdapter } from '@fossyl/core';
 import { kyselyAdapter } from '@fossyl/kysely';
 import { expressAdapter } from '@fossyl/express';
 

@@ -1,0 +1,45 @@
+---
+title: Fossyl v0.18
+description: Type-safe REST API framework (v0.18 documentation)
+template: splash
+hero:
+  title: ''
+  image:
+    file: ../../../assets/full-logo.svg
+  tagline: Type-safe REST API framework (v0.18)
+  actions:
+    - text: Get Started
+      link: /v018/getting-started/
+      variant: primary
+    - text: View on GitHub
+      link: https://github.com/yoyosaur/fossyl
+      variant: secondary
+---
+
+import { CardGrid } from '@astrojs/starlight/components';
+import Card from '../../../components/ClickableCard.astro';
+
+## Features
+
+<CardGrid>
+  <Card title="Type-Safe Routes" icon="approve-check" href="/v018/type-safe-routes">
+    Full TypeScript type inference for routes, parameters, and responses
+  </Card>
+  <Card title="Pure Functional" icon="star" href="/v018/pure-functional">
+    Validator-library agnostic with simple function types
+  </Card>
+  <Card title="Query Validation" icon="magnifier" href="/v018/query-validation">
+    Optional type-safe query parameter validation
+  </Card>
+  <Card title="Authentication" icon="shield" href="/v018/authentication">
+    Type-safe authentication with custom authentication functions
+  </Card>
+  <Card title="AI-First" icon="rocket" href="/v018/ai-first">
+    Designed for seamless integration with AI coding assistants
+  </Card>
+</CardGrid>
+
+## Quick Example
+
+```typescript code-sample="getting-started/01-basic-usage" segment="basic-usage"
+```

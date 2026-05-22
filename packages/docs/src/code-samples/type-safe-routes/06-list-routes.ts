@@ -1,11 +1,14 @@
 // @code-block-start: list-routes
 // Hover any identifier to see its type
-import { createRouter, authWrapper } from 'fossyl';
+import { createRouter, authWrapper } from '@fossyl/core';
 
-const router = createRouter();
+const router = createRouter<"/api">("/api");
 
-router.createEndpoint('/users').list({
-  handler: async ({ url, pagination }) => {
+router.createEndpoint('/api/users').paginate({
+  defaultPageSize: 20,
+  maxPageSize: 100,
+}).get(
+  ({ pagination }) => async () => {
     return {
       data: [{ typeName: 'User', id: '1', name: 'Alice' }],
       pagination: {
@@ -15,17 +18,21 @@ router.createEndpoint('/users').list({
       },
     };
   },
-});
+);
 
-router.createEndpoint('/admin/users').list({
-  authenticator: async (headers) => authWrapper({ role: headers['x-role'] }),
-  queryValidator: (data) => data as { role?: string },
-  paginationConfig: { defaultPageSize: 50, maxPageSize: 200 },
-  handler: async ({ url, query, pagination }, auth) => {
+router.createEndpoint('/api/admin/users').query(
+  (data) => data as { role?: string },
+).paginate({
+  defaultPageSize: 50,
+  maxPageSize: 200,
+}).authenticator(
+  async (headers) => authWrapper({ role: headers['x-role'] }),
+).get(
+  ({ query, pagination }) => (auth) => async () => {
     return {
       data: [],
       pagination: { page: pagination.page, pageSize: pagination.pageSize, hasMore: false },
     };
   },
-});
+);
 // @code-block-end: list-routes

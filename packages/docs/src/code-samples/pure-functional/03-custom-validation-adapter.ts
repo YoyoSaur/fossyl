@@ -1,7 +1,7 @@
 // @code-block-start: custom-validation-adapter
 // Validation adapters format errors for HTTP responses.
 // They are standalone modules — no framework coupling.
-import type { ValidationAdapter } from 'fossyl';
+import type { ValidationAdapter } from '@fossyl/core';
 
 const myValidationAdapter: ValidationAdapter = {
   type: 'validation',

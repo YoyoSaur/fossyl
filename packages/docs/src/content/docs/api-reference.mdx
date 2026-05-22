@@ -3,20 +3,221 @@ title: API Reference
 description: Complete API reference for fossyl
 ---
 
-Complete API reference documentation coming soon.
+## `@fossyl/core`
 
-## Core API
+### Runtime Functions
 
-Documentation for `createRouter()`, endpoint builders, and HTTP method handlers.
+#### `createRouter<BasePath>(path: BasePath): Router<BasePath>`
 
-## Type Safety
+Creates a new router scoped to a base path. The `BasePath` type parameter locks the URL prefix at the type level.
 
-Full type inference documentation.
+#### `executeRoute(route, req, extract, db?)`
 
-## Validators
+Executes a single route against an incoming request. Low-level entry point for custom server adapters.
 
-Body and query parameter validation.
+#### `defineConfig(options)`
 
-## Authentication
+Defines type-safe fossyl configuration. Accepts a `FossylConfig` object.
 
-Type-safe authentication documentation.
+#### `authWrapper<T>(auth: T): T & Authentication`
+
+Wraps an authentication function so it satisfies the `Authentication` interface at the type level.
+
+### Types
+
+```typescript
+type Router<BasePath extends string> = {
+  createEndpoint: <Path extends `${BasePath}${string}`>(path: Path) => Endpoint<Path>
+  createSubrouter: <Path extends `${BasePath}${string}`>(path: Path) => Router<Path>
+}
+
+type Endpoint<Path, HasTransactions>  // entry point to the builder chain
+
+type Route = {
+  path: string
+  method: RestMethod
+  steps: unknown[]
+  handler: Handler<any, any, any, any>
+  authenticator?: AuthenticationFunction<any>
+  validator?: ValidatorFunction<any>
+  queryValidator?: ValidatorFunction<any>
+  urlParamValidator?: ValidatorFunction<any>
+  paginationConfig?: PaginationConfig
+  hasTransaction: boolean
+}
+
+type RestMethod = "GET" | "POST" | "PUT" | "DELETE"
+
+type BodySupportedMethods = "POST" | "PUT"
+
+type Handler<P, Response, RequestBody, Auth>
+
+type Authentication  // interface for auth functions
+type ResponseData<TypeName>
+type Params<Path>    // extracts URL params from a path string
+
+type PaginationParams
+type PaginationConfig
+type PaginatedResponse<T>
+
+type ValidatorFunction<T>
+type AuthenticationFunction<T>
+
+type RequestExtractor<T>
+
+type FrameworkAdapter
+type DatabaseAdapter
+type DatabaseContext
+type ValidationAdapter
+type LoggerAdapter
+type Logger
+type HttpMethod
+
+type FossylConfig
+type AdaptersConfig
+```
+
+### Builder State Types
+
+These mark the current state of an endpoint builder chain:
+
+- `OpenRouter` — initial state, no HTTP method selected
+- `AuthenticatedRouter` — auth middleware applied
+- `ValidatedRouter` — body validator applied
+- `FullRouter` — handler attached, route is complete
+- `QueryableRouter` — query validator applied
+- `PaginatedRouter` — pagination config applied
+
+### Not Exported from `@fossyl/core`
+
+- `RequestBody` — used internally for typed request bodies
+- `bodyWrapper` — internal utility for body parsing (defined in source, not re-exported)
+
+---
+
+## `@fossyl/express`
+
+### Functions
+
+```typescript
+expressAdapter(options?: ExpressAdapterOptions): FrameworkAdapter
+```
+
+Creates a framework adapter for Express. Wires middleware, error handling, and context extraction.
+
+```typescript
+getContext(): RequestContext | undefined
+getLogger(): LoggerContext | undefined
+getRequestId(): string | undefined
+getDb(): DatabaseContext | undefined
+```
+
+Async-local helpers to access request-scoped values anywhere in the call stack.
+
+### Classes
+
+```typescript
+AuthenticationError  // extends Error
+ValidationError      // extends Error
+```
+
+### Utilities
+
+```typescript
+wrapResponse<T>(data: T): ApiResponse<T>
+```
+
+Wraps a non-paginated response body in the standard `ApiResponse` envelope.
+
+### Exports
+
+```typescript
+createErrorResponse(status: number, code: ErrorCode, message: string): ErrorResponse
+
+ERROR_CODES        // enum-like object of known error codes
+type ErrorCode     // union type of error code strings
+type ErrorResponse // shape of error response body
+type RequestContext
+type LoggerContext
+```
+
+---
+
+## `@fossyl/zod`
+
+```typescript
+zodValidator<T>(schema: T): (data: unknown) => z.infer<T>
+```
+
+Creates a body validator from a Zod schema. The returned function validates `data` and returns the inferred output type.
+
+```typescript
+zodQueryValidator<T>(schema: T): (data: unknown) => z.infer<T>
+```
+
+Same as `zodValidator` but for query parameter validation.
+
+---
+
+## `@fossyl/kysely`
+
+### Functions
+
+```typescript
+kyselyAdapter(options?: KyselyAdapterOptions): DatabaseAdapter
+```
+
+Creates a database adapter backed by Kysely. Handles connection lifecycle and transaction boundaries.
+
+```typescript
+getDb(): DatabaseConnection | undefined
+getTransaction(): Transaction | undefined
+```
+
+Retrieve the current Kysely instance or active transaction from async context.
+
+```typescript
+transactionContext<T>(fn: () => Promise<T>): Promise<T>
+```
+
+Runs `fn` inside a database transaction, accessible via `getTransaction()`.
+
+```typescript
+setBaseClient(db: Kysely<any>): void
+createDbProxy(): Kysely<any>
+```
+
+```typescript
+createMigrationProvider(migrations: KyselyMigration[]): MigrationProvider
+defineMigration(migration: KyselyMigration): KyselyMigration
+runMigrations(db: Kysely<any>, provider: MigrationProvider): Promise<MigrationResult[]>
+rollbackMigration(db: Kysely<any>, provider: MigrationProvider): Promise<MigrationResult>
+getMigrationStatus(db: Kysely<any>, provider: MigrationProvider): Promise<MigrationRecord[]>
+```
+
+Migration utilities wrapping Kysely's built-in `Migrator`.
+
+### Types
+
+```typescript
+type KyselyAdapterOptions  // adapter configuration
+
+type KyselyMigration = {
+  name: string
+  up: (db: Kysely<any>) => Promise<void>
+  down?: (db: Kysely<any>) => Promise<void>
+}
+
+type MigrationRecord = {
+  name: string
+  executedAt: Date
+}
+
+type MigrationResult = {
+  name: string
+  direction: "Up" | "Down"
+  status: "Executed" | "Error" | "NotExecuted"
+}
+
+type TransactionContext  // exposed via getTransaction()
+```

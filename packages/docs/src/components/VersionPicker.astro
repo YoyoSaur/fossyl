@@ -1,0 +1,43 @@
+<label class="version-picker">
+  <select id="version-select">
+    <option value="v1.0">v1.0</option>
+    <option value="v0.18">v0.18</option>
+  </select>
+</label>
+
+<script>
+  (function() {
+    const select = document.getElementById('version-select');
+    const currentPath = window.location.pathname;
+    const isV018 = currentPath.startsWith('/v018');
+
+    if (select) {
+      (select as HTMLSelectElement).value = isV018 ? 'v0.18' : 'v1.0';
+
+      select.addEventListener('change', function() {
+        const version = (this as HTMLSelectElement).value;
+        const path = currentPath.replace(/\/$/, '');
+        let newPath;
+
+        if (version === 'v0.18') {
+          if (path === '' || path === '/v018') {
+            newPath = '/v018/';
+          } else if (path.startsWith('/v018')) {
+            newPath = path + '/';
+          } else {
+            newPath = '/v018' + path + '/';
+          }
+        } else {
+          if (path === '/v018') {
+            newPath = '/';
+          } else {
+            newPath = path.replace(/^\/v018/, '') + '/';
+            if (newPath === '//') newPath = '/';
+          }
+        }
+
+        window.location.href = newPath;
+      });
+    }
+  })();
+</script>

@@ -48,14 +48,14 @@ For POST/PUT endpoints that need both authentication and a validated body.
 ```typescript code-sample="type-safe-routes/05-full-routes" segment="full-routes"
 ```
 
-### Paginated Routes — Paginated GET Endpoints
+### List Routes — Paginated GET Endpoints
 
-For collection endpoints that return paginated results. Use `.paginate(config)` on the endpoint, then chain `.get()`.
+For collection endpoints that return paginated results. Pagination params (`page`, `pageSize`) are automatically parsed from the query string.
 
 ```typescript code-sample="type-safe-routes/06-list-routes" segment="list-routes"
 ```
 
-Paginated routes return `PaginatedResponse<T>` — a `{ data: T[], pagination: { page, pageSize, hasMore?, total? } }` shape.
+List routes return `PaginatedResponse<T>` — a `{ data: T[], pagination: { page, pageSize, hasMore?, total? } }` shape.
 
 ## How Inference Works
 
@@ -63,13 +63,13 @@ Fossyl uses a few key techniques to drive type inference without explicit generi
 
 ### Function Overloads
 
-Each method (`.get()`, `.post()`, etc.) uses a builder chain ordered by specificity. The TypeScript compiler picks the correct handler signature based on which middleware you apply:
+Each method (`.get()`, `.post()`, etc.) has multiple overloads ordered by specificity. The TypeScript compiler picks the correct overload based on which keys you provide in the config object:
 
-- **No `.authenticator()`, no `.validator()`** → Open route (GET/DELETE) or Validated route (POST/PUT with `.validator()`)
-- **`.authenticator()` only** → Authenticated route
-- **`.validator()` only** → Validated route
-- **`.authenticator()` + `.validator()`** → Full route
-- **`.paginate()`** → Paginated route (pagination always included)
+- **No `authenticator`, no `queryValidator`** → Open route (GET/DELETE) or Validated route (POST/PUT)
+- **`authenticator` only** → Authenticated route
+- **`validator` only** → Validated route
+- **`authenticator` + `validator`** → Full route
+- **`.list()`** → List route (pagination always included)
 
 Overloads with `queryValidator` are listed first so they take priority when both query and no-query variants match.
 
@@ -85,7 +85,7 @@ declare const requestBrand: unique symbol;
 type RequestBody = { readonly [requestBrand]: "RequestBody" };
 ```
 
-`authWrapper()` applies the `Authentication` brand at runtime. The brands are what let the type system distinguish between "data from the authenticator" and "data from the validator" — and pass them to the correct handler parameter positions.
+`authWrapper()` and `bodyWrapper()` apply these brands at runtime. The brands are what let the type system distinguish between "data from the authenticator" and "data from the validator" — and pass them to the correct handler parameter positions.
 
 ### Response Data Constraint
 

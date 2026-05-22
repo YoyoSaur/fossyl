@@ -17,12 +17,13 @@ const createUserValidator = (data: unknown): { name: string; email: string } => 
   return { name: obj.name, email: obj.email };
 };
 
-// Use it directly in a route — the return type becomes the body type
-const createUserRoute = router.createEndpoint('/users').post({
-  validator: createUserValidator,
-  handler: async ({ url }, body) => {
+// Use the chain pattern — the return type becomes the body type
+const createUserRoute = router.createEndpoint('/api/users').validator(
+  createUserValidator,
+).post(
+  (body) => async () => {
     // body is typed as { name: string; email: string }
     return { typeName: 'User' as const, ...body, id: crypto.randomUUID() };
   },
-});
+);
 // @code-block-end: validator-function

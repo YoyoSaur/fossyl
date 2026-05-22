@@ -1,7 +1,7 @@
 // @code-block-start: database-adapter
 // Database adapters implement the DatabaseAdapter interface.
 // Created independently, then composed into the framework adapter.
-import type { DatabaseAdapter } from 'fossyl';
+import type { DatabaseAdapter } from '@fossyl/core';
 import { expressAdapter } from '@fossyl/express';
 
 const dbAdapter: DatabaseAdapter = {

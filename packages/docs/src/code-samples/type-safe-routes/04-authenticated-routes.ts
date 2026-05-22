@@ -1,17 +1,18 @@
 // @code-block-start: authenticated-routes
 // Hover any identifier to see its type
-import { createRouter } from 'fossyl';
+import { createRouter, authWrapper } from '@fossyl/core';
 
-const router = createRouter();
+const router = createRouter<"/api">("/api");
 
-const userRoute = router.createEndpoint('/users/:id').get({
-  authenticator: async (headers) => {
+const userRoute = router.createEndpoint('/api/users/:id').authenticator(
+  async (headers) => {
     const userId = headers['x-user-id'];
     if (!userId) throw new Error('Unauthorized');
-    return { userId, role: 'admin' };
+    return authWrapper({ userId, role: 'admin' });
   },
-  handler: async ({ url }, auth) => {
+).get(
+  ({ url }) => (auth) => async () => {
     return { typeName: 'UserProfile', id: url.id };
   },
-});
+);
 // @code-block-end: authenticated-routes

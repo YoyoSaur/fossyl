@@ -116,27 +116,63 @@ export default defineConfig({
         },
       ],
       sidebar: [
+        { label: 'Blog', slug: 'blog' },
+        { label: 'Changelog', slug: 'changelog' },
         {
-          label: 'Start Here',
+          label: 'v1.0',
           items: [
-            { label: 'Introduction', link: '/' },
-            { label: 'Getting Started', slug: 'getting-started' },
-            { label: 'Type-Safe Routes', slug: 'type-safe-routes' },
+            {
+              label: 'Start Here',
+              items: [
+                { label: 'Introduction', slug: '' },
+                { label: 'Getting Started', slug: 'getting-started' },
+                { label: 'Type-Safe Routes', slug: 'type-safe-routes' },
+              ],
+            },
+            {
+              label: 'Guides',
+              items: [
+                { label: 'Pure Functional', slug: 'pure-functional' },
+                { label: 'Query Validation', slug: 'query-validation' },
+                { label: 'Authentication', slug: 'authentication' },
+                { label: 'AI-First', slug: 'ai-first' },
+              ],
+            },
+            {
+              label: 'Reference',
+              items: [
+                { label: 'API Reference', slug: 'api-reference' },
+              ],
+            },
           ],
         },
         {
-          label: 'Guides',
+          label: 'v0.18',
+          collapsed: true,
           items: [
-            { label: 'Pure Functional', slug: 'pure-functional' },
-            { label: 'Query Validation', slug: 'query-validation' },
-            { label: 'Authentication', slug: 'authentication' },
-            { label: 'AI-First', slug: 'ai-first' },
-          ],
-        },
-        {
-          label: 'Reference',
-          items: [
-            { label: 'API Reference', slug: 'api-reference' },
+            {
+              label: 'Start Here',
+              items: [
+                { label: 'Introduction', link: '/v018/' },
+                { label: 'Getting Started', link: '/v018/getting-started' },
+                { label: 'Type-Safe Routes', link: '/v018/type-safe-routes' },
+              ],
+            },
+            {
+              label: 'Guides',
+              items: [
+                { label: 'Pure Functional', link: '/v018/pure-functional' },
+                { label: 'Query Validation', link: '/v018/query-validation' },
+                { label: 'Authentication', link: '/v018/authentication' },
+                { label: 'AI-First', link: '/v018/ai-first' },
+              ],
+            },
+            {
+              label: 'Reference',
+              items: [
+                { label: 'API Reference', link: '/v018/api-reference' },
+              ],
+            },
           ],
         },
       ],
@@ -145,6 +181,7 @@ export default defineConfig({
       ],
       components: {
         ThemeProvider: './src/components/ThemeProvider.astro',
+        Header: './src/components/Header.astro',
       },
       defaultLocale: 'root',
       locales: {

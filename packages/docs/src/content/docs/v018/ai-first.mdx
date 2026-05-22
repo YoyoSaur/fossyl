@@ -1,0 +1,52 @@
+---
+title: AI-First
+description: Fossyl's design for AI-assisted development
+---
+
+Fossyl is designed from the ground up for AI-assisted development. Every design decision — from the pure function validator pattern to the AGENTS.md files — exists to help AI tools write correct, type-safe code.
+
+## AGENTS.md System
+
+Every fossyl package ships with an `AGENTS.md` file that tells AI assistants how to work with the codebase. These files use a traffic-light zone system:
+
+```typescript code-sample="ai-first/01-agents-md" segment="agents-md"
+```
+
+### Zone System
+
+| Zone | Color | Meaning |
+|------|-------|---------|
+| **Red** | 🔴 | Do not modify — protected internals (`@fossyl/core`) |
+| **Green** | 🟢 | Contributions welcome — adapters, tools, examples |
+
+This system prevents AI from accidentally modifying the finely-tuned type inference logic in core while encouraging contributions to adapter packages.
+
+## CLAUDE.md in Generated Projects
+
+When you scaffold a project with `npx fossyl --create my-api`, a `CLAUDE.md` file is generated with project-specific instructions:
+
+```typescript code-sample="ai-first/02-generated-claude-md" segment="generated-claude-md"
+```
+
+This gives AI assistants the exact context they need: the technology stack, architecture patterns, and rules to follow.
+
+## Why AI-First Design Matters
+
+Traditional frameworks assume a human reading docs and writing code. Fossyl assumes an AI will be reading the type signatures and generating the implementation.
+
+Key design decisions for AI:
+
+1. **No explicit generics** — type inference flows from validators and authenticators
+2. **Pure function validators** — the simplest possible contract for an AI to implement
+3. **Simple adapter interfaces** — 3-5 method interfaces that are easy to generate
+4. **Self-documenting types** — branded types and overloads guide AI toward correct usage
+5. **AGENTS.md files** — explicit instructions for AI behavior per package
+
+---
+
+## COMING SOON
+
+- **Skills** — Reusable AI skill definitions for common patterns (CRUD, search, auth)
+- **Rules** — Declarative route rules for automatic rate limiting, caching, and validation
+- **Plugin System** — Extend fossyl with custom code generation and runtime plugins
+- **AI-Generated Migrations** — Type-safe database migrations from schema changes

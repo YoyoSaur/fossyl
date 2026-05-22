@@ -36,9 +36,9 @@ Authentication is available on these route types:
 
 | Route Type | Auth | Use Case |
 |-----------|------|----------|
-| Authenticated (`.authenticator().get()`) | Required | Protected GET/DELETE |
-| Full (`.authenticator().validator().post()`) | Required | Protected POST/PUT |
-| Authenticated + Paginated (`.paginate().authenticator().get()`) | Required | Protected paginated collections |
+| `AuthenticatedRoute` | Required | Protected GET/DELETE |
+| `FullRoute` | Required | Protected POST/PUT |
+| `AuthenticatedListRoute` | Required | Protected paginated collections |
 
 ## Error Handling
 

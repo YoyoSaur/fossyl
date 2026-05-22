@@ -1,6 +1,6 @@
 // @code-block-start: sql-auth
 // SQL-based authentication — look up user in database
-import { authWrapper } from 'fossyl';
+import { authWrapper } from '@fossyl/core';
 import { AuthenticationError, getDb } from '@fossyl/express';
 
 const sqlAuth = async (headers: Record<string, string>) => {
@@ -23,9 +23,10 @@ const sqlAuth = async (headers: Record<string, string>) => {
   });
 };
 
-const protectedRoute = router.createEndpoint('/dashboard').get({
-  authenticator: sqlAuth,
-  handler: async ({ url }, auth) => {
+const protectedRoute = router.createEndpoint('/api/dashboard').authenticator(
+  sqlAuth,
+).get(
+  (auth) => async () => {
     //    auth is typed as: { userId: string; role: string; name: string }
     return {
       typeName: 'Dashboard' as const,
@@ -33,5 +34,5 @@ const protectedRoute = router.createEndpoint('/dashboard').get({
       role: auth.role,
     };
   },
-});
+);
 // @code-block-end: sql-auth

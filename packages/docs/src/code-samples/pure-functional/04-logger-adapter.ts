@@ -1,7 +1,7 @@
 // @code-block-start: logger-adapter
 // Logger adapters are pure functional interfaces.
 // Created standalone, then passed to the framework adapter.
-import type { LoggerAdapter } from 'fossyl';
+import type { LoggerAdapter } from '@fossyl/core';
 import { expressAdapter, getLogger } from '@fossyl/express';
 
 const pinoLogger: LoggerAdapter = {
@@ -19,11 +19,11 @@ const adapter = expressAdapter({
   logger: pinoLogger,
 });
 
-const myRoute = router.createEndpoint('/logs').get({
-  handler: async ({ url }) => {
+const myRoute = router.createEndpoint('/api/logs').get(
+  ({ url }) => async () => {
     const logger = getLogger();
     logger.info('Handling request');
     return { typeName: 'Ok' as const, status: 'logged' };
   },
-});
+);
 // @code-block-end: logger-adapter

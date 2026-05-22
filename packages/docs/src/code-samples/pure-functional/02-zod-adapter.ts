@@ -12,10 +12,11 @@ const userSchema = z.object({
 const createUserValidator = zodValidator(userSchema);
 //    ^? (data: unknown) => { name: string; email: string }
 
-const createUserRoute = router.createEndpoint('/users').post({
-  validator: createUserValidator,
-  handler: async ({ url }, body) => {
+const createUserRoute = router.createEndpoint('/api/users').validator(
+  createUserValidator,
+).post(
+  (body) => async () => {
     return { typeName: 'User' as const, ...body, id: crypto.randomUUID() };
   },
-});
+);
 // @code-block-end: zod-adapter
