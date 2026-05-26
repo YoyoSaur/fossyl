@@ -1,6 +1,9 @@
 // @code-block-start: url-params
 // URL params are declared with :param syntax in the path
 // Fossyl extracts them at the type level automatically
+import { createRouter } from '@fossyl/core';
+
+const router = createRouter<"/api">("/api");
 
 const getUserRoute = router.createEndpoint('/api/users/:id').get(
   ({ url }) => async () => {

@@ -39,5 +39,24 @@
         window.location.href = newPath;
       });
     }
+
+    function hideInactiveVersionSidebar() {
+      const isV018 = window.location.pathname.startsWith('/v018');
+      const details = document.querySelectorAll<HTMLElement>('nav.sidebar details');
+      for (const detail of details) {
+        const summary = detail.querySelector('summary');
+        if (!summary) continue;
+        const text = summary.textContent?.trim() || '';
+        if ((text === 'v1.0' && isV018) || (text === 'v0.18' && !isV018)) {
+          detail.style.display = 'none';
+        }
+      }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', hideInactiveVersionSidebar);
+    } else {
+      hideInactiveVersionSidebar();
+    }
   })();
 </script>

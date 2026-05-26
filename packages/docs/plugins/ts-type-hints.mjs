@@ -130,13 +130,35 @@ function getCompilerSetup() {
   return { host: compilerHost, options: compilerOptions };
 }
 
+const codeSampleDeclarations = `
+declare class AuthenticationError extends Error {
+  constructor(message?: string);
+}
+declare function verifyJwt(token: string): { sub: string; role: string };
+declare function getLogger(): { info: (msg: string, meta?: any) => void; warn: (msg: string, meta?: any) => void; error: (msg: string, meta?: any) => void };
+declare function migrateToLatest(): Promise<void>;
+declare function searchDatabase(q: string, limit?: number, offset?: number): Promise<any>;
+declare function searchDb(query: { q: string; limit: number; offset: number }): Promise<any>;
+
+// Blog code sample types
+interface Todo { id: number; title: string; completed: boolean; }
+type FullUser = { id: number; name: string; todos: Todo[]; reminders: Todo[]; };
+interface ResponseObject<T> { data?: T; error?: Error; }
+declare function ResponseWrap<T>(data: T): ResponseObject<T>;
+declare function ErrorWrap(error: Error): ResponseObject<never>;
+declare function getUser(id: number): Promise<ResponseObject<{ id: number; name: string }>>;
+declare function getTodos(userId: number): Promise<ResponseObject<Todo[]>>;
+declare function getReminders(userId: number): Promise<ResponseObject<Todo[]>>;
+`;
+
 function extractTypes(code) {
   const types = new Map();
 
   try {
     const { host, options } = getCompilerSetup();
     const fileName = '/virtual/code-block.ts';
-    const sourceFile = ts.createSourceFile(fileName, code, ts.ScriptTarget.ESNext, true);
+    const fullCode = code.includes('@fossyl/core') ? code : codeSampleDeclarations + code;
+    const sourceFile = ts.createSourceFile(fileName, fullCode, ts.ScriptTarget.ESNext, true);
 
     const customHost = {
       ...host,
@@ -150,7 +172,7 @@ function extractTypes(code) {
       useCaseSensitiveFileNames: () => host.useCaseSensitiveFileNames(),
       getNewLine: () => host.getNewLine(),
       fileExists: (f) => f === fileName || host.fileExists(f),
-      readFile: (f) => f === fileName ? code : host.readFile(f),
+      readFile: (f) => f === fileName ? fullCode : host.readFile(f),
       writeFile: () => {},
     };
 
@@ -276,7 +298,6 @@ export function tsTypeHints() {
       preprocessCode: async ({ codeBlock }) => {
         if (codeBlock.language !== 'typescript') return;
         const code = codeBlock.code;
-        if (!code.includes('fossyl')) return;
 
         const rawTypes = extractTypes(code);
         if (rawTypes.size > 0) {

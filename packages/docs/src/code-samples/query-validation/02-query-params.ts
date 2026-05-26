@@ -1,5 +1,8 @@
 // @code-block-start: query-params
 // Query params are validated and typed via queryValidator
+import { createRouter } from '@fossyl/core';
+
+const router = createRouter<"/api">("/api");
 
 const searchRoute = router.createEndpoint('/api/search').query(
   (data): { q: string; limit?: number; offset?: number } => {

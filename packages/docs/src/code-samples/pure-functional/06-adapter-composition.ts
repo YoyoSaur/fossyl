@@ -1,14 +1,18 @@
 // @code-block-start: adapter-composition
 // Adapters are standalone modules composed in src/index.ts
-import type { LoggerAdapter } from '@fossyl/core';
-import { kyselyAdapter } from '@fossyl/kysely';
+import type { LoggerAdapter, DatabaseAdapter } from '@fossyl/core';
 import { expressAdapter } from '@fossyl/express';
 
-const database = kyselyAdapter({
+const database: DatabaseAdapter = {
+  type: 'database',
+  name: 'kysely',
   client: db,
-  migrations,
+  defaultTransaction: true,
   autoMigrate: true,
-});
+  onStartup: async () => {},
+  withTransaction: async (fn) => fn({ client: db, inTransaction: true }),
+  withClient: async (fn) => fn({ client: db, inTransaction: false }),
+};
 
 const logger: LoggerAdapter = {
   type: 'logger',

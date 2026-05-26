@@ -1,13 +1,14 @@
 // @code-block-start: get-full-todos-v3
-async function getFullTodos(userId: number): Promise<Todo[]> {
-  const user = await getUser(userId);
-  const todos = await getTodos(user.id);
-  const reminders = await getReminders(user.id);
+async function getFullTodos(userId: number): Promise<FullUser> {
+  const { data: user } = await getUser(userId);
+  if (!user) throw new Error('User not found');
+  const { data: todos } = await getTodos(user.id);
+  const { data: reminders } = await getReminders(user.id);
 
   return {
     ...user,
-    todos,
-    reminders,
+    todos: todos ?? [],
+    reminders: reminders ?? [],
   };
 }
 // @code-block-end: get-full-todos-v3

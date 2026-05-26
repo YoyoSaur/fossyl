@@ -2,6 +2,10 @@
 // Validators are just pure functions: (data: unknown) => T
 // No framework coupling, no special decorators, no base classes
 
+import { createRouter } from '@fossyl/core';
+
+const router = createRouter<"/api">("/api");
+
 // Manual validator — no library needed
 const createUserValidator = (data: unknown): { name: string; email: string } => {
   if (typeof data !== 'object' || data === null) {

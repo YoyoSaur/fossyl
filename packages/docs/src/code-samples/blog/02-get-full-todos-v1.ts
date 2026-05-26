@@ -1,5 +1,5 @@
 // @code-block-start: get-full-todos-v1
-async function getFullTodos(userId: number): Promise<ResponseObject<Todo[]>> {
+async function getFullTodos(userId: number): Promise<ResponseObject<FullUser>> {
   const userResponse = await getUser(userId);
   if (!userResponse.data) return userResponse;
   const todosResponse = await getTodos(userResponse.data.id);

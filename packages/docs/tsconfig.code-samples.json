@@ -1,0 +1,19 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "module": "preserve",
+    "target": "esnext",
+    "paths": {
+      "@fossyl/core": ["../core/dist/index.d.ts"],
+      "@fossyl/express": ["../express/dist/index.d.ts"],
+      "@fossyl/kysely": ["../kysely/dist/index.d.ts"],
+      "@fossyl/zod": ["../zod/dist/index.d.ts"]
+    }
+  },
+  "include": ["src/code-samples/**/*.ts"],
+  "exclude": ["src/code-samples/ai-first/**", "src/code-samples/blog/**"]
+}

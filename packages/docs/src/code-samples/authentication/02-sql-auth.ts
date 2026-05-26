@@ -2,12 +2,15 @@
 // SQL-based authentication — look up user in database
 import { authWrapper } from '@fossyl/core';
 import { AuthenticationError, getDb } from '@fossyl/express';
+import { createRouter } from '@fossyl/core';
+
+const router = createRouter<"/api">("/api");
 
 const sqlAuth = async (headers: Record<string, string>) => {
   const apiKey = headers['x-api-key'];
   if (!apiKey) throw new AuthenticationError('API key required');
 
-  const db = getDb().client;
+  const db: any = getDb().client;
   const user = await db
     .selectFrom('users')
     .where('api_key', '=', apiKey)

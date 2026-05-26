@@ -2,6 +2,9 @@
 // With a validation library like Zod — still just a pure function
 import { z } from 'zod';
 import { zodValidator } from '@fossyl/zod';
+import { createRouter } from '@fossyl/core';
+
+const router = createRouter<"/api">("/api");
 
 const userSchema = z.object({
   name: z.string().min(1),

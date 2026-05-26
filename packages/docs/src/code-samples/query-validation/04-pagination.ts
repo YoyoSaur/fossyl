@@ -1,6 +1,9 @@
 // @code-block-start: pagination
 // Paginated routes automatically handle pagination params:
 //   ?page=1&pageSize=20  →  { page: 1, pageSize: 20 }
+import { createRouter } from '@fossyl/core';
+
+const router = createRouter<"/api">("/api");
 
 const listPostsRoute = router.createEndpoint('/api/posts').paginate({
   defaultPageSize: 20,

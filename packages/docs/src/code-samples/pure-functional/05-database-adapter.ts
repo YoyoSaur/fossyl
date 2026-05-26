@@ -16,7 +16,7 @@ const dbAdapter: DatabaseAdapter = {
   },
 
   withTransaction: async (fn) => {
-    return db.transaction().execute((trx) => {
+    return db.transaction().execute((trx: any) => {
       return fn({ client: trx, inTransaction: true });
     });
   },

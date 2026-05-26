@@ -3,6 +3,9 @@
 // Created standalone, then passed to the framework adapter.
 import type { LoggerAdapter } from '@fossyl/core';
 import { expressAdapter, getLogger } from '@fossyl/express';
+import { createRouter } from '@fossyl/core';
+
+const router = createRouter<"/api">("/api");
 
 const pinoLogger: LoggerAdapter = {
   type: 'logger',
@@ -20,7 +23,7 @@ const adapter = expressAdapter({
 });
 
 const myRoute = router.createEndpoint('/api/logs').get(
-  ({ url }) => async () => {
+  async () => {
     const logger = getLogger();
     logger.info('Handling request');
     return { typeName: 'Ok' as const, status: 'logged' };

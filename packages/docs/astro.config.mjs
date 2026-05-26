@@ -116,15 +116,20 @@ export default defineConfig({
         },
       ],
       sidebar: [
-        { label: 'Blog', slug: 'blog' },
         { label: 'Changelog', slug: 'changelog' },
+        {
+          label: 'Blog',
+          items: [
+            { label: 'Overview', slug: 'blog' },
+            { label: 'The Legacy Codebase That Inspired Fossyl', slug: 'blog/01-legacy-codebase' },
+          ],
+        },
         {
           label: 'v1.0',
           items: [
             {
               label: 'Start Here',
               items: [
-                { label: 'Introduction', slug: '' },
                 { label: 'Getting Started', slug: 'getting-started' },
                 { label: 'Type-Safe Routes', slug: 'type-safe-routes' },
               ],

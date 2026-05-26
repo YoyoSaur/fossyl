@@ -1,6 +1,8 @@
 // @code-block-start: custom-auth
 // Authentication is just an async function that returns authWrapper()
-import { authWrapper } from '@fossyl/core';
+import { authWrapper, createRouter } from '@fossyl/core';
+
+const router = createRouter<"/api">("/api");
 
 // JWT-based auth
 const jwtAuth = async (headers: Record<string, string>) => {

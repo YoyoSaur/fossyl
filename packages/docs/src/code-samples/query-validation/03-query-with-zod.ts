@@ -2,6 +2,9 @@
 // Query validation with Zod — same pattern as body validation
 import { z } from 'zod';
 import { zodQueryValidator } from '@fossyl/zod';
+import { createRouter } from '@fossyl/core';
+
+const router = createRouter<"/api">("/api");
 
 const searchSchema = z.object({
   q: z.string().min(1, 'Search query is required'),

@@ -2,9 +2,13 @@
 // Compose authenticators for role-based access
 import { authWrapper, type Authentication } from '@fossyl/core';
 
+import { createRouter } from '@fossyl/core';
+
+const router = createRouter<"/api">("/api");
+
 const requireRole =
   (...roles: string[]) =>
-  async (headers: Record<string, string>): Promise<Authentication> => {
+  async (headers: Record<string, string>) => {
     const token = headers.authorization?.replace('Bearer ', '');
     if (!token) throw new AuthenticationError('Missing token');
 
