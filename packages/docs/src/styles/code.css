@@ -1,12 +1,9 @@
 /* ===== Code Blocks ===== */
 
-/* Inline code styling */
+/* Inline code — just bold monospace, no box */
 :not(pre) > code {
-  background: var(--fossyl-tan) !important;
   color: var(--fossyl-brown) !important;
-  padding: 0.2em 0.5em !important;
-  font-size: 0.875em !important;
   font-weight: 700 !important;
-  border: 2px solid var(--fossyl-brown) !important;
   font-family: 'Monaco', 'Courier New', monospace !important;
+  font-size: 0.875em !important;
 }

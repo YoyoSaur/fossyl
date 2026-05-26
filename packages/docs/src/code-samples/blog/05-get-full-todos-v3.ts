@@ -12,3 +12,4 @@ async function getFullTodos(userId: number): Promise<FullUser> {
   };
 }
 // @code-block-end: get-full-todos-v3
+export {};

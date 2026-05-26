@@ -2,9 +2,13 @@ import { definePlugin, AttachedPluginData } from '@expressive-code/core';
 import ts from 'typescript';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { readFileSync } from 'node:fs';
 import * as prettier from 'prettier';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const projects = {
+  regression: path.resolve(__dirname, '../../regression-testing/src'),
+};
 
 const typeHintData = new AttachedPluginData(() => new Map());
 
@@ -68,7 +72,12 @@ function getCompilerSetup() {
   const coreDist = path.resolve(__dirname, '../../core/dist/index.d.ts');
   const expressDist = path.resolve(__dirname, '../../express/dist/index.d.ts');
   const kyselyDist = path.resolve(__dirname, '../../kysely/dist/index.d.ts');
+  const zodDist = path.resolve(__dirname, '../../zod/dist/index.d.ts');
   const libDir = path.dirname(path.dirname(new URL(import.meta.resolve('typescript')).pathname));
+
+  const regressionSrc = path.resolve(__dirname, '../../regression-testing/src');
+  const regressionDbIndex = path.join(regressionSrc, 'db/index');
+  const regressionDb = path.join(regressionSrc, 'db');
 
   compilerOptions = {
     target: ts.ScriptTarget.ESNext,
@@ -82,6 +91,8 @@ function getCompilerSetup() {
       'fossyl': [coreDist],
       '@fossyl/express': [expressDist],
       '@fossyl/kysely': [kyselyDist],
+      '@db': [regressionDbIndex],
+      '@db/*': [path.join(regressionDb, '*')],
     },
     baseUrl: path.dirname(coreDist),
     allowJs: false,
@@ -89,18 +100,20 @@ function getCompilerSetup() {
   };
 
   compilerHost = ts.createCompilerHost(compilerOptions, true);
-  const originalResolveModule = compilerHost.resolveModuleNames?.bind(compilerHost);
   const originalFileExists = compilerHost.fileExists.bind(compilerHost);
 
-  const adapterDists = {
-    '@fossyl/express': expressDist,
-    '@fossyl/kysely': kyselyDist,
-  };
+    const allDists = {
+      'fossyl': coreDist,
+      '@fossyl/core': coreDist,
+      '@fossyl/express': expressDist,
+      '@fossyl/kysely': kyselyDist,
+      '@fossyl/zod': zodDist,
+    };
 
   compilerHost.resolveModuleNames = (moduleNames, containingFile) => {
     return moduleNames.map((name) => {
-      if (name === 'fossyl' || name in adapterDists) {
-        const dist = name === 'fossyl' ? coreDist : adapterDists[name];
+      if (name in allDists) {
+        const dist = allDists[name];
         const result = ts.resolveModuleName(name, containingFile, compilerOptions, {
           fileExists: originalFileExists,
           readFile: compilerHost.readFile.bind(compilerHost),
@@ -112,15 +125,16 @@ function getCompilerSetup() {
           isExternalLibraryImport: true,
         };
       }
-      if (originalResolveModule) {
-        const results = originalResolveModule([name], containingFile);
-        return results?.[0] ?? undefined;
-      }
+      const result = ts.resolveModuleName(name, containingFile, compilerOptions, {
+        fileExists: originalFileExists,
+        readFile: compilerHost.readFile.bind(compilerHost),
+      });
+      if (result.resolvedModule) return result.resolvedModule;
       return undefined;
     });
   };
 
-  const allKnownDists = [coreDist, expressDist, kyselyDist];
+  const allKnownDists = Object.values(allDists);
 
   compilerHost.fileExists = (fileName) => {
     if (allKnownDists.includes(fileName)) return true;
@@ -151,12 +165,12 @@ declare function getTodos(userId: number): Promise<ResponseObject<Todo[]>>;
 declare function getReminders(userId: number): Promise<ResponseObject<Todo[]>>;
 `;
 
-function extractTypes(code) {
+function extractTypes(code, sourcePath) {
   const types = new Map();
 
   try {
     const { host, options } = getCompilerSetup();
-    const fileName = '/virtual/code-block.ts';
+    const fileName = sourcePath || '/virtual/code-block.ts';
     const fullCode = code.includes('@fossyl/core') ? code : codeSampleDeclarations + code;
     const sourceFile = ts.createSourceFile(fileName, fullCode, ts.ScriptTarget.ESNext, true);
 
@@ -297,9 +311,23 @@ export function tsTypeHints() {
     hooks: {
       preprocessCode: async ({ codeBlock }) => {
         if (codeBlock.language !== 'typescript') return;
-        const code = codeBlock.code;
+        const meta = codeBlock.meta || '';
+        let code = codeBlock.code;
 
-        const rawTypes = extractTypes(code);
+        const projectMatch = meta.match(/code-project="([^"]+)"/);
+        const fileMatch = meta.match(/code-file="([^"]+)"/);
+        let sourcePath;
+        if (projectMatch && fileMatch) {
+          const baseDir = projects[projectMatch[1]];
+          if (baseDir) {
+            sourcePath = path.resolve(baseDir, fileMatch[1]);
+            try {
+              code = readFileSync(sourcePath, 'utf-8');
+            } catch {}
+          }
+        }
+
+        const rawTypes = extractTypes(code, sourcePath);
         if (rawTypes.size > 0) {
           const formatted = await formatWithPrettier(rawTypes);
           const withTokens = formatTypes(formatted);

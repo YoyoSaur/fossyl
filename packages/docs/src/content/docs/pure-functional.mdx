@@ -14,6 +14,16 @@ A validator in fossyl is a function that receives `unknown` and returns a typed 
 
 Use **any** validation library — Zod, Valibot, Yup, io-ts, or write your own. The type system flows from the return type of your validator.
 
+### Zod Schemas
+
+With Zod, wrap your schemas using `zodValidator` from `@fossyl/zod`:
+
+```typescript code-project="regression" code-file="features/todos/validators/todos.validators.ts" tag="todo-schemas"
+```
+
+```typescript code-project="regression" code-file="features/todos/validators/todos.validators.ts" tag="todo-validators"
+```
+
 ## Adapter Pattern
 
 Fossyl defines several adapter interfaces. Each adapter type is an independent contract — they are standalone modules that get composed in your project's entry point.
@@ -43,7 +53,7 @@ Validation adapters format errors for HTTP responses. The default is usually suf
 
 Adapters are standalone modules composed in `src/index.ts`. Each is created independently and wired together through the framework adapter:
 
-```typescript code-sample="pure-functional/06-adapter-composition" segment="adapter-composition"
+```typescript code-project="regression" code-file="index.ts" tag="app-bootstrap"
 ```
 
 The framework adapter orchestrates them at runtime — it calls `database.onStartup()` on listen, wraps POST/PUT handlers in `withTransaction()`, and provides `getLogger()`/`getDb()` context accessors. But each adapter is its own standalone module.

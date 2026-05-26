@@ -9,69 +9,71 @@ Fossyl's type system is designed to give you compile-time guarantees about your 
 
 Route paths use `:param` syntax for dynamic segments. Fossyl extracts these parameters at the type level and exposes them as typed fields on the `url` object.
 
-```typescript code-sample="type-safe-routes/01-url-params" segment="url-params"
+```typescript code-project="regression" code-file="features/users/routes/users.route.ts" tag="open-get-user"
 ```
 
 The `Params<Path>` utility type powers this — it parses the path template at the type level and produces an object type like `{ id: string }` or `{ postId: string; commentId: string }`.
 
-## Six Route Types, One API
+## Builder Configurations
 
-Every HTTP method on an endpoint uses **function overloads** to give you exactly the configuration options you need — and only those. The type system guides you toward correct usage.
+Every endpoint starts as a builder. Chain middleware methods — `.authenticator()`, `.validator()`, `.query()`, `.paginate()` — to configure the handler, then call an HTTP method to produce a `Route`. The type system exposes only valid transitions at each step.
 
-### Open Routes — No Auth, No Body Validation
+### Open — No Auth, No Body Validation
 
 For public GET/DELETE endpoints. The handler receives URL params and optionally parsed query params.
 
-```typescript code-sample="type-safe-routes/02-open-routes" segment="open-routes"
+```typescript code-project="regression" code-file="features/users/routes/users.route.ts" tag="open-get-user"
 ```
 
-### Validated Routes — Body Validation, No Auth
+### Validated — Body Validation, No Auth
 
 For POST/PUT endpoints where anyone can submit data, but the body must be validated.
 
-```typescript code-sample="type-safe-routes/03-validated-routes" segment="validated-routes"
+```typescript code-project="regression" code-file="features/users/routes/users.route.ts" tag="auth-validator-post-user"
 ```
 
 The `validator` function's return type becomes the `body` type in the handler — inference flows through automatically.
 
-### Authenticated Routes — Auth, No Body Validation
+### Authenticated — Auth, No Body Validation
 
 For GET/DELETE endpoints that require an authenticated user.
 
-```typescript code-sample="type-safe-routes/04-authenticated-routes" segment="authenticated-routes"
+```typescript code-project="regression" code-file="features/todos/routes/todos.route.ts" tag="auth-get-todo"
 ```
 
-### Full Routes — Auth + Body Validation
+### Full — Auth + Body Validation
 
 For POST/PUT endpoints that need both authentication and a validated body.
 
-```typescript code-sample="type-safe-routes/05-full-routes" segment="full-routes"
+```typescript code-project="regression" code-file="features/todos/routes/todos.route.ts" tag="auth-validator-put-todo"
 ```
 
-### Paginated Routes — Paginated GET Endpoints
+### Paginated — Paginated GET Endpoints
 
 For collection endpoints that return paginated results. Use `.paginate(config)` on the endpoint, then chain `.get()`.
 
-```typescript code-sample="type-safe-routes/06-list-routes" segment="list-routes"
+```typescript code-project="regression" code-file="features/todos/routes/todos.route.ts" tag="paginate-list-todos"
 ```
 
 Paginated routes return `PaginatedResponse<T>` — a `{ data: T[], pagination: { page, pageSize, hasMore?, total? } }` shape.
+
+> All builder configurations produce the same `Route` object at runtime — it's a plain `{ path, method, steps, handler, ... }` struct that adapters consume. The strong dependent typing lives entirely in the **builder chain** (`.createEndpoint().authenticator().validator().get()`), not in the `Route` type itself. This means the type of `getTodo`, `createUser`, `listTodos`, etc. is all just `Route` — the type safety is guaranteed at construction time, not inspection time.
 
 ## How Inference Works
 
 Fossyl uses a few key techniques to drive type inference without explicit generics:
 
-### Function Overloads
+### Builder State Types
 
-Each method (`.get()`, `.post()`, etc.) uses a builder chain ordered by specificity. The TypeScript compiler picks the correct handler signature based on which middleware you apply:
+Each step in the builder chain returns a distinct type that only exposes valid transitions. TypeScript enforces the FSM at compile time:
 
-- **No `.authenticator()`, no `.validator()`** → Open route (GET/DELETE) or Validated route (POST/PUT with `.validator()`)
-- **`.authenticator()` only** → Authenticated route
-- **`.validator()` only** → Validated route
-- **`.authenticator()` + `.validator()`** → Full route
-- **`.paginate()`** → Paginated route (pagination always included)
+- **Neither `.authenticator()` nor `.validator()`** → handler receives params only. Available on `OpenRouter` (all HTTP methods).
+- **`.authenticator()` only** → handler receives `(params) => (auth) => () => Res`. Available on `AuthenticatedRouter` (all HTTP methods).
+- **`.validator()` only** → handler receives `(params) => (body) => () => Res`. Available on `ValidatedRouter` (POST/PUT only).
+- **`.authenticator()` + `.validator()`** → handler receives `(params) => (auth) => (body) => () => Res`. Available on `FullRouter` (POST/PUT only).
+- **`.paginate()`** → handler receives params with pagination, returns `PaginatedResponse<T>`.
 
-Overloads with `queryValidator` are listed first so they take priority when both query and no-query variants match.
+`QueryableRouter` and `PaginatedRouter` both inherit the `OpenRouter` interface, so all the above transitions apply to them as well.
 
 ### Branded Types
 

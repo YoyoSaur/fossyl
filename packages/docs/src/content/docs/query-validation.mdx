@@ -9,7 +9,7 @@ Fossyl provides three levels of parameter validation: URL path parameters, query
 
 URL parameters are declared using `:param` syntax in the route path. Fossyl parses them at the type level — no runtime configuration needed.
 
-```typescript code-sample="query-validation/01-url-params" segment="url-params"
+```typescript code-project="regression" code-file="features/users/routes/users.route.ts" tag="open-get-user"
 ```
 
 URL params are always `string` types since they come from the URL path. The `Params<Path>` utility type drives this inference.
@@ -24,14 +24,14 @@ URL params are always `string` types since they come from the URL path. The `Par
 
 Query parameters are optional and require a `queryValidator`. This keeps the type system honest — you explicitly declare what query params you expect.
 
-```typescript code-sample="query-validation/02-query-params" segment="query-params"
+```typescript code-project="regression" code-file="features/todos/routes/todos.route.ts" tag="search-todos"
 ```
 
 ### Query Validation with Zod
 
 The `@fossyl/zod` package provides `zodQueryValidator` for Zod-based query validation. Use `z.coerce` for type coercion from strings:
 
-```typescript code-sample="query-validation/03-query-with-zod" segment="query-with-zod"
+```typescript code-project="regression" code-file="features/todos/routes/todos.route.ts" tag="search-todos"
 ```
 
 ### Query vs URL Params
@@ -48,7 +48,7 @@ The `@fossyl/zod` package provides `zodQueryValidator` for Zod-based query valid
 
 Paginated routes handle pagination automatically. Call `.paginate(config)` on the endpoint to configure defaults and limits.
 
-```typescript code-sample="query-validation/04-pagination" segment="pagination"
+```typescript code-project="regression" code-file="features/todos/routes/todos.route.ts" tag="paginate-list-todos"
 ```
 
 ### PaginationConfig

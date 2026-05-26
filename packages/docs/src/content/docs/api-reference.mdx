@@ -81,12 +81,12 @@ type AdaptersConfig
 
 These mark the current state of an endpoint builder chain:
 
-- `OpenRouter` — initial state, no HTTP method selected
-- `AuthenticatedRouter` — auth middleware applied
-- `ValidatedRouter` — body validator applied
-- `FullRouter` — handler attached, route is complete
-- `QueryableRouter` — query validator applied
-- `PaginatedRouter` — pagination config applied
+- `OpenRouter` — base state, no auth or body validation. Exposes `.authenticator()`, `.validator()`, and all HTTP methods.
+- `AuthenticatedRouter` — auth middleware applied. Can add body validation or produce a route via any HTTP method.
+- `ValidatedRouter` — body validator applied. Only `.post()` and `.put()` available.
+- `FullRouter` — both auth and body validation applied. Only `.post()` and `.put()` available.
+- `QueryableRouter` — query validator applied. Adds `.paginate()` to the `OpenRouter` interface.
+- `PaginatedRouter` — pagination config applied. Type alias for `OpenRouter` with pagination bound.
 
 ### Not Exported from `@fossyl/core`
 

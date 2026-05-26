@@ -9,7 +9,7 @@ Authentication in fossyl is a function that receives request headers and returns
 
 Authentication functions **must** return a `Promise`. This allows for async operations — JWT verification, database lookups, OAuth token exchange, and more.
 
-```typescript code-sample="authentication/01-custom-auth" segment="custom-auth"
+```typescript code-project="regression" code-file="auth.ts" tag="authenticator"
 ```
 
 The `authWrapper()` function brands the return value so the type system can distinguish authentication data from body data. This is how fossyl knows to pass auth data to the correct handler parameter position.
@@ -18,7 +18,7 @@ The `authWrapper()` function brands the return value so the type system can dist
 
 Look up users in your database using `getDb()` from the Express adapter context:
 
-```typescript code-sample="authentication/02-sql-auth" segment="sql-auth"
+```typescript code-project="regression" code-file="features/todos/routes/todos.route.ts" tag="auth-get-todo"
 ```
 
 The database client is available because the database adapter provides it via AsyncLocalStorage. This works automatically when you configure a database adapter on the framework adapter.
@@ -27,14 +27,14 @@ The database client is available because the database adapter provides it via As
 
 Compose authenticators for role-based access. Since authenticators are just functions, you can create higher-order authenticators that check roles:
 
-```typescript code-sample="authentication/03-role-based-auth" segment="role-based-auth"
+```typescript code-project="regression" code-file="features/todos/routes/todos.route.ts" tag="auth-validator-post-todo"
 ```
 
-## Route Types with Authentication
+## Builder Configurations with Authentication
 
-Authentication is available on these route types:
+Authentication is available on these builder configurations:
 
-| Route Type | Auth | Use Case |
+| Configuration | Auth | Use Case |
 |-----------|------|----------|
 | Authenticated (`.authenticator().get()`) | Required | Protected GET/DELETE |
 | Full (`.authenticator().validator().post()`) | Required | Protected POST/PUT |

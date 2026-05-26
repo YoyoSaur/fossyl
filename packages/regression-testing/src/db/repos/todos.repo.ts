@@ -1,4 +1,6 @@
+// @code: start todos-repo-imports
 import { db } from "@db";
+// @code: end todos-repo-imports
 
 export type TodoRow = {
   id: number;
@@ -7,6 +9,7 @@ export type TodoRow = {
   created_at: string;
 };
 
+// @code: start repo-list-todos
 export async function listTodos(limit: number, offset: number): Promise<TodoRow[]> {
   return db
     .selectFrom("todos")

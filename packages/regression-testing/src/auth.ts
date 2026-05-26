@@ -1,6 +1,7 @@
 import { authWrapper } from "@fossyl/core";
 import { AuthenticationError } from "@fossyl/express";
 
+// @code: start authenticator
 export const authenticator = async (headers: Record<string, string>) => {
   const userId = headers["x-user-id"];
   if (!userId) {
@@ -8,3 +9,4 @@ export const authenticator = async (headers: Record<string, string>) => {
   }
   return authWrapper({ userId });
 };
+// @code: end authenticator
