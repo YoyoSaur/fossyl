@@ -34,13 +34,17 @@ type ResponseObject<T> =
 
 declare function ResponseWrap<T>(data: T): ResponseObject<T>;
 declare function ErrorWrap(error: Error): ResponseObject<never>;
-declare function getUser(id: number): Promise<ResponseObject<{ id: number; name: string }>>;
-declare function getTodos(userId: number): Promise<ResponseObject<Todo[]>>;
-declare function getReminders(userId: number): Promise<ResponseObject<Todo[]>>;
+
+type UserPayload = { id: number; name: string };
+type TodoPayload = { id: number; title: string; completed: boolean };
+
+declare function getUser(id: number): Promise<ResponseObject<UserPayload>>;
+declare function getTodos(userId: number): Promise<ResponseObject<TodoPayload[]>>;
+declare function getReminders(userId: number): Promise<ResponseObject<TodoPayload[]>>;
 
 type FullUser = {
   id: number;
   name: string;
-  todos: Todo[];
-  reminders: Todo[];
+  todos: TodoPayload[];
+  reminders: TodoPayload[];
 }

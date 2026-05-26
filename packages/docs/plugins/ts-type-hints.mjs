@@ -156,13 +156,15 @@ declare function searchDb(query: { q: string; limit: number; offset: number }): 
 
 // Blog code sample types
 interface Todo { id: number; title: string; completed: boolean; }
-type FullUser = { id: number; name: string; todos: Todo[]; reminders: Todo[]; };
+type UserPayload = { id: number; name: string; };
+type TodoPayload = { id: number; title: string; completed: boolean; };
+type FullUser = { id: number; name: string; todos: TodoPayload[]; reminders: TodoPayload[]; };
 interface ResponseObject<T> { data?: T; error?: Error; }
 declare function ResponseWrap<T>(data: T): ResponseObject<T>;
 declare function ErrorWrap(error: Error): ResponseObject<never>;
-declare function getUser(id: number): Promise<ResponseObject<{ id: number; name: string }>>;
-declare function getTodos(userId: number): Promise<ResponseObject<Todo[]>>;
-declare function getReminders(userId: number): Promise<ResponseObject<Todo[]>>;
+declare function getUser(id: number): Promise<ResponseObject<UserPayload>>;
+declare function getTodos(userId: number): Promise<ResponseObject<TodoPayload[]>>;
+declare function getReminders(userId: number): Promise<ResponseObject<TodoPayload[]>>;
 `;
 
 function extractTypes(code, sourcePath) {
