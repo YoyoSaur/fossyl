@@ -41,9 +41,6 @@ async function lintInDir(
       })
     );
 
-    // Use absolute path for parserOptions.project to avoid resolution issues
-    const projectPath = tsconfigPath;
-
     for (const [name, code] of Object.entries(files)) {
       const dir = path.dirname(path.join(tmpDir, name));
       fs.mkdirSync(dir, { recursive: true });
@@ -62,7 +59,7 @@ async function lintInDir(
       "    parserOptions: {",
       '      ecmaVersion: 2022,',
       '      sourceType: "module",',
-      '      project: "./tsconfig.json",',
+      '      project: "' + tsconfigPath.replace(/\\/g, "/") + '",',
       "    },",
       "  },",
       "}];",
@@ -90,17 +87,6 @@ async function lintInDir(
 }
 
 describe("builder-chains-newline", () => {
-  it("debug: show raw messages", async () => {
-    const results = await lintInDir({
-      "test.ts":
-        "class MyBuilder { a(): MyBuilder { return this; } b(): MyBuilder { return this; } }\n" +
-        "const builder = new MyBuilder();\n" +
-        "builder.a().b();\n",
-    });
-    console.log("RAW RESULT:", JSON.stringify(results, null, 2));
-    expect(1).toBe(1);
-  });
-
   describe("valid cases", () => {
     it("should allow a single method call (no chain)", async () => {
       const results = await lintInDir({
