@@ -1,4 +1,4 @@
-import type { Route } from '@fossyl/core';
+import type { Route } from "@fossyl/core";
 
 /**
  * A group of routes that share a common prefix.
@@ -39,13 +39,13 @@ export function groupRoutes(routes: Route[]): RouteGroup[] {
  * /:id           -> /
  */
 function getRoutePrefix(path: string): string {
-  const segments = path.split('/').filter(Boolean);
+  const segments = path.split("/").filter(Boolean);
   const staticSegments: string[] = [];
 
   for (const seg of segments) {
-    if (seg.startsWith(':')) break;
+    if (seg.startsWith(":")) break;
     staticSegments.push(seg);
   }
 
-  return '/' + staticSegments.join('/');
+  return "/" + staticSegments.join("/");
 }

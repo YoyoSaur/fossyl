@@ -28,6 +28,7 @@ The key insight: returning a function with explicit return type `z.infer<T>` all
 ## Why Two Functions?
 
 `zodValidator` and `zodQueryValidator` are functionally identical but semantically distinct:
+
 - `zodValidator` is used for `validator` (request body)
 - `zodQueryValidator` is used for `queryValidator` (URL query params)
 
@@ -43,6 +44,7 @@ pnpm typecheck   # Check types
 ## Contributing
 
 This package is intentionally minimal. If adding features:
+
 - Keep the API surface small
 - Maintain type inference (the whole point of this package)
 - Consider if the feature belongs here or in user code

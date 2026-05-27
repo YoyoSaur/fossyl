@@ -50,11 +50,11 @@ When generating template code for a fossyl package, load that package's AGENTS.m
 
 `generatePackageJson` now includes these scripts:
 
-| Script | Always? | Command |
-|---|---|---|
-| `typecheck` | always | `tsc --noEmit` |
-| `lint` | always | `eslint src/` |
-| `migrate` | when kysely | `tsx src/migrate.ts` |
+| Script      | Always?     | Command              |
+| ----------- | ----------- | -------------------- |
+| `typecheck` | always      | `tsc --noEmit`       |
+| `lint`      | always      | `eslint src/`        |
+| `migrate`   | when kysely | `tsx src/migrate.ts` |
 
 A `src/migrate.ts` file is generated when kysely is selected (via `generateMigrateScript` in `database/kysely.ts`). It calls `runMigrations` from `@fossyl/kysely` with the project's client and migrations.
 

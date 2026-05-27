@@ -1,7 +1,7 @@
-import type { PaginationParams } from '@fossyl/core';
-import * as todoRepo from '../repo/todos.repo';
+import type { PaginationParams } from "@fossyl/core";
+import * as todoRepo from "../repo/todos.repo";
 
-export type { Todo, TodoFilters } from '../repo/todos.repo';
+export type { Todo, TodoFilters } from "../repo/todos.repo";
 
 export interface TodoListResult {
   data: todoRepo.Todo[];
@@ -11,7 +11,7 @@ export interface TodoListResult {
 
 export async function listTodos(
   pagination: PaginationParams,
-  filters: todoRepo.TodoFilters,
+  filters: todoRepo.TodoFilters
 ): Promise<TodoListResult> {
   const results = await todoRepo.findAll(pagination.pageSize + 1, pagination.page, filters);
   const hasMore = results.length > pagination.pageSize;
@@ -22,22 +22,20 @@ export async function listTodos(
 
 export async function getTodo(id: string): Promise<todoRepo.Todo> {
   const todo = await todoRepo.findById(id);
-  if (!todo) throw new Error('Todo not found');
+  if (!todo) throw new Error("Todo not found");
   return todo;
 }
 
-export async function createTodo(
-  title: string,
-): Promise<todoRepo.Todo> {
-  return todoRepo.create({ title, userId: '1' });
+export async function createTodo(title: string): Promise<todoRepo.Todo> {
+  return todoRepo.create({ title, userId: "1" });
 }
 
 export async function updateTodo(
   id: string,
-  data: { title?: string; completed?: boolean },
+  data: { title?: string; completed?: boolean }
 ): Promise<todoRepo.Todo> {
   const existing = await todoRepo.findById(id);
-  if (!existing) throw new Error('Todo not found');
+  if (!existing) throw new Error("Todo not found");
   return todoRepo.update(id, data);
 }
 

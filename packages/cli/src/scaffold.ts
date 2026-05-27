@@ -1,6 +1,6 @@
-import * as fs from 'node:fs';
-import * as path from 'node:path';
-import type { ProjectOptions } from './prompts';
+import * as fs from "node:fs";
+import * as path from "node:path";
+import type { ProjectOptions } from "./prompts";
 import {
   generatePackageJson,
   generateTsConfig,
@@ -8,15 +8,25 @@ import {
   generateClaudeMd,
   generateAuth,
   generateEslintConfig,
-} from './templates/base';
-import { generateExpressIndex, generateByoServerIndex } from './templates/server/express';
-import { generateByoServerPlaceholder } from './templates/server/byo';
-import { generateKyselySetup, generateDbTypes, generateMigrationIndex, generatePingMigration, generateMigrateScript } from './templates/database/kysely';
-import { generateByoDatabasePlaceholder } from './templates/database/byo';
-import { generateZodValidators } from './templates/validator/zod';
-import { generateByoValidatorPlaceholder } from './templates/validator/byo';
-import { generatePingRoute, generatePingService, generatePingRepo } from './templates/feature/ping';
-import { generateDockerfile, generateDockerignore, generateDockerCompose } from './templates/docker';
+} from "./templates/base";
+import { generateExpressIndex, generateByoServerIndex } from "./templates/server/express";
+import { generateByoServerPlaceholder } from "./templates/server/byo";
+import {
+  generateKyselySetup,
+  generateDbTypes,
+  generateMigrationIndex,
+  generatePingMigration,
+  generateMigrateScript,
+} from "./templates/database/kysely";
+import { generateByoDatabasePlaceholder } from "./templates/database/byo";
+import { generateZodValidators } from "./templates/validator/zod";
+import { generateByoValidatorPlaceholder } from "./templates/validator/byo";
+import { generatePingRoute, generatePingService, generatePingRepo } from "./templates/feature/ping";
+import {
+  generateDockerfile,
+  generateDockerignore,
+  generateDockerCompose,
+} from "./templates/docker";
 
 export interface FileEntry {
   path: string;
@@ -28,121 +38,121 @@ export function generateFiles(options: ProjectOptions): FileEntry[] {
 
   // Base files
   files.push({
-    path: 'package.json',
+    path: "package.json",
     content: generatePackageJson(options),
   });
   files.push({
-    path: 'tsconfig.json',
+    path: "tsconfig.json",
     content: generateTsConfig(),
   });
   files.push({
-    path: '.env.example',
+    path: ".env.example",
     content: generateEnvExample(options),
   });
   files.push({
-    path: 'CLAUDE.md',
+    path: "CLAUDE.md",
     content: generateClaudeMd(options),
   });
   files.push({
-    path: 'eslint.config.js',
+    path: "eslint.config.js",
     content: generateEslintConfig(),
   });
 
   // Main entry point
-  if (options.server === 'express') {
+  if (options.server === "express") {
     files.push({
-      path: 'src/index.ts',
+      path: "src/index.ts",
       content: generateExpressIndex(options),
     });
   } else {
     files.push({
-      path: 'src/index.ts',
+      path: "src/index.ts",
       content: generateByoServerIndex(options),
     });
     files.push({
-      path: 'src/server.ts',
+      path: "src/server.ts",
       content: generateByoServerPlaceholder(),
     });
   }
 
   // Auth file
   files.push({
-    path: 'src/auth.ts',
+    path: "src/auth.ts",
     content: generateAuth(),
   });
 
   // Database files
-  if (options.database === 'kysely') {
+  if (options.database === "kysely") {
     files.push({
-      path: 'src/db.ts',
+      path: "src/db.ts",
       content: generateKyselySetup(options.dialect),
     });
     files.push({
-      path: 'src/types/db.ts',
+      path: "src/types/db.ts",
       content: generateDbTypes(),
     });
     files.push({
-      path: 'src/migrations/index.ts',
+      path: "src/migrations/index.ts",
       content: generateMigrationIndex(),
     });
     files.push({
-      path: 'src/migrations/001_create_ping.ts',
+      path: "src/migrations/001_create_ping.ts",
       content: generatePingMigration(options.dialect),
     });
     files.push({
-      path: 'src/migrate.ts',
+      path: "src/migrate.ts",
       content: generateMigrateScript(),
     });
   } else {
     files.push({
-      path: 'src/db.ts',
+      path: "src/db.ts",
       content: generateByoDatabasePlaceholder(),
     });
     files.push({
-      path: 'src/types/db.ts',
-      content: '// TODO: Define your database types here\nexport interface DB {}\n',
+      path: "src/types/db.ts",
+      content: "// TODO: Define your database types here\nexport interface DB {}\n",
     });
   }
 
   // Validator files
-  if (options.validator === 'zod') {
+  if (options.validator === "zod") {
     files.push({
-      path: 'src/features/ping/validators/ping.validators.ts',
+      path: "src/features/ping/validators/ping.validators.ts",
       content: generateZodValidators(),
     });
   } else {
     files.push({
-      path: 'src/features/ping/validators/ping.validators.ts',
+      path: "src/features/ping/validators/ping.validators.ts",
       content: generateByoValidatorPlaceholder(),
     });
   }
 
   // Feature files (ping)
   files.push({
-    path: 'src/features/ping/routes/ping.route.ts',
+    path: "src/features/ping/routes/ping.route.ts",
     content: generatePingRoute(options),
   });
   files.push({
-    path: 'src/features/ping/services/ping.service.ts',
+    path: "src/features/ping/services/ping.service.ts",
     content: generatePingService(options),
   });
   files.push({
-    path: 'src/features/ping/repo/ping.repo.ts',
+    path: "src/features/ping/repo/ping.repo.ts",
     content: generatePingRepo(options),
   });
 
   // Docker files
   if (options.docker) {
     files.push({
-      path: 'Dockerfile',
+      path: "Dockerfile",
       content: generateDockerfile(),
     });
     files.push({
-      path: '.dockerignore',
+      path: ".dockerignore",
       content: generateDockerignore(),
     });
     files.push({
-      path: 'docker-compose.yml',
+      path: "docker-compose.yml",
       content: generateDockerCompose(options.dialect),
     });
   }
@@ -159,6 +169,6 @@ export function writeFiles(projectPath: string, files: FileEntry[]): void {
       fs.mkdirSync(dir, { recursive: true });
     }
 
-    fs.writeFileSync(fullPath, file.content, 'utf-8');
+    fs.writeFileSync(fullPath, file.content, "utf-8");
   }
 }

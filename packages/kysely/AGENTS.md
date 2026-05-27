@@ -23,7 +23,7 @@ This package implements the `DatabaseAdapter` interface from `@fossyl/core`:
 
 ```typescript
 type DatabaseAdapter = {
-  type: 'database';
+  type: "database";
   name: string;
   onStartup: () => Promise<void>;
   withTransaction: <T>(fn: () => Promise<T>) => Promise<T>;
@@ -60,6 +60,7 @@ pnpm test        # Run tests
 ## Contributing
 
 When adding features:
+
 - Maintain compatibility with the `DatabaseAdapter` interface from core
 - Preserve AsyncLocalStorage context isolation
 - Test transaction rollback behavior

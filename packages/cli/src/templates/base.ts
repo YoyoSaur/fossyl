@@ -1,93 +1,93 @@
-import type { ProjectOptions } from '../prompts';
-import { VERSIONS } from '../versions';
+import type { ProjectOptions } from "../prompts";
+import { VERSIONS } from "../versions";
 
 export function generatePackageJson(options: ProjectOptions): string {
   const dependencies: Record<string, string> = {
-    '@fossyl/core': `^${VERSIONS.core}`,
+    "@fossyl/core": `^${VERSIONS.core}`,
   };
 
   const devDependencies: Record<string, string> = {
-    '@types/node': '^22.0.0',
-    tsx: '^4.0.0',
-    typescript: '^5.8.0',
-    eslint: '^9.0.0',
-    'eslint-plugin-fossyl': `^${VERSIONS.eslintPlugin}`,
-    '@typescript-eslint/parser': '^8.0.0',
-    '@typescript-eslint/eslint-plugin': '^8.0.0',
+    "@types/node": "^22.0.0",
+    tsx: "^4.0.0",
+    typescript: "^5.8.0",
+    eslint: "^9.0.0",
+    "eslint-plugin-fossyl": `^${VERSIONS.eslintPlugin}`,
+    "@typescript-eslint/parser": "^8.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
   };
 
-  if (options.server === 'express') {
-    dependencies['@fossyl/express'] = `^${VERSIONS.express}`;
-    dependencies['express'] = '^4.21.0';
-    devDependencies['@types/express'] = '^4.17.0';
+  if (options.server === "express") {
+    dependencies["@fossyl/express"] = `^${VERSIONS.express}`;
+    dependencies["express"] = "^4.21.0";
+    devDependencies["@types/express"] = "^4.17.0";
   }
 
-  if (options.validator === 'zod') {
-    dependencies['@fossyl/zod'] = `^${VERSIONS.zod}`;
-    dependencies['zod'] = '^3.24.0';
+  if (options.validator === "zod") {
+    dependencies["@fossyl/zod"] = `^${VERSIONS.zod}`;
+    dependencies["zod"] = "^3.24.0";
   }
 
-  if (options.database === 'kysely') {
-    dependencies['@fossyl/kysely'] = `^${VERSIONS.kysely}`;
-    dependencies['kysely'] = '^0.27.0';
+  if (options.database === "kysely") {
+    dependencies["@fossyl/kysely"] = `^${VERSIONS.kysely}`;
+    dependencies["kysely"] = "^0.27.0";
 
-    if (options.dialect === 'sqlite') {
-      dependencies['better-sqlite3'] = '^11.0.0';
-      devDependencies['@types/better-sqlite3'] = '^7.6.0';
-    } else if (options.dialect === 'mysql') {
-      dependencies['mysql2'] = '^3.11.0';
+    if (options.dialect === "sqlite") {
+      dependencies["better-sqlite3"] = "^11.0.0";
+      devDependencies["@types/better-sqlite3"] = "^7.6.0";
+    } else if (options.dialect === "mysql") {
+      dependencies["mysql2"] = "^3.11.0";
     } else {
       // PostgreSQL (default)
-      dependencies['pg'] = '^8.13.0';
-      devDependencies['@types/pg'] = '^8.11.0';
+      dependencies["pg"] = "^8.13.0";
+      devDependencies["@types/pg"] = "^8.11.0";
     }
   }
 
   const scripts: Record<string, string> = {
-    dev: 'tsx watch src/index.ts',
-    build: 'tsc',
-    start: 'node dist/index.js',
-    typecheck: 'tsc --noEmit',
-    lint: 'eslint src/',
+    dev: "tsx watch src/index.ts",
+    build: "tsc",
+    start: "node dist/index.js",
+    typecheck: "tsc --noEmit",
+    lint: "eslint src/",
   };
 
-  if (options.database === 'kysely') {
-    scripts.migrate = 'tsx src/migrate.ts';
+  if (options.database === "kysely") {
+    scripts.migrate = "tsx src/migrate.ts";
   }
 
   const pkg = {
-    name: options.name === '.' ? 'my-fossyl-api' : options.name,
-    version: '0.1.0',
-    type: 'module',
+    name: options.name === "." ? "my-fossyl-api" : options.name,
+    version: "0.1.0",
+    type: "module",
     scripts,
     dependencies,
     devDependencies,
   };
 
-  return JSON.stringify(pkg, null, 2) + '\n';
+  return JSON.stringify(pkg, null, 2) + "\n";
 }
 
 export function generateTsConfig(): string {
   const config = {
     compilerOptions: {
-      target: 'ES2022',
-      module: 'ESNext',
-      moduleResolution: 'bundler',
+      target: "ES2022",
+      module: "ESNext",
+      moduleResolution: "bundler",
       esModuleInterop: true,
       strict: true,
       skipLibCheck: true,
-      outDir: './dist',
-      rootDir: './src',
+      outDir: "./dist",
+      rootDir: "./src",
       declaration: true,
       paths: {
-        '@db': ['./src/db'],
+        "@db": ["./src/db"],
       },
     },
-    include: ['src/**/*'],
-    exclude: ['node_modules', 'dist'],
+    include: ["src/**/*"],
+    exclude: ["node_modules", "dist"],
   };
 
-  return JSON.stringify(config, null, 2) + '\n';
+  return JSON.stringify(config, null, 2) + "\n";
 }
 
 export function generateEnvExample(options: ProjectOptions): string {
@@ -95,14 +95,14 @@ export function generateEnvExample(options: ProjectOptions): string {
 PORT=3000
 `;
 
-  if (options.database === 'kysely') {
+  if (options.database === "kysely") {
     content += `
 # Database
 `;
-    if (options.dialect === 'sqlite') {
+    if (options.dialect === "sqlite") {
       content += `DATABASE_PATH=./data/app.db
 `;
-    } else if (options.dialect === 'mysql') {
+    } else if (options.dialect === "mysql") {
       content += `DATABASE_URL=mysql://user:password@localhost:3306/mydb
 `;
     } else {
@@ -161,10 +161,16 @@ export default [
 }
 
 export function generateClaudeMd(options: ProjectOptions): string {
-  const refs = ['packages/core/AGENTS.md — Route types, chain API, handler signatures (do not modify core)'];
-  if (options.server === 'express') refs.push('packages/express/AGENTS.md — Express adapter, handler wrapping, response formatting');
-  if (options.validator === 'zod') refs.push('packages/zod/AGENTS.md — Zod adapter, validators');
-  if (options.database === 'kysely') refs.push('packages/kysely/AGENTS.md — Kysely adapter, db proxy, transactions, migrations');
+  const refs = [
+    "packages/core/AGENTS.md — Route types, chain API, handler signatures (do not modify core)",
+  ];
+  if (options.server === "express")
+    refs.push(
+      "packages/express/AGENTS.md — Express adapter, handler wrapping, response formatting"
+    );
+  if (options.validator === "zod") refs.push("packages/zod/AGENTS.md — Zod adapter, validators");
+  if (options.database === "kysely")
+    refs.push("packages/kysely/AGENTS.md — Kysely adapter, db proxy, transactions, migrations");
 
   return `# ${options.name} - AI Development Guide
 
@@ -174,7 +180,7 @@ export function generateClaudeMd(options: ProjectOptions): string {
 
 When modifying or referencing code from a fossyl package, load its AGENTS.md file:
 
-${refs.map((r) => '- ' + r).join('\n')}
+${refs.map((r) => "- " + r).join("\n")}
 
 ## Project Structure
 

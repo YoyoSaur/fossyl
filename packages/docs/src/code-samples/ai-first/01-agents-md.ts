@@ -1,3 +1,4 @@
+const _md = `
 // @code-block-start: agents-md
 <!-- Each fossyl package ships with an AGENTS.md file
   that tells AI assistants how to work with the codebase. -->
@@ -27,3 +28,4 @@ and handles route registration, request context, and error formatting.
 
 <!-- Generated projects also get a CLAUDE.md with project-specific context -->
 <!-- @code-block-end: agents-md -->
+`;

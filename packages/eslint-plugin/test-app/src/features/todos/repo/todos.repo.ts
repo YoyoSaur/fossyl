@@ -14,11 +14,7 @@ export interface TodoFilters {
 const todos: Map<number, Todo> = new Map();
 let nextId = 1;
 
-export async function findAll(
-  limit: number,
-  page: number,
-  filters: TodoFilters,
-): Promise<Todo[]> {
+export async function findAll(limit: number, page: number, filters: TodoFilters): Promise<Todo[]> {
   let all = Array.from(todos.values());
   if (filters.completed !== undefined) {
     all = all.filter((t) => t.completed === filters.completed);
@@ -49,11 +45,11 @@ export async function create(data: { title: string; userId: string }): Promise<T
 
 export async function update(
   id: string,
-  data: { title?: string; completed?: boolean },
+  data: { title?: string; completed?: boolean }
 ): Promise<Todo> {
   const numId = Number(id);
   const existing = todos.get(numId);
-  if (!existing) throw new Error('Not found');
+  if (!existing) throw new Error("Not found");
   const updated = { ...existing, ...data };
   todos.set(numId, updated);
   return updated;

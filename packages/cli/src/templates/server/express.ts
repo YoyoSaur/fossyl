@@ -1,9 +1,9 @@
-import type { ProjectOptions } from '../../prompts';
+import type { ProjectOptions } from "../../prompts";
 
 export function generateExpressIndex(options: ProjectOptions): string {
   const imports: string[] = ["import { expressAdapter } from '@fossyl/express';"];
 
-  if (options.database === 'kysely') {
+  if (options.database === "kysely") {
     imports.push("import { kyselyAdapter } from '@fossyl/kysely';");
     imports.push("import { client } from './db';");
     imports.push("import { migrations } from './migrations';");
@@ -13,7 +13,7 @@ export function generateExpressIndex(options: ProjectOptions): string {
 
   const adapterConfig: string[] = [];
 
-  if (options.database === 'kysely') {
+  if (options.database === "kysely") {
     adapterConfig.push(`const { adapter: database } = kyselyAdapter({
   client,
   migrations,
@@ -21,17 +21,17 @@ export function generateExpressIndex(options: ProjectOptions): string {
 });`);
   }
 
-  const expressOptions: string[] = ['cors: true'];
-  if (options.database === 'kysely') {
-    expressOptions.push('database');
+  const expressOptions: string[] = ["cors: true"];
+  if (options.database === "kysely") {
+    expressOptions.push("database");
   }
 
-  return `${imports.join('\n')}
+  return `${imports.join("\n")}
 
-${adapterConfig.join('\n\n')}
+${adapterConfig.join("\n\n")}
 
 const adapter = expressAdapter({
-  ${expressOptions.join(',\n  ')},
+  ${expressOptions.join(",\n  ")},
 });
 
 const routes = [...pingRoutes];
@@ -47,13 +47,13 @@ adapter.listen(Number(PORT)).then(() => {
 export function generateByoServerIndex(options: ProjectOptions): string {
   const imports: string[] = ["import { startServer } from './server';"];
 
-  if (options.database === 'kysely') {
+  if (options.database === "kysely") {
     imports.push("import { db } from './db';");
   }
 
   imports.push("import pingRoutes from './features/ping/routes/ping.route';");
 
-  return `${imports.join('\n')}
+  return `${imports.join("\n")}
 
 // Collect all routes
 const routes = [...pingRoutes];

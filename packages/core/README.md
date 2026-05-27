@@ -5,12 +5,13 @@
     width="200"
   />
 
-  # Fossyl
+# Fossyl
 
-  **Type-safe REST API framework designed for AI-assisted development**
+**Type-safe REST API framework designed for AI-assisted development**
 
-  [![npm version](https://badge.fury.io/js/fossyl.svg)](https://www.npmjs.com/package/fossyl)
-  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![npm version](https://badge.fury.io/js/fossyl.svg)](https://www.npmjs.com/package/fossyl)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 </div>
 
 ## Overview
@@ -35,6 +36,7 @@ npx @fossyl/core --create my-api
 ```
 
 This will prompt you to select:
+
 - **Server adapter**: Express (recommended) or Bring Your Own
 - **Validation library**: Zod (recommended) or Bring Your Own
 - **Database adapter**: Kysely (recommended) or Bring Your Own
@@ -64,52 +66,52 @@ yarn add @fossyl/core
 ## Quick Start
 
 ```typescript
-import { createRouter, authWrapper } from '@fossyl/core';
+import { createRouter, authWrapper } from "@fossyl/core";
 
 // Create a router with optional base path
-const router = createRouter('/api');
+const router = createRouter("/api");
 
 // Define routes with full type safety
-const userRoute = router.createEndpoint('/users/:id').get({
+const userRoute = router.createEndpoint("/users/:id").get({
   handler: async ({ url }) => {
     const userId = url.id; // Fully typed!
-    return { typeName: 'User' as const, id: userId, name: 'John Doe' };
-  }
+    return { typeName: "User" as const, id: userId, name: "John Doe" };
+  },
 });
 
 // Routes with authentication (must be async for OAuth, JWT, etc.)
-const authenticatedRoute = router.createEndpoint('/protected').get({
+const authenticatedRoute = router.createEndpoint("/protected").get({
   authenticator: async (headers) => {
     // Your async auth logic here (OAuth, JWT verification, DB lookup, etc.)
-    return authWrapper({ userId: headers['user-id'] });
+    return authWrapper({ userId: headers["user-id"] });
   },
   handler: async ({ url }, auth) => {
     // auth is fully typed based on your authenticator!
-    return { typeName: 'Message' as const, message: `Hello, user ${auth.userId}` };
-  }
+    return { typeName: "Message" as const, message: `Hello, user ${auth.userId}` };
+  },
 });
 
 // Routes with request body validation
-const createUserRoute = router.createEndpoint('/users').post({
+const createUserRoute = router.createEndpoint("/users").post({
   validator: (data): { name: string; email: string } => {
     // Your validation logic here
     return data as { name: string; email: string };
   },
   handler: async ({ url }, body) => {
     // body is fully typed based on your validator!
-    return { typeName: 'User' as const, id: '123', ...body };
-  }
+    return { typeName: "User" as const, id: "123", ...body };
+  },
 });
 
 // Routes with query parameters
-const searchRoute = router.createEndpoint('/search').get({
+const searchRoute = router.createEndpoint("/search").get({
   queryValidator: (data): { q: string; limit?: number } => {
     return data as { q: string; limit?: number };
   },
   handler: async ({ url, query }) => {
     // query is fully typed!
-    return { typeName: 'SearchResults' as const, results: [], query: query.q };
-  }
+    return { typeName: "SearchResults" as const, results: [], query: query.q };
+  },
 });
 ```
 

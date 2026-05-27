@@ -1,24 +1,30 @@
-import { parseArgs } from 'node:util';
-import { createRequire } from 'node:module';
-import { createCommand } from './commands/create';
-import type { ServerChoice, ValidatorChoice, DatabaseChoice, DialectChoice, CliOptions } from './prompts';
+import { parseArgs } from "node:util";
+import { createRequire } from "node:module";
+import { createCommand } from "./commands/create";
+import type {
+  ServerChoice,
+  ValidatorChoice,
+  DatabaseChoice,
+  DialectChoice,
+  CliOptions,
+} from "./prompts";
 
 const require = createRequire(import.meta.url);
-const pkg = require('../package.json');
+const pkg = require("../package.json");
 
 const { values, positionals } = parseArgs({
   options: {
-    create: { type: 'boolean' },
-    help: { type: 'boolean', short: 'h' },
-    version: { type: 'boolean', short: 'v' },
+    create: { type: "boolean" },
+    help: { type: "boolean", short: "h" },
+    version: { type: "boolean", short: "v" },
     // Non-interactive options
-    server: { type: 'string', short: 's' },
-    validator: { type: 'string' },
-    database: { type: 'string', short: 'd' },
-    dialect: { type: 'string' },
-    docker: { type: 'boolean' },
-    'no-docker': { type: 'boolean' },
-    default: { type: 'boolean' },
+    server: { type: "string", short: "s" },
+    validator: { type: "string" },
+    database: { type: "string", short: "d" },
+    dialect: { type: "string" },
+    docker: { type: "boolean" },
+    "no-docker": { type: "boolean" },
+    default: { type: "boolean" },
   },
   allowPositionals: true,
 });
@@ -75,47 +81,53 @@ function parseCliOptions(): CliOptions | null {
   // --default flag sets all recommended options
   if (values.default) {
     return {
-      server: 'express',
-      validator: 'zod',
-      database: 'kysely',
-      dialect: 'sqlite',
-      docker: !values['no-docker'],
+      server: "express",
+      validator: "zod",
+      database: "kysely",
+      dialect: "sqlite",
+      docker: !values["no-docker"],
     };
   }
 
-  const serverChoices = ['express', 'byo'];
-  const validatorChoices = ['zod', 'byo'];
-  const databaseChoices = ['kysely', 'byo'];
-  const dialectChoices = ['sqlite', 'postgres', 'mysql'];
+  const serverChoices = ["express", "byo"];
+  const validatorChoices = ["zod", "byo"];
+  const databaseChoices = ["kysely", "byo"];
+  const dialectChoices = ["sqlite", "postgres", "mysql"];
 
-  const server = (values.server as string) || 'express';
-  const validator = (values.validator as string) || 'zod';
-  const database = (values.database as string) || 'kysely';
-  const dialect = (values.dialect as string) || 'sqlite';
+  const server = (values.server as string) || "express";
+  const validator = (values.validator as string) || "zod";
+  const database = (values.database as string) || "kysely";
+  const dialect = (values.dialect as string) || "sqlite";
 
   if (!serverChoices.includes(server)) {
-    console.error(`Invalid --server value: ${server}. Must be one of: ${serverChoices.join(', ')}`);
+    console.error(`Invalid --server value: ${server}. Must be one of: ${serverChoices.join(", ")}`);
     process.exit(1);
   }
 
   if (!validatorChoices.includes(validator)) {
-    console.error(`Invalid --validator value: ${validator}. Must be one of: ${validatorChoices.join(', ')}`);
+    console.error(
+      `Invalid --validator value: ${validator}. Must be one of: ${validatorChoices.join(", ")}`
+    );
     process.exit(1);
   }
 
   if (!databaseChoices.includes(database)) {
-    console.error(`Invalid --database value: ${database}. Must be one of: ${databaseChoices.join(', ')}`);
+    console.error(
+      `Invalid --database value: ${database}. Must be one of: ${databaseChoices.join(", ")}`
+    );
     process.exit(1);
   }
 
-  if (database === 'kysely' && !dialectChoices.includes(dialect)) {
-    console.error(`Invalid --dialect value: ${dialect}. Must be one of: ${dialectChoices.join(', ')}`);
+  if (database === "kysely" && !dialectChoices.includes(dialect)) {
+    console.error(
+      `Invalid --dialect value: ${dialect}. Must be one of: ${dialectChoices.join(", ")}`
+    );
     process.exit(1);
   }
 
   // Handle docker flag: --docker sets true, --no-docker sets false, default is true
   let docker = true;
-  if (values['no-docker']) {
+  if (values["no-docker"]) {
     docker = false;
   } else if (values.docker !== undefined) {
     docker = values.docker;
@@ -125,7 +137,7 @@ function parseCliOptions(): CliOptions | null {
     server: server as ServerChoice,
     validator: validator as ValidatorChoice,
     database: database as DatabaseChoice,
-    dialect: database === 'kysely' ? (dialect as DialectChoice) : undefined,
+    dialect: database === "kysely" ? (dialect as DialectChoice) : undefined,
     docker,
   };
 }
@@ -144,6 +156,6 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error('Error:', error.message);
+  console.error("Error:", error.message);
   process.exit(1);
 });

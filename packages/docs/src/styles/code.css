@@ -6,4 +6,5 @@
   font-weight: 700 !important;
   font-family: 'Monaco', 'Courier New', monospace !important;
   font-size: 0.875em !important;
+  white-space: nowrap !important;
 }

@@ -1,9 +1,9 @@
-import type { Route } from './router/types/routes.types';
+import type { Route } from "./router/types/routes.types";
 
 /**
  * HTTP methods supported by fossyl routes.
  */
-export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
+export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE";
 
 /**
  * Framework adapter type (Express, Hono, etc.)
@@ -22,7 +22,7 @@ export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
  * ```
  */
 export type FrameworkAdapter<TApp = unknown> = {
-  type: 'framework';
+  type: "framework";
   name: string;
 
   /** The underlying framework app instance (Express app, Hono instance, etc.) */
@@ -68,7 +68,7 @@ export type DatabaseContext<TClient = unknown> = {
  * ```
  */
 export type DatabaseAdapter<TClient = unknown> = {
-  type: 'database';
+  type: "database";
   name: string;
 
   /** Database client instance */
@@ -84,14 +84,10 @@ export type DatabaseAdapter<TClient = unknown> = {
   onStartup: () => Promise<void>;
 
   /** Wrap a handler with transaction support */
-  withTransaction: <T>(
-    fn: (ctx: DatabaseContext<TClient>) => Promise<T>
-  ) => Promise<T>;
+  withTransaction: <T>(fn: (ctx: DatabaseContext<TClient>) => Promise<T>) => Promise<T>;
 
   /** Execute without transaction (just provides client context) */
-  withClient: <T>(
-    fn: (ctx: DatabaseContext<TClient>) => Promise<T>
-  ) => Promise<T>;
+  withClient: <T>(fn: (ctx: DatabaseContext<TClient>) => Promise<T>) => Promise<T>;
 };
 
 /**
@@ -101,7 +97,7 @@ export type DatabaseAdapter<TClient = unknown> = {
  * Most users won't need this - the default formatting is sufficient.
  */
 export type ValidationAdapter = {
-  type: 'validation';
+  type: "validation";
   name: string;
 
   /** Format validation errors for response */
@@ -137,7 +133,7 @@ export type Logger = {
  * ```
  */
 export type LoggerAdapter = {
-  type: 'logger';
+  type: "logger";
   name: string;
 
   /** Create a logger instance for a specific request */

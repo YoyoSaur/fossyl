@@ -15,22 +15,22 @@ Note: `zod` is a peer dependency and must be installed separately.
 ### Body Validation
 
 ```typescript
-import { createRouter } from '@fossyl/core';
-import { zodValidator } from '@fossyl/zod';
-import { z } from 'zod';
+import { createRouter } from "@fossyl/core";
+import { zodValidator } from "@fossyl/zod";
+import { z } from "zod";
 
-const router = createRouter('/api');
+const router = createRouter("/api");
 
 const userSchema = z.object({
   name: z.string().min(1),
   email: z.string().email(),
 });
 
-const createUser = router.createEndpoint('/users').post({
+const createUser = router.createEndpoint("/users").post({
   validator: zodValidator(userSchema),
   handler: async ({ url }, body) => {
     // body is { name: string, email: string }
-    return { typeName: 'User' as const, ...body };
+    return { typeName: "User" as const, ...body };
   },
 });
 ```
@@ -38,18 +38,18 @@ const createUser = router.createEndpoint('/users').post({
 ### Query Validation
 
 ```typescript
-import { zodQueryValidator } from '@fossyl/zod';
+import { zodQueryValidator } from "@fossyl/zod";
 
 const querySchema = z.object({
   page: z.coerce.number().default(1),
   limit: z.coerce.number().default(10),
 });
 
-const listUsers = router.createEndpoint('/users').get({
+const listUsers = router.createEndpoint("/users").get({
   queryValidator: zodQueryValidator(querySchema),
   handler: async ({ query }) => {
     // query is { page: number, limit: number }
-    return { typeName: 'UserList' as const, page: query.page, results: [] };
+    return { typeName: "UserList" as const, page: query.page, results: [] };
   },
 });
 ```

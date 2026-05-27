@@ -1,13 +1,13 @@
-import type { TSESTree } from '@typescript-eslint/utils';
-import { createRule } from '../utils/rule-factory';
-import path from 'node:path';
+import type { TSESTree } from "@typescript-eslint/utils";
+import { createRule } from "../utils/rule-factory";
+import path from "node:path";
 
 const REPO_IMPORT_PATTERN = /[/\\][^/\\]*\.repo(\.[a-z]+)?$/;
 const SERVICE_FILE_PATTERN = /[/\\][^/\\]*\.service(\.[a-z]+)?$/;
 const REPO_IMPORT_NO_PATH_PATTERN = /\.repo(\.[a-z]+)?$/;
 const STEM_EXTRACT_REPO = /([^/\\]+)\.repo(\.[a-z]+)?$/;
 
-export type MessageIds = 'repoImportOutsideService' | 'crossBoundaryRepoImport';
+export type MessageIds = "repoImportOutsideService" | "crossBoundaryRepoImport";
 
 export type Options = [
   {
@@ -16,22 +16,20 @@ export type Options = [
 ];
 
 export default createRule<Options, MessageIds>({
-  name: 'no-repo-import-outside-service',
+  name: "no-repo-import-outside-service",
   meta: {
-    type: 'problem',
+    type: "problem",
     docs: {
-      description:
-        'Repository files (*.repo) can only be imported in service files (*.service).',
+      description: "Repository files (*.repo) can only be imported in service files (*.service).",
     },
     schema: [
       {
-        type: 'object',
+        type: "object",
         properties: {
           allowImports: {
-            type: 'array',
-            items: { type: 'string' },
-            description:
-              'Additional import paths that are allowed to import .repo files.',
+            type: "array",
+            items: { type: "string" },
+            description: "Additional import paths that are allowed to import .repo files.",
           },
         },
         additionalProperties: false,
@@ -49,7 +47,10 @@ export default createRule<Options, MessageIds>({
     const fileName = context.filename;
     const isServiceFile = SERVICE_FILE_PATTERN.test(fileName);
     const serviceStem = isServiceFile
-      ? path.basename(fileName).replace(/\.service\.[a-z]+$/i, '').replace(/\.service$/i, '')
+      ? path
+          .basename(fileName)
+          .replace(/\.service\.[a-z]+$/i, "")
+          .replace(/\.service$/i, "")
       : null;
 
     function getRepoStem(sourceValue: string): string | null {
@@ -61,7 +62,7 @@ export default createRule<Options, MessageIds>({
       if (REPO_IMPORT_PATTERN.test(sourceValue)) {
         return true;
       }
-      if (REPO_IMPORT_NO_PATH_PATTERN.test(sourceValue) && sourceValue.includes('/')) {
+      if (REPO_IMPORT_NO_PATH_PATTERN.test(sourceValue) && sourceValue.includes("/")) {
         return false;
       }
       if (REPO_IMPORT_NO_PATH_PATTERN.test(sourceValue)) {
@@ -83,7 +84,7 @@ export default createRule<Options, MessageIds>({
         if (repoStem && repoStem.toLowerCase() !== serviceStem.toLowerCase()) {
           context.report({
             node,
-            messageId: 'crossBoundaryRepoImport',
+            messageId: "crossBoundaryRepoImport",
             data: {
               expectedStem: serviceStem,
               actualStem: repoStem,
@@ -96,30 +97,30 @@ export default createRule<Options, MessageIds>({
 
       context.report({
         node,
-        messageId: 'repoImportOutsideService',
+        messageId: "repoImportOutsideService",
         data: {
           importPath: sourceValue,
-          fileName: context.filename ?? 'unknown',
+          fileName: context.filename ?? "unknown",
         },
       });
     }
 
     return {
       ImportDeclaration(node: TSESTree.ImportDeclaration): void {
-        if (node.source.type === 'Literal' && typeof node.source.value === 'string') {
+        if (node.source.type === "Literal" && typeof node.source.value === "string") {
           checkImport(node.source.value, node);
         }
       },
       ImportExpression(node: TSESTree.ImportExpression): void {
-        if (node.source.type === 'Literal' && typeof node.source.value === 'string') {
+        if (node.source.type === "Literal" && typeof node.source.value === "string") {
           checkImport(node.source.value, node);
         }
       },
       ExportAllDeclaration(node: TSESTree.ExportAllDeclaration): void {
         if (
           node.source &&
-          node.source.type === 'Literal' &&
-          typeof node.source.value === 'string'
+          node.source.type === "Literal" &&
+          typeof node.source.value === "string"
         ) {
           checkImport(node.source.value, node);
         }
@@ -127,8 +128,8 @@ export default createRule<Options, MessageIds>({
       ExportNamedDeclaration(node: TSESTree.ExportNamedDeclaration): void {
         if (
           node.source &&
-          node.source.type === 'Literal' &&
-          typeof node.source.value === 'string'
+          node.source.type === "Literal" &&
+          typeof node.source.value === "string"
         ) {
           checkImport(node.source.value, node);
         }

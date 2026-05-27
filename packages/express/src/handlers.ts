@@ -1,10 +1,10 @@
-import type { Request, Response, NextFunction, RequestHandler } from 'express';
-import type { Route, RequestExtractor, ResponseData } from '@fossyl/core';
-import { executeRoute } from '@fossyl/core';
-import { requestContext, type RequestContext, createDefaultLogger } from './context';
-import { wrapResponse } from './response';
-import { handleError } from './errors';
-import type { ExpressAdapterOptions } from './types';
+import type { Request, Response, NextFunction, RequestHandler } from "express";
+import type { Route, RequestExtractor, ResponseData } from "@fossyl/core";
+import { executeRoute } from "@fossyl/core";
+import { requestContext, type RequestContext, createDefaultLogger } from "./context";
+import { wrapResponse } from "./response";
+import { handleError } from "./errors";
+import type { ExpressAdapterOptions } from "./types";
 
 const expressExtractor: RequestExtractor<Request> = {
   params: (req) => ({

@@ -2,8 +2,8 @@
 // Validator files must NOT import .repo files directly.
 // Expected error: "Repository files (*.repo) can only be imported in service files (*.service)."
 
-import * as userRepo from '../features/users/repo/users.repo';
-import { z } from 'zod';
+import * as userRepo from "../features/users/repo/users.repo";
+import { z } from "zod";
 
 // This is wrong - validators should not access repos
 export const badValidator = z.object({

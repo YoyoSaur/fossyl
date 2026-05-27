@@ -11,13 +11,13 @@ npm install @fossyl/express @fossyl/core express
 ## Quick Start
 
 ```typescript
-import { createRouter } from '@fossyl/core';
-import { expressAdapter } from '@fossyl/express';
+import { createRouter } from "@fossyl/core";
+import { expressAdapter } from "@fossyl/express";
 
-const router = createRouter('/api');
+const router = createRouter("/api");
 const routes = [
-  router.createEndpoint('/health').get({
-    handler: async () => ({ typeName: 'Health' as const, status: 'ok' }),
+  router.createEndpoint("/health").get({
+    handler: async () => ({ typeName: "Health" as const, status: "ok" }),
   }),
 ];
 
@@ -61,11 +61,11 @@ type CorsOptions = {
 ## Logger Integration
 
 ```typescript
-import type { LoggerAdapter } from '@fossyl/core';
+import type { LoggerAdapter } from "@fossyl/core";
 
 const pinoLogger: LoggerAdapter = {
-  type: 'logger',
-  name: 'pino',
+  type: "logger",
+  name: "pino",
   createLogger: (requestId) => ({
     info: (msg, meta) => pino.info({ requestId, ...meta }, msg),
     warn: (msg, meta) => pino.warn({ requestId, ...meta }, msg),
@@ -81,9 +81,9 @@ const adapter = expressAdapter({ logger: pinoLogger });
 ```typescript
 const adapter = expressAdapter({
   metrics: {
-    onRequestStart: ({ method, path, requestId }) => { },
-    onRequestEnd: ({ method, path, requestId, statusCode, durationMs }) => { },
-    onRequestError: ({ method, path, requestId, error, durationMs }) => { },
+    onRequestStart: ({ method, path, requestId }) => {},
+    onRequestEnd: ({ method, path, requestId, statusCode, durationMs }) => {},
+    onRequestError: ({ method, path, requestId, error, durationMs }) => {},
   },
 });
 ```
@@ -93,7 +93,7 @@ const adapter = expressAdapter({
 Use these functions anywhere in your handler call stack:
 
 ```typescript
-import { getContext, getLogger, getRequestId, getDb } from '@fossyl/express';
+import { getContext, getLogger, getRequestId, getDb } from "@fossyl/express";
 
 const logger = getLogger();
 const requestId = getRequestId();
@@ -103,13 +103,13 @@ const dbContext = getDb(); // If database adapter configured
 ## Error Handling
 
 ```typescript
-import { AuthenticationError, ValidationError } from '@fossyl/express';
+import { AuthenticationError, ValidationError } from "@fossyl/express";
 
 // Returns 401
-throw new AuthenticationError('Invalid token');
+throw new AuthenticationError("Invalid token");
 
 // Returns 400
-throw new ValidationError('Invalid input', { field: 'email' });
+throw new ValidationError("Invalid input", { field: "email" });
 ```
 
 ## Response Format
@@ -131,8 +131,8 @@ All responses are wrapped automatically:
 ## Integration with Database Adapters
 
 ```typescript
-import { expressAdapter } from '@fossyl/express';
-import { kyselyAdapter } from '@fossyl/kysely';
+import { expressAdapter } from "@fossyl/express";
+import { kyselyAdapter } from "@fossyl/kysely";
 
 const adapter = expressAdapter({
   database: kyselyAdapter({ client: db }),
@@ -140,6 +140,7 @@ const adapter = expressAdapter({
 ```
 
 The framework adapter will:
+
 - Call `database.onStartup()` when `listen()` is called
 - Wrap handlers with `withTransaction()` for POST/PUT routes
 - Wrap handlers with `withClient()` for GET/DELETE routes
@@ -148,13 +149,13 @@ The framework adapter will:
 
 ```typescript
 // Main adapter
-export { expressAdapter } from '@fossyl/express';
+export { expressAdapter } from "@fossyl/express";
 
 // Context accessors
-export { getContext, getLogger, getRequestId, getDb } from '@fossyl/express';
+export { getContext, getLogger, getRequestId, getDb } from "@fossyl/express";
 
 // Errors
-export { AuthenticationError, ValidationError, ERROR_CODES } from '@fossyl/express';
+export { AuthenticationError, ValidationError, ERROR_CODES } from "@fossyl/express";
 
 // Types
 export type {
@@ -162,5 +163,5 @@ export type {
   CorsOptions,
   MetricsRecorder,
   RequestContext,
-} from '@fossyl/express';
+} from "@fossyl/express";
 ```

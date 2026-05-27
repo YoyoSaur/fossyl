@@ -1,4 +1,4 @@
-import type { Kysely, MigrationProvider } from 'kysely';
+import type { Kysely, MigrationProvider } from "kysely";
 
 /**
  * Configuration options for the Kysely adapter.

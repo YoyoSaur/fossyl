@@ -2,8 +2,8 @@
 // Non-service files must NOT import .repo files.
 // Expected error: "Repository files (*.repo) can only be imported in service files (*.service)."
 
-import { Todo } from '../features/todos/repo/todos.repo';
-import { User } from '../features/users/repo/users.repo';
+import { Todo } from "../features/todos/repo/todos.repo";
+import { User } from "../features/users/repo/users.repo";
 
 export interface Report {
   todo: Todo;

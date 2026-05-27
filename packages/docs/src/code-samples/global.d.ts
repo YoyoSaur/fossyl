@@ -5,14 +5,24 @@ declare class AuthenticationError extends Error {
 }
 
 declare function verifyJwt(token: string): { sub: string; role: string };
-declare function getLogger(): { info: (msg: string, meta?: any) => void; warn: (msg: string, meta?: any) => void; error: (msg: string, meta?: any) => void };
+declare function getLogger(): {
+  info: (msg: string, meta?: any) => void;
+  warn: (msg: string, meta?: any) => void;
+  error: (msg: string, meta?: any) => void;
+};
 declare function migrateToLatest(): Promise<void>;
 
-declare const db: import('kysely').Kysely<any>;
-declare function myAuth(headers: Record<string, string>): Promise<import('@fossyl/core').Authentication & { userId: string; role: string }>;
-declare const routes: import('@fossyl/core').Route[];
+declare const db: import("kysely").Kysely<any>;
+declare function myAuth(
+  headers: Record<string, string>
+): Promise<import("@fossyl/core").Authentication & { userId: string; role: string }>;
+declare const routes: import("@fossyl/core").Route[];
 declare const migrations: Record<string, unknown>;
-declare const pino: { info: (...args: any[]) => void; warn: (...args: any[]) => void; error: (...args: any[]) => void };
+declare const pino: {
+  info: (...args: any[]) => void;
+  warn: (...args: any[]) => void;
+  error: (...args: any[]) => void;
+};
 
 declare class MyValidationError extends Error {
   fieldErrors: Record<string, string>;
@@ -28,9 +38,7 @@ interface Todo {
   completed: boolean;
 }
 
-type ResponseObject<T> =
-  | { data: T; error?: never }
-  | { data?: never; error: Error };
+type ResponseObject<T> = { data: T; error?: never } | { data?: never; error: Error };
 
 declare function ResponseWrap<T>(data: T): ResponseObject<T>;
 declare function ErrorWrap(error: Error): ResponseObject<never>;
@@ -47,4 +55,4 @@ type FullUser = {
   name: string;
   todos: TodoPayload[];
   reminders: TodoPayload[];
-}
+};

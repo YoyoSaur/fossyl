@@ -41,118 +41,118 @@ const paginatedResponse: PaginatedResponse<{ id: string }> = {
 // ============================================================================
 
 // Valid configurations for GET
-endpoint.get({ handler: async ({ url }) => response });
-endpoint.get({ queryValidator, handler: async ({ url, query }) => response });
-endpoint.get({ authenticator, handler: async ({ url }, auth) => response });
-endpoint.get({ authenticator, queryValidator, handler: async ({ url, query }, auth) => response });
+endpoint.get({ handler: async ({ url: _url }) => response });
+endpoint.get({ queryValidator, handler: async ({ url: _url, query: _query }) => response });
+endpoint.get({ authenticator, handler: async ({ url: _url }, _auth) => response });
+endpoint.get({ authenticator, queryValidator, handler: async ({ url: _url, query: _query }, _auth) => response });
 
 // Invalid configurations for GET (wrong category)
 // @ts-expect-error - GET cannot have validator (body)
-endpoint.get({ validator, handler: async ({ url }, body) => response });
+endpoint.get({ validator, handler: async ({ url: _url }, _body) => response });
 // @ts-expect-error - GET cannot have validator (body)
-endpoint.get({ authenticator, validator, handler: async ({ url }, auth, body) => response });
+endpoint.get({ authenticator, validator, handler: async ({ url: _url }, _auth, _body) => response });
 
 // Handler/Config mismatches for GET
 // @ts-expect-error - Handler expects auth but no authenticator provided
-endpoint.get({ handler: async ({ url }, auth) => response });
+endpoint.get({ handler: async ({ url: _url }, _auth) => response });
 // @ts-expect-error - Handler expects query but no queryValidator provided
-endpoint.get({ handler: async ({ url, query }) => response });
+endpoint.get({ handler: async ({ url: _url, query: _query }) => response });
 
 // ============================================================================
 // DELETE TESTS
 // ============================================================================
 
 // Valid configurations for DELETE
-endpoint.delete({ handler: async ({ url }) => response });
-endpoint.delete({ queryValidator, handler: async ({ url, query }) => response });
-endpoint.delete({ authenticator, handler: async ({ url }, auth) => response });
-endpoint.delete({ authenticator, queryValidator, handler: async ({ url, query }, auth) => response });
+endpoint.delete({ handler: async ({ url: _url }) => response });
+endpoint.delete({ queryValidator, handler: async ({ url: _url, query: _query }) => response });
+endpoint.delete({ authenticator, handler: async ({ url: _url }, _auth) => response });
+endpoint.delete({ authenticator, queryValidator, handler: async ({ url: _url, query: _query }, _auth) => response });
 
 // Invalid configurations for DELETE (wrong category)
 // @ts-expect-error - DELETE cannot have validator (body)
-endpoint.delete({ validator, handler: async ({ url }, body) => response });
+endpoint.delete({ validator, handler: async ({ url: _url }, _body) => response });
 // @ts-expect-error - DELETE cannot have validator (body)
-endpoint.delete({ authenticator, validator, handler: async ({ url }, auth, body) => response });
+endpoint.delete({ authenticator, validator, handler: async ({ url: _url }, _auth, _body) => response });
 
 // Handler/Config mismatches for DELETE
 // @ts-expect-error - Handler expects auth but no authenticator provided
-endpoint.delete({ handler: async ({ url }, auth) => response });
+endpoint.delete({ handler: async ({ url: _url }, _auth) => response });
 // @ts-expect-error - Handler expects query but no queryValidator provided
-endpoint.delete({ handler: async ({ url, query }) => response });
+endpoint.delete({ handler: async ({ url: _url, query: _query }) => response });
 
 // ============================================================================
 // POST TESTS
 // ============================================================================
 
 // Valid configurations for POST
-endpoint.post({ validator, handler: async ({ url }, body) => response });
-endpoint.post({ validator, queryValidator, handler: async ({ url, query }, body) => response });
-endpoint.post({ authenticator, validator, handler: async ({ url }, auth, body) => response });
-endpoint.post({ authenticator, validator, queryValidator, handler: async ({ url, query }, auth, body) => response });
+endpoint.post({ validator, handler: async ({ url: _url }, _body) => response });
+endpoint.post({ validator, queryValidator, handler: async ({ url: _url, query: _query }, _body) => response });
+endpoint.post({ authenticator, validator, handler: async ({ url: _url }, _auth, _body) => response });
+endpoint.post({ authenticator, validator, queryValidator, handler: async ({ url: _url, query: _query }, _auth, _body) => response });
 
 // Invalid configurations for POST (wrong category)
 // @ts-expect-error - POST requires validator
-endpoint.post({ handler: async ({ url }) => response });
+endpoint.post({ handler: async ({ url: _url }) => response });
 // @ts-expect-error - POST requires validator
-endpoint.post({ authenticator, handler: async ({ url }, auth) => response });
+endpoint.post({ authenticator, handler: async ({ url: _url }, _auth) => response });
 
 // Handler/Config mismatches for POST
 // @ts-expect-error - Handler expects auth but no authenticator provided
-endpoint.post({ handler: async ({ url }, auth) => response });
+endpoint.post({ handler: async ({ url: _url }, _auth) => response });
 // @ts-expect-error - Handler expects body but no validator provided
-endpoint.post({ handler: async ({ url }, body) => response });
+endpoint.post({ handler: async ({ url: _url }, _body) => response });
 // @ts-expect-error - Handler expects query but no queryValidator provided
-endpoint.post({ handler: async ({ url, query }) => response });
+endpoint.post({ handler: async ({ url: _url, query: _query }) => response });
 
 // ============================================================================
 // PUT TESTS
 // ============================================================================
 
 // Valid configurations for PUT
-endpoint.put({ validator, handler: async ({ url }, body) => response });
-endpoint.put({ validator, queryValidator, handler: async ({ url, query }, body) => response });
-endpoint.put({ authenticator, validator, handler: async ({ url }, auth, body) => response });
-endpoint.put({ authenticator, validator, queryValidator, handler: async ({ url, query }, auth, body) => response });
+endpoint.put({ validator, handler: async ({ url: _url }, _body) => response });
+endpoint.put({ validator, queryValidator, handler: async ({ url: _url, query: _query }, _body) => response });
+endpoint.put({ authenticator, validator, handler: async ({ url: _url }, _auth, _body) => response });
+endpoint.put({ authenticator, validator, queryValidator, handler: async ({ url: _url, query: _query }, _auth, _body) => response });
 
 // Invalid configurations for PUT (wrong category)
 // @ts-expect-error - PUT requires validator
-endpoint.put({ handler: async ({ url }) => response });
+endpoint.put({ handler: async ({ url: _url }) => response });
 // @ts-expect-error - PUT requires validator
-endpoint.put({ authenticator, handler: async ({ url }, auth) => response });
+endpoint.put({ authenticator, handler: async ({ url: _url }, _auth) => response });
 
 // Handler/Config mismatches for PUT
 // @ts-expect-error - Handler expects auth but no authenticator provided
-endpoint.put({ handler: async ({ url }, auth) => response });
+endpoint.put({ handler: async ({ url: _url }, _auth) => response });
 // @ts-expect-error - Handler expects body but no validator provided
-endpoint.put({ handler: async ({ url }, body) => response });
+endpoint.put({ handler: async ({ url: _url }, _body) => response });
 // @ts-expect-error - Handler expects query but no queryValidator provided
-endpoint.put({ handler: async ({ url, query }) => response });
+endpoint.put({ handler: async ({ url: _url, query: _query }) => response });
 
 // ============================================================================
 // LIST TESTS
 // ============================================================================
 
 // Valid configurations for LIST
-endpoint.list({ handler: async ({ url, pagination }) => paginatedResponse });
-endpoint.list({ queryValidator, handler: async ({ url, query, pagination }) => paginatedResponse });
-endpoint.list({ authenticator, handler: async ({ url, pagination }, auth) => paginatedResponse });
-endpoint.list({ authenticator, queryValidator, handler: async ({ url, query, pagination }, auth) => paginatedResponse });
+endpoint.list({ handler: async ({ url: _url, pagination: _pagination }) => paginatedResponse });
+endpoint.list({ queryValidator, handler: async ({ url: _url, query: _query, pagination: _pagination }) => paginatedResponse });
+endpoint.list({ authenticator, handler: async ({ url: _url, pagination: _pagination }, _auth) => paginatedResponse });
+endpoint.list({ authenticator, queryValidator, handler: async ({ url: _url, query: _query, pagination: _pagination }, _auth) => paginatedResponse });
 
 // Invalid configurations for LIST (wrong category)
 // @ts-expect-error - list requires pagination handler signature
-endpoint.list({ handler: async ({ url }) => response });
+endpoint.list({ handler: async ({ url: _url }) => response });
 // @ts-expect-error - list requires pagination handler signature
-endpoint.list({ validator, handler: async ({ url }, body) => response });
+endpoint.list({ validator, handler: async ({ url: _url }, _body) => response });
 
 // Handler/Config mismatches for LIST
 // @ts-expect-error - Handler expects auth but no authenticator provided
-endpoint.list({ handler: async ({ url, pagination }, auth) => paginatedResponse });
+endpoint.list({ handler: async ({ url: _url, pagination: _pagination }, _auth) => paginatedResponse });
 // @ts-expect-error - Handler expects query but no queryValidator provided
-endpoint.list({ handler: async ({ url, query, pagination }) => paginatedResponse });
+endpoint.list({ handler: async ({ url: _url, query: _query, pagination: _pagination }) => paginatedResponse });
 
 // Return type mismatches for LIST
 // @ts-expect-error - list must return PaginatedResponse, not regular response
-endpoint.list({ handler: async ({ url, pagination }) => response });
+endpoint.list({ handler: async ({ url: _url, pagination: _pagination }) => response });
 // @ts-expect-error - authenticated list must return PaginatedResponse
-endpoint.list({ authenticator, handler: async ({ url, pagination }, auth) => response });
+endpoint.list({ authenticator, handler: async ({ url: _url, pagination: _pagination }, _auth) => response });
 

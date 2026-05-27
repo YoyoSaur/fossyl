@@ -1,23 +1,23 @@
-import type { TSESTree } from '@typescript-eslint/utils';
-import { createRule } from '../utils/rule-factory';
+import type { TSESTree } from "@typescript-eslint/utils";
+import { createRule } from "../utils/rule-factory";
 import {
   routeStore,
   getRouteInfo,
   getCreateRouterPrefix,
   getRelativeFilePath,
-} from '../utils/route-collector';
+} from "../utils/route-collector";
 
-export type MessageIds = 'duplicateRoute' | 'duplicateRouteDetails';
+export type MessageIds = "duplicateRoute" | "duplicateRouteDetails";
 
 export type Options = [];
 
 export default createRule<Options, MessageIds>({
-  name: 'no-duplicate-routes',
+  name: "no-duplicate-routes",
   meta: {
-    type: 'problem',
+    type: "problem",
     docs: {
       description:
-        'Prevent same METHOD + PATH combination from being defined twice across the project.',
+        "Prevent same METHOD + PATH combination from being defined twice across the project.",
     },
     schema: [],
     messages: {
@@ -54,13 +54,11 @@ export default createRule<Options, MessageIds>({
         });
       },
 
-      'Program:exit'(): void {
+      "Program:exit"(): void {
         const duplicates = routeStore.findDuplicates();
 
         for (const dup of duplicates) {
-          const currentOccurrences = dup.occurrences.filter(
-            (o) => o.filePath === filePath,
-          );
+          const currentOccurrences = dup.occurrences.filter((o) => o.filePath === filePath);
           if (currentOccurrences.length === 0) continue;
 
           const firstGlobal = dup.occurrences[0];
@@ -71,7 +69,7 @@ export default createRule<Options, MessageIds>({
             const otherRelPath = getRelativeFilePath(firstGlobal.filePath);
             context.report({
               node: occurrence.createEndpointNode,
-              messageId: 'duplicateRoute',
+              messageId: "duplicateRoute",
               data: {
                 method: dup.method,
                 path: dup.path,

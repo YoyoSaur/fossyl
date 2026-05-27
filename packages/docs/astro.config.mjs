@@ -187,6 +187,7 @@ export default defineConfig({
       components: {
         ThemeProvider: './src/components/ThemeProvider.astro',
         Header: './src/components/Header.astro',
+        Head: './src/components/Head.astro',
       },
       defaultLocale: 'root',
       locales: {

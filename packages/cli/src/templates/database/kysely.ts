@@ -1,7 +1,7 @@
-import type { DialectChoice } from '../../prompts';
+import type { DialectChoice } from "../../prompts";
 
-export function generateKyselySetup(dialect: DialectChoice = 'postgres'): string {
-  if (dialect === 'sqlite') {
+export function generateKyselySetup(dialect: DialectChoice = "postgres"): string {
+  if (dialect === "sqlite") {
     return `import Database from 'better-sqlite3';
 import { Kysely, SqliteDialect } from 'kysely';
 import { createDbProxy } from '@fossyl/kysely';
@@ -19,7 +19,7 @@ export const db = createDbProxy<DB>();
 `;
   }
 
-  if (dialect === 'mysql') {
+  if (dialect === "mysql") {
     return `import { createPool } from 'mysql2';
 import { Kysely, MysqlDialect } from 'kysely';
 import { createDbProxy } from '@fossyl/kysely';
@@ -111,8 +111,8 @@ console.log(\`Migrations applied: \${result.executed.join(', ')}\`);
 `;
 }
 
-export function generatePingMigration(dialect: DialectChoice = 'postgres'): string {
-  if (dialect === 'sqlite') {
+export function generatePingMigration(dialect: DialectChoice = "postgres"): string {
+  if (dialect === "sqlite") {
     return `import { sql } from 'kysely';
 import { defineMigration } from '@fossyl/kysely';
 
@@ -136,7 +136,7 @@ export const migration = defineMigration({
 `;
   }
 
-  if (dialect === 'mysql') {
+  if (dialect === "mysql") {
     return `import { sql } from 'kysely';
 import { defineMigration } from '@fossyl/kysely';
 

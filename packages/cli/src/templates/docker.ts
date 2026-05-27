@@ -1,4 +1,4 @@
-import type { DialectChoice } from '../prompts';
+import type { DialectChoice } from "../prompts";
 
 export function generateDockerfile(): string {
   return `FROM node:20-alpine
@@ -22,7 +22,7 @@ dist
 }
 
 export function generateDockerCompose(dialect?: DialectChoice): string {
-  if (dialect === 'sqlite') {
+  if (dialect === "sqlite") {
     return `services:
   app:
     build: .
@@ -35,7 +35,7 @@ export function generateDockerCompose(dialect?: DialectChoice): string {
 `;
   }
 
-  if (dialect === 'mysql') {
+  if (dialect === "mysql") {
     return `services:
   app:
     build: .

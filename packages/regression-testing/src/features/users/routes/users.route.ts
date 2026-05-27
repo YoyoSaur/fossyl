@@ -6,10 +6,12 @@ import { createUserValidator, updateUserValidator } from "../validators/users.va
 const router = createRouter("/api/users");
 
 // @code: start open-get-user
-export const getUser = router.createEndpoint("/api/users/:id").get((params) => async () => {
-  const user = await userService.getUser(Number(params.url.id));
-  return { typeName: "User" as const, ...user };
-});
+export const getUser = router
+  .createEndpoint("/api/users/:id")
+  .get((params) => async () => {
+    const user = await userService.getUser(Number(params.url.id));
+    return { typeName: "User" as const, ...user };
+  });
 // @code: end open-get-user
 
 // @code: start auth-validator-post-user
@@ -17,7 +19,7 @@ export const createUser = router
   .createEndpoint("/api/users")
   .authenticator(authenticator)
   .validator(createUserValidator)
-  .post((auth) => (body) => async () => {
+  .post((_auth) => (body) => async () => {
     const user = await userService.createUser(body.name, body.email);
     return { typeName: "User" as const, ...user };
   });
@@ -28,7 +30,7 @@ export const updateUser = router
   .createEndpoint("/api/users/:id")
   .authenticator(authenticator)
   .validator(updateUserValidator)
-  .put((params) => (auth) => (body) => async () => {
+  .put((params) => (_auth) => (body) => async () => {
     const user = await userService.updateUser(Number(params.url.id), body);
     return { typeName: "User" as const, ...user };
   });
@@ -38,7 +40,7 @@ export const updateUser = router
 export const deleteUser = router
   .createEndpoint("/api/users/:id")
   .authenticator(authenticator)
-  .delete((params) => (auth) => async () => {
+  .delete((params) => (_auth) => async () => {
     await userService.deleteUser(Number(params.url.id));
     return { typeName: "DeleteResult" as const, id: params.url.id, deleted: true };
   });

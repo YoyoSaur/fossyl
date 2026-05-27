@@ -60,14 +60,15 @@ npx fossyl --version         # Show version
 ## BYO (Bring Your Own) Mode
 
 When selecting BYO for any adapter, the CLI generates placeholder files with:
+
 - TODO comments explaining what needs to be implemented
 - Links to reference implementations
 - Example code snippets
 
 ## Available Adapters
 
-| Adapter | Package | Description |
-|---------|---------|-------------|
+| Adapter | Package           | Description                |
+| ------- | ----------------- | -------------------------- |
 | Express | `@fossyl/express` | Express.js runtime adapter |
-| Zod | `@fossyl/zod` | Zod validation adapter |
-| Kysely | `@fossyl/kysely` | Kysely database adapter |
+| Zod     | `@fossyl/zod`     | Zod validation adapter     |
+| Kysely  | `@fossyl/kysely`  | Kysely database adapter    |

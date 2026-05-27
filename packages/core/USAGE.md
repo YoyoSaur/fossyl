@@ -3,6 +3,7 @@
 **Type-safe REST API framework designed for AI-assisted development**
 
 Fossyl is a TypeScript REST API framework that provides:
+
 - Full type inference for routes, parameters, and responses
 - REST semantics enforcement at compile-time
 - Validator-library agnostic design
@@ -29,28 +30,28 @@ npx fossyl --create my-api
 ### 1. Creating a Router
 
 ```typescript
-import { createRouter } from '@fossyl/core';
+import { createRouter } from "@fossyl/core";
 
-const router = createRouter('/api'); // Optional base path
+const router = createRouter("/api"); // Optional base path
 ```
 
 ### 2. Basic Routes
 
 ```typescript
 // Simple GET endpoint
-const getUserRoute = router.createEndpoint('/users/:id').get({
+const getUserRoute = router.createEndpoint("/users/:id").get({
   handler: async ({ url }) => {
     const userId = url.id; // Fully typed from URL params
     return {
-      typeName: 'User' as const,
+      typeName: "User" as const,
       id: userId,
-      name: 'John Doe'
+      name: "John Doe",
     };
-  }
+  },
 });
 
 // POST endpoint with body validation
-const createUserRoute = router.createEndpoint('/users').post({
+const createUserRoute = router.createEndpoint("/users").post({
   validator: (data): { name: string; email: string } => {
     // Your validation logic (use any validator library)
     return data as { name: string; email: string };
@@ -58,11 +59,11 @@ const createUserRoute = router.createEndpoint('/users').post({
   handler: async ({ url }, body) => {
     // body type is inferred from validator return type
     return {
-      typeName: 'User' as const,
-      id: '123',
-      ...body
+      typeName: "User" as const,
+      id: "123",
+      ...body,
     };
-  }
+  },
 });
 ```
 
@@ -71,45 +72,45 @@ const createUserRoute = router.createEndpoint('/users').post({
 Authentication functions **must** return a `Promise`. This allows for async operations like OAuth, database lookups, JWT verification, etc.
 
 ```typescript
-import { authWrapper } from '@fossyl/core';
+import { authWrapper } from "@fossyl/core";
 
 // Define your async authentication function
 const authenticator = async (headers: Record<string, string>) => {
   // Perform async operations: OAuth, JWT verification, database lookup, etc.
   return authWrapper({
-    userId: headers['x-user-id'],
-    role: headers['x-user-role']
+    userId: headers["x-user-id"],
+    role: headers["x-user-role"],
   });
 };
 
 // Use in routes
-const protectedRoute = router.createEndpoint('/protected').get({
+const protectedRoute = router.createEndpoint("/protected").get({
   authenticator,
   handler: async ({ url }, auth) => {
     // auth is fully typed from authWrapper return
     return {
-      typeName: 'Protected' as const,
-      message: `Hello user ${auth.userId}`
+      typeName: "Protected" as const,
+      message: `Hello user ${auth.userId}`,
     };
-  }
+  },
 });
 ```
 
 ### 4. Query Parameters
 
 ```typescript
-const searchRoute = router.createEndpoint('/search').get({
+const searchRoute = router.createEndpoint("/search").get({
   queryValidator: (data): { q: string; limit?: number } => {
     return data as { q: string; limit?: number };
   },
   handler: async ({ url, query }) => {
     // query type is inferred from queryValidator
     return {
-      typeName: 'SearchResult' as const,
+      typeName: "SearchResult" as const,
       results: [],
-      query: query.q
+      query: query.q,
     };
-  }
+  },
 });
 ```
 
@@ -118,12 +119,14 @@ const searchRoute = router.createEndpoint('/search').get({
 Available methods: `get`, `post`, `put`, `delete`, `list`
 
 **REST Semantics Enforcement:**
+
 - `GET` and `DELETE` cannot have a body validator
 - `POST` and `PUT` require a body validator
 - `list` is always GET with automatic pagination
 - All methods can have authentication and query validation
 
 **Handler Parameter Order:**
+
 - Routes with body validation: `handler(params, [auth,] body)`
 - Routes without body validation: `handler(params [, auth])`
 - List routes: `handler({ url, query, pagination } [, auth])`
@@ -132,23 +135,24 @@ Available methods: `get`, `post`, `put`, `delete`, `list`
 
 Fossyl provides six distinct route types:
 
-| Type | Auth | Body | Use For |
-|------|------|------|---------|
-| OpenRoute | No | No | Public endpoints, health checks |
-| AuthenticatedRoute | Yes | No | Protected GET/DELETE endpoints |
-| ValidatedRoute | No | Yes | Public POST/PUT (e.g., registration) |
-| FullRoute | Yes | Yes | Protected POST/PUT (most common) |
-| ListRoute | No | No | Public paginated collections |
-| AuthenticatedListRoute | Yes | No | Protected paginated collections |
+| Type                   | Auth | Body | Use For                              |
+| ---------------------- | ---- | ---- | ------------------------------------ |
+| OpenRoute              | No   | No   | Public endpoints, health checks      |
+| AuthenticatedRoute     | Yes  | No   | Protected GET/DELETE endpoints       |
+| ValidatedRoute         | No   | Yes  | Public POST/PUT (e.g., registration) |
+| FullRoute              | Yes  | Yes  | Protected POST/PUT (most common)     |
+| ListRoute              | No   | No   | Public paginated collections         |
+| AuthenticatedListRoute | Yes  | No   | Protected paginated collections      |
 
 ## List Routes (Pagination)
 
 ```typescript
-const listItems = router.createEndpoint('/items').list({
+const listItems = router.createEndpoint("/items").list({
   paginationConfig: { defaultPageSize: 20, maxPageSize: 100 },
   handler: async ({ pagination }) => {
-    const items = await db.selectFrom('items')
-      .limit(pagination.pageSize + 1)  // N+1 trick for hasMore
+    const items = await db
+      .selectFrom("items")
+      .limit(pagination.pageSize + 1) // N+1 trick for hasMore
       .offset((pagination.page - 1) * pagination.pageSize)
       .execute();
 
@@ -173,14 +177,15 @@ All route handlers must return objects with a `typeName` property:
 ```typescript
 const handler = async (params) => {
   return {
-    typeName: 'UserResponse' as const, // Required!
-    id: '123',
-    name: 'John Doe'
+    typeName: "UserResponse" as const, // Required!
+    id: "123",
+    name: "John Doe",
   };
 };
 ```
 
 The framework wraps responses in a standardized format:
+
 ```typescript
 {
   success: "true",
@@ -194,17 +199,17 @@ The framework wraps responses in a standardized format:
 Use Fossyl with framework adapters:
 
 ```typescript
-import { createRouter } from '@fossyl/core';
-import { expressAdapter } from '@fossyl/express';
+import { createRouter } from "@fossyl/core";
+import { expressAdapter } from "@fossyl/express";
 
-const api = createRouter('/api');
+const api = createRouter("/api");
 const routes = [
-  api.createEndpoint('/users').get({
+  api.createEndpoint("/users").get({
     handler: async () => ({
-      typeName: 'UserList' as const,
-      users: []
-    })
-  })
+      typeName: "UserList" as const,
+      users: [],
+    }),
+  }),
 ];
 
 const adapter = expressAdapter({ cors: true });
@@ -213,6 +218,7 @@ await adapter.listen(3000);
 ```
 
 **Available adapters:**
+
 - `@fossyl/express` - Express.js runtime adapter
 - `@fossyl/zod` - Zod validation adapter
 - `@fossyl/kysely` - Kysely database adapter
@@ -247,7 +253,7 @@ import type {
   DatabaseAdapter,
   ValidationAdapter,
   LoggerAdapter,
-} from '@fossyl/core';
+} from "@fossyl/core";
 ```
 
 ## Tips for AI Assistants

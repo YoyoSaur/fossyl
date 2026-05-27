@@ -1,7 +1,7 @@
 // @code-block-start: get-full-todos-v3
-async function getFullTodos(userId: number): Promise<FullUser> {
+async function _getFullTodos(userId: number): Promise<FullUser> {
   const { data: user } = await getUser(userId);
-  if (!user) throw new Error('User not found');
+  if (!user) throw new Error("User not found");
   const { data: todos } = await getTodos(user.id);
   const { data: reminders } = await getReminders(user.id);
 

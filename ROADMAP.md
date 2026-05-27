@@ -7,6 +7,7 @@ All tasks are tracked as GitHub issues: https://github.com/YoyoSaur/fossyl/issue
 ## Core Philosophy
 
 Fossyl follows a **pure functional, types-only** design philosophy:
+
 - ✅ **Pure functions only** - No classes, no interfaces
 - ✅ **Types-only approach** - Minimal runtime overhead
 - ✅ **Validators are functions** - `(data: unknown) => T`
@@ -18,9 +19,11 @@ Fossyl follows a **pure functional, types-only** design philosophy:
 ## ✅ Completed
 
 ### #2: Refactor validation layer to pure functional types
+
 **Status:** ✅ Complete
 
 Pure functional validator abstraction implemented:
+
 ```typescript
 export type Validator<T> = (data: unknown) => T;
 ```
@@ -30,6 +33,7 @@ Adapters available: `@fossyl/zod`
 ---
 
 ### #3: Write CLAUDE.md for AI-assisted development
+
 **Status:** ✅ Complete
 
 Each package includes comprehensive `CLAUDE.md` documentation for AI code generation.
@@ -37,6 +41,7 @@ Each package includes comprehensive `CLAUDE.md` documentation for AI code genera
 ---
 
 ### #4: Write comprehensive core documentation
+
 **Status:** ✅ Complete
 
 Core library documented with README and CLAUDE.md covering all route types, authentication patterns, and API reference.
@@ -44,6 +49,7 @@ Core library documented with README and CLAUDE.md covering all route types, auth
 ---
 
 ### #5: Build Express runtime adapter
+
 **Status:** ✅ Complete
 
 `@fossyl/express` package available with full route registration and server lifecycle management.
@@ -51,9 +57,11 @@ Core library documented with README and CLAUDE.md covering all route types, auth
 ---
 
 ### #10: Set up monorepo structure with pnpm workspaces
+
 **Status:** ✅ Complete
 
 Monorepo structure:
+
 ```
 packages/
 ├── core/       # @fossyl/core - Router and types
@@ -67,18 +75,23 @@ packages/
 ---
 
 ### #15: Add query parameter validation support
+
 **Status:** ✅ Complete
 
 Query validation implemented via `queryValidator`:
+
 ```typescript
-queryValidator: zodQueryValidator(z.object({
-  limit: z.coerce.number().optional()
-}))
+queryValidator: zodQueryValidator(
+  z.object({
+    limit: z.coerce.number().optional(),
+  })
+);
 ```
 
 ---
 
 ### Zod validation adapter
+
 **Status:** ✅ Complete
 
 `@fossyl/zod` package with `zodValidator` and `zodQueryValidator` helpers.
@@ -86,6 +99,7 @@ queryValidator: zodQueryValidator(z.object({
 ---
 
 ### Kysely database adapter
+
 **Status:** ✅ Complete
 
 `@fossyl/kysely` package with migration support and transaction context.
@@ -93,9 +107,11 @@ queryValidator: zodQueryValidator(z.object({
 ---
 
 ### CLI package separation (2025-02-01)
+
 **Status:** ✅ Complete
 
 CLI moved from `@fossyl/core` to unscoped `fossyl` package:
+
 - Enables `npx fossyl --create my-api` (cleaner than `npx @fossyl/core`)
 - Core package stays focused on router/types
 - Independent versioning for CLI updates
@@ -105,6 +121,7 @@ CLI moved from `@fossyl/core` to unscoped `fossyl` package:
 ## Phase 2: Core Features
 
 ### #6: Add route builder customization types
+
 **Labels:** `enhancement`, `core`, `types`
 
 Enable custom metadata and extensions for route builders.
@@ -114,9 +131,11 @@ Enable custom metadata and extensions for route builders.
 ---
 
 ### #7: Create validation adapters for Yup and ArkType
+
 **Labels:** `enhancement`, `validation`
 
 Provide alternative validators:
+
 ```typescript
 export const yupAdapter = <T>(schema: yup.Schema<T>): Validator<T> => ...
 export const arkAdapter = <T>(schema: Type<T>): Validator<T> => ...
@@ -127,9 +146,11 @@ export const arkAdapter = <T>(schema: Type<T>): Validator<T> => ...
 ---
 
 ### #14: Implement standard error handling pattern
+
 **Labels:** `enhancement`, `error-handling`
 
 Pure functional error types:
+
 ```typescript
 export type FossylError = {
   readonly type: 'validation' | 'authentication' | 'not-found' | 'internal';
@@ -148,6 +169,7 @@ export const createError = (...) => ({ ... }); // Pure function
 ## Phase 3: Runtime Adapters
 
 ### #8: Build Hono runtime adapter
+
 **Labels:** `enhancement`, `runtime-adapter`
 
 Hono adapter following Express pattern.
@@ -158,6 +180,7 @@ Hono adapter following Express pattern.
 ---
 
 ### #9: Build Fastify runtime adapter
+
 **Labels:** `enhancement`, `runtime-adapter`
 
 Fastify adapter following Express pattern.
@@ -170,9 +193,11 @@ Fastify adapter following Express pattern.
 ## Phase 4: Starter Templates
 
 ### #11: Create Express + Prisma starter template
+
 **Labels:** `starter-template`, `priority:medium`
 
 Complete opinionated starter with:
+
 - Full CRUD example
 - Authentication (JWT)
 - Error handling
@@ -184,6 +209,7 @@ Complete opinionated starter with:
 ---
 
 ### #12: Create Hono + Drizzle starter template
+
 **Labels:** `starter-template`
 
 Edge-optimized starter for Cloudflare Workers.
@@ -193,6 +219,7 @@ Edge-optimized starter for Cloudflare Workers.
 ---
 
 ### #13: Create Fastify + Kysely starter template
+
 **Labels:** `starter-template`
 
 High-performance starter with raw SQL.
@@ -204,9 +231,11 @@ High-performance starter with raw SQL.
 ## Phase 5: Advanced Features (Future)
 
 ### #16: Add middleware support (functional approach)
+
 **Labels:** `enhancement`, `middleware`, `future`
 
 Pure functional middleware:
+
 ```typescript
 export type Middleware<In, Out> = (context: In) => Out | Promise<Out>;
 ```
@@ -216,6 +245,7 @@ export type Middleware<In, Out> = (context: In) => Out | Promise<Out>;
 ---
 
 ### #17: Implement response type validation
+
 **Labels:** `enhancement`, `validation`, `future`
 
 Optional dev-mode response validation.
@@ -225,6 +255,7 @@ Optional dev-mode response validation.
 ---
 
 ### #18: Generate OpenAPI/Swagger documentation from routes
+
 **Labels:** `enhancement`, `documentation`, `future`
 
 Auto-generate OpenAPI specs from route definitions.
@@ -234,12 +265,14 @@ Auto-generate OpenAPI specs from route definitions.
 ---
 
 ### #19: Add HTTP status code typing to responses
+
 **Labels:** `enhancement`, `types`, `future`
 
 Type-safe status codes:
+
 ```typescript
 return response({ todo }, 200);
-return response({ error: 'Not found' }, 404);
+return response({ error: "Not found" }, 404);
 ```
 
 **Dependencies:** None
@@ -247,9 +280,11 @@ return response({ error: 'Not found' }, 404);
 ---
 
 ### #20: Implement pagination pattern and types
+
 **Labels:** `enhancement`, `future`
 
 Standard pagination helpers:
+
 ```typescript
 export const paginate = <T>(items: readonly T[], total: number, params: PaginationParams) => ...
 ```
@@ -259,9 +294,11 @@ export const paginate = <T>(items: readonly T[], total: number, params: Paginati
 ---
 
 ### #21: Create testing utilities and patterns
+
 **Labels:** `testing`, `future`
 
 Pure functional testing helpers:
+
 ```typescript
 export const testHandler = async <R extends Route>(route: R, params: {...}) => ...
 ```
@@ -273,6 +310,7 @@ export const testHandler = async <R extends Route>(route: R, params: {...}) => .
 ## Documentation & Meta
 
 ### #1: Write comprehensive FAQ documentation
+
 **Labels:** `documentation`
 
 Cover common questions, troubleshooting, design decisions.
@@ -282,9 +320,11 @@ Cover common questions, troubleshooting, design decisions.
 ---
 
 ### #22: Add contribution guidelines
+
 **Labels:** `documentation`, `meta`
 
 CONTRIBUTING.md with:
+
 - Pure functional code style
 - PR process
 - Testing requirements

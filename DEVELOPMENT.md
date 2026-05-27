@@ -59,18 +59,21 @@ export ANTHROPIC_API_KEY="sk-ant-your-key-here"
 To make this permanent, add it to your shell profile:
 
 **For bash** (`~/.bashrc` or `~/.bash_profile`):
+
 ```bash
 echo 'export ANTHROPIC_API_KEY="your-api-key-here"' >> ~/.bashrc
 source ~/.bashrc
 ```
 
 **For zsh** (`~/.zshrc`):
+
 ```bash
 echo 'export ANTHROPIC_API_KEY="your-api-key-here"' >> ~/.zshrc
 source ~/.zshrc
 ```
 
 **For fish** (`~/.config/fish/config.fish`):
+
 ```fish
 echo 'set -x ANTHROPIC_API_KEY "your-api-key-here"' >> ~/.config/fish/config.fish
 source ~/.config/fish/config.fish
@@ -79,6 +82,7 @@ source ~/.config/fish/config.fish
 ### Hook Location
 
 The pre-commit hook is located at:
+
 - `.git/hooks/pre-commit` - The git hook script
 - `scripts/update-claude-md.mjs` - The Node.js script that does the actual work
 
@@ -93,15 +97,18 @@ node scripts/update-claude-md.mjs
 ### Troubleshooting
 
 **Hook not running?**
+
 - Ensure the hook is executable: `chmod +x .git/hooks/pre-commit`
 - Check that you have the API key set: `echo $ANTHROPIC_API_KEY`
 
 **API errors?**
+
 - Verify your API key is valid
 - Check your internet connection
 - Ensure you have API credits available
 
 **Want to skip the hook?**
+
 ```bash
 git commit --no-verify -m "your message"
 ```

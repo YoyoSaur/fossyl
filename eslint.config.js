@@ -1,13 +1,13 @@
-import tseslint from '@typescript-eslint/eslint-plugin';
-import tsparser from '@typescript-eslint/parser';
-import fossyl from './packages/eslint-plugin/dist/index.js';
+import tseslint from "@typescript-eslint/eslint-plugin";
+import tsparser from "@typescript-eslint/parser";
+import fossyl from "./packages/eslint-plugin/dist/index.js";
 
 export default [
   {
-    ignores: ['**/node_modules/**', '**/dist/**', '**/*.js', '**/*.mjs'],
+    ignores: ["**/node_modules/**", "**/dist/**", "**/*.js", "**/*.mjs"],
   },
   {
-    files: ['**/*.ts', '**/*.tsx'],
+    files: ["**/*.ts", "**/*.tsx"],
     languageOptions: {
       parser: tsparser,
       parserOptions: {
@@ -15,15 +15,16 @@ export default [
       },
     },
     plugins: {
-      '@typescript-eslint': tseslint,
+      "@typescript-eslint": tseslint,
       fossyl,
     },
     rules: {
-      '@typescript-eslint/no-unused-vars': [
-        'error',
-        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      "fossyl/builder-chains-newline": "error",
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
       ],
-      'fossyl/no-repo-import-outside-service': 'error',
+      "fossyl/no-repo-import-outside-service": "error",
     },
   },
 ];

@@ -27,8 +27,14 @@ import {
  */
 function generateValidConfig(method: string, category: MethodCategory, configName: string): string {
   const isPagination = category === "pagination";
-  const hasAuth = configName.toLowerCase().includes("authenticated") || configName === "full" || configName === "fullWithQuery";
-  const hasBody = configName.toLowerCase().includes("validated") || configName === "full" || configName === "fullWithQuery";
+  const hasAuth =
+    configName.toLowerCase().includes("authenticated") ||
+    configName === "full" ||
+    configName === "fullWithQuery";
+  const hasBody =
+    configName.toLowerCase().includes("validated") ||
+    configName === "full" ||
+    configName === "fullWithQuery";
   const hasQuery = configName.toLowerCase().includes("withquery");
 
   const configParts: string[] = [];
@@ -57,12 +63,12 @@ function generateValidConfig(method: string, category: MethodCategory, configNam
  * Generates the params object signature for handler
  */
 function generateHandlerParams(hasQuery: boolean, hasPagination: boolean): string {
-  const parts = ["url"];
+  const parts = ["url: _url"];
   if (hasQuery) {
-    parts.push("query");
+    parts.push("query: _query");
   }
   if (hasPagination) {
-    parts.push("pagination");
+    parts.push("pagination: _pagination");
   }
   return `{ ${parts.join(", ")} }`;
 }
@@ -73,10 +79,10 @@ function generateHandlerParams(hasQuery: boolean, hasPagination: boolean): strin
 function generateHandlerArgs(hasAuth: boolean, hasBody: boolean): string {
   const args: string[] = [];
   if (hasAuth) {
-    args.push("auth");
+    args.push("_auth");
   }
   if (hasBody) {
-    args.push("body");
+    args.push("_body");
   }
   return args.length > 0 ? ", " + args.join(", ") : "";
 }
@@ -160,7 +166,11 @@ function sampleInvalidConfigs(configs: ConfigType[], category: MethodCategory): 
 /**
  * Get error message for invalid category usage
  */
-function getInvalidCategoryError(method: string, category: MethodCategory, config: ConfigType): string {
+function getInvalidCategoryError(
+  method: string,
+  category: MethodCategory,
+  config: ConfigType
+): string {
   if (category === "bodyless" && config.hasBody) {
     return `${method.toUpperCase()} cannot have validator (body)`;
   }
@@ -257,14 +267,8 @@ function generateMismatchTest(
   const handlerExpectsAuth = mismatch.handlerExpects.auth;
   const handlerExpectsBody = mismatch.handlerExpects.body;
 
-  const handlerParams = generateHandlerParams(
-    handlerExpectsQuery ?? false,
-    isPagination
-  );
-  const handlerArgs = generateHandlerArgs(
-    handlerExpectsAuth ?? false,
-    handlerExpectsBody ?? false
-  );
+  const handlerParams = generateHandlerParams(handlerExpectsQuery ?? false, isPagination);
+  const handlerArgs = generateHandlerArgs(handlerExpectsAuth ?? false, handlerExpectsBody ?? false);
   const returnType = isPagination ? "paginatedResponse" : "response";
 
   parts.push(`handler: async (${handlerParams}${handlerArgs}) => ${returnType}`);
@@ -283,11 +287,11 @@ function generateReturnTypeMismatchTests(): string {
 
   // LIST must return PaginatedResponse, not regular response
   output += `// @ts-expect-error - list must return PaginatedResponse, not regular response\n`;
-  output += `endpoint.list({ handler: async ({ url, pagination }) => response });\n`;
+  output += `endpoint.list({ handler: async ({ url: _url, pagination: _pagination }) => response });\n`;
 
   // LIST with auth must also return PaginatedResponse
   output += `// @ts-expect-error - authenticated list must return PaginatedResponse\n`;
-  output += `endpoint.list({ authenticator, handler: async ({ url, pagination }, auth) => response });\n`;
+  output += `endpoint.list({ authenticator, handler: async ({ url: _url, pagination: _pagination }, _auth) => response });\n`;
 
   return output + "\n";
 }
@@ -376,9 +380,9 @@ function main(): void {
 
   // Count tests generated
   const expectErrorCount = (content.match(/@ts-expect-error/g) || []).length;
-  const validTestCount = content.split("\n").filter(
-    (line) => line.startsWith("endpoint.") && !line.includes("@ts-expect-error")
-  ).length;
+  const validTestCount = content
+    .split("\n")
+    .filter((line) => line.startsWith("endpoint.") && !line.includes("@ts-expect-error")).length;
 
   console.log(`Generated ${outputPath}`);
   console.log(`  Valid tests: ${validTestCount}`);

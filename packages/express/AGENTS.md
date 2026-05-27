@@ -31,6 +31,7 @@ src/
 ### Handler Type Matching
 
 `handlers.ts` pattern-matches on route type to call handlers correctly:
+
 - OpenRoute: `handler(params)`
 - AuthenticatedRoute: `handler(params, auth)`
 - ValidatedRoute: `handler(params, body)`
@@ -40,6 +41,7 @@ src/
 ### AsyncLocalStorage Context
 
 `context.ts` uses Node's AsyncLocalStorage to propagate request context:
+
 - Logger instance
 - Request ID
 - Database client/transaction (if database adapter provided)
@@ -49,11 +51,13 @@ This allows `getLogger()`, `getRequestId()`, `getDb()` to work anywhere in the c
 ### Response Wrapping
 
 All handler responses are wrapped in:
+
 ```typescript
 { success: "true", type: response.typeName, data: response }
 ```
 
 Errors are wrapped in:
+
 ```typescript
 { success: "false", error: { code, message, details? } }
 ```
@@ -69,6 +73,7 @@ pnpm test        # Run tests
 ## Contributing
 
 When adding features:
+
 - Maintain compatibility with all 6 route types from core
 - Test with database adapters (transaction wrapping)
 - Preserve AsyncLocalStorage context isolation

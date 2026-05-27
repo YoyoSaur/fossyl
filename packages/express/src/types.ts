@@ -1,5 +1,5 @@
-import type { Application } from 'express';
-import type { DatabaseAdapter, LoggerAdapter } from '@fossyl/core';
+import type { Application } from "express";
+import type { DatabaseAdapter, LoggerAdapter } from "@fossyl/core";
 
 /**
  * CORS configuration options.

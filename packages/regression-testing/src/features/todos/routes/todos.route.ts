@@ -28,7 +28,7 @@ export const listTodos = router
 export const getTodo = router
   .createEndpoint("/api/todos/:id")
   .authenticator(authenticator)
-  .get((params) => (auth) => async () => {
+  .get((params) => (_auth) => async () => {
     const todo = await todoService.getTodo(Number(params.url.id));
     return { typeName: "Todo" as const, ...todo };
   });
@@ -39,7 +39,7 @@ export const createTodo = router
   .createEndpoint("/api/todos")
   .authenticator(authenticator)
   .validator(createTodoValidator)
-  .post((auth) => (body) => async () => {
+  .post((_auth) => (body) => async () => {
     const todo = await todoService.createTodo(body.title);
     return { typeName: "Todo" as const, ...todo };
   });
@@ -50,7 +50,7 @@ export const updateTodo = router
   .createEndpoint("/api/todos/:id")
   .authenticator(authenticator)
   .validator(updateTodoValidator)
-  .put((params) => (auth) => (body) => async () => {
+  .put((params) => (_auth) => (body) => async () => {
     const todo = await todoService.updateTodo(Number(params.url.id), body);
     return { typeName: "Todo" as const, ...todo };
   });
@@ -60,7 +60,7 @@ export const updateTodo = router
 export const deleteTodo = router
   .createEndpoint("/api/todos/:id")
   .authenticator(authenticator)
-  .delete((params) => (auth) => async () => {
+  .delete((params) => (_auth) => async () => {
     await todoService.deleteTodo(Number(params.url.id));
     return { typeName: "DeleteResult" as const, id: params.url.id, deleted: true };
   });
@@ -81,7 +81,12 @@ export const searchTodos = router
     };
   })
   .get(({ query }) => async () => {
-    return { typeName: "SearchResult" as const, q: query.q, limit: query.limit, offset: query.offset };
+    return {
+      typeName: "SearchResult" as const,
+      q: query.q,
+      limit: query.limit,
+      offset: query.offset,
+    };
   });
 // @code: end search-todos
 

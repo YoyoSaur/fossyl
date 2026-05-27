@@ -20,6 +20,7 @@ pnpm dev
 ```
 
 The CLI will guide you through selecting adapters:
+
 - **Server**: Express (recommended) or Bring Your Own
 - **Validator**: Zod (recommended) or Bring Your Own
 - **Database**: Kysely (recommended) or Bring Your Own
@@ -27,33 +28,33 @@ The CLI will guide you through selecting adapters:
 ## Quick Example
 
 ```typescript
-import { createRouter, authWrapper } from '@fossyl/core';
-import { expressAdapter } from '@fossyl/express';
+import { createRouter, authWrapper } from "@fossyl/core";
+import { expressAdapter } from "@fossyl/express";
 
-const api = createRouter('/api');
+const api = createRouter("/api");
 
 // Authentication function
 const auth = async (headers: Record<string, string>) =>
-  authWrapper({ userId: headers['x-user-id'] });
+  authWrapper({ userId: headers["x-user-id"] });
 
 // Define routes
-const getUser = api.createEndpoint('/users/:id').get({
+const getUser = api.createEndpoint("/users/:id").get({
   handler: async ({ url }) => ({
-    typeName: 'User' as const,
+    typeName: "User" as const,
     id: url.id,
-    name: 'John Doe'
-  })
+    name: "John Doe",
+  }),
 });
 
-const createUser = api.createEndpoint('/users').post({
+const createUser = api.createEndpoint("/users").post({
   authenticator: auth,
   validator: (data): { name: string } => data as { name: string },
   handler: async ({ url }, auth, body) => ({
-    typeName: 'User' as const,
-    id: 'new-id',
+    typeName: "User" as const,
+    id: "new-id",
     name: body.name,
-    createdBy: auth.userId
-  })
+    createdBy: auth.userId,
+  }),
 });
 
 // Start server
@@ -64,13 +65,13 @@ adapter.listen(3000);
 
 ## Packages
 
-| Package | Description |
-|---------|-------------|
-| [`@fossyl/core`](./packages/core) | Router and type definitions |
-| [`fossyl`](./packages/cli) | CLI for scaffolding projects |
-| [`@fossyl/express`](./packages/express) | Express.js runtime adapter |
-| [`@fossyl/zod`](./packages/zod) | Zod validation adapter |
-| [`@fossyl/kysely`](./packages/kysely) | Kysely database adapter |
+| Package                                 | Description                  |
+| --------------------------------------- | ---------------------------- |
+| [`@fossyl/core`](./packages/core)       | Router and type definitions  |
+| [`fossyl`](./packages/cli)              | CLI for scaffolding projects |
+| [`@fossyl/express`](./packages/express) | Express.js runtime adapter   |
+| [`@fossyl/zod`](./packages/zod)         | Zod validation adapter       |
+| [`@fossyl/kysely`](./packages/kysely)   | Kysely database adapter      |
 
 ## Route Types
 

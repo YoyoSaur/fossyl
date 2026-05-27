@@ -1,18 +1,17 @@
-import type { TSESTree } from '@typescript-eslint/utils';
-import { createRule } from '../utils/rule-factory';
-import { getCreateRouterPrefix } from '../utils/route-collector';
+import type { TSESTree } from "@typescript-eslint/utils";
+import { createRule } from "../utils/rule-factory";
+import { getCreateRouterPrefix } from "../utils/route-collector";
 
-export type MessageIds = 'mixedPrefixes';
+export type MessageIds = "mixedPrefixes";
 
 export type Options = [];
 
 export default createRule<Options, MessageIds>({
-  name: 'no-mixed-prefixes',
+  name: "no-mixed-prefixes",
   meta: {
-    type: 'suggestion',
+    type: "suggestion",
     docs: {
-      description:
-        'All routes in one file must share the same base prefix from createRouter().',
+      description: "All routes in one file must share the same base prefix from createRouter().",
     },
     schema: [],
     messages: {
@@ -32,7 +31,7 @@ export default createRule<Options, MessageIds>({
         prefixesInFile.push({ prefix, node });
       },
 
-      'Program:exit'(): void {
+      "Program:exit"(): void {
         if (prefixesInFile.length <= 1) return;
 
         const primary = prefixesInFile[0].prefix;
@@ -41,7 +40,7 @@ export default createRule<Options, MessageIds>({
           const { prefix, node } = prefixesInFile[i];
           context.report({
             node,
-            messageId: 'mixedPrefixes',
+            messageId: "mixedPrefixes",
             data: {
               prefix,
               primaryPrefix: primary,

@@ -1,19 +1,19 @@
-import type { TSESTree } from '@typescript-eslint/utils';
-import { createRule } from '../utils/rule-factory';
-import { getCreateRouterPrefix, getRelativeFilePath } from '../utils/route-collector';
-import path from 'node:path';
+import type { TSESTree } from "@typescript-eslint/utils";
+import { createRule } from "../utils/rule-factory";
+import { getCreateRouterPrefix, getRelativeFilePath } from "../utils/route-collector";
+import path from "node:path";
 
-export type MessageIds = 'namingMismatch';
+export type MessageIds = "namingMismatch";
 
 export type Options = [];
 
 export default createRule<Options, MessageIds>({
-  name: 'consistent-naming',
+  name: "consistent-naming",
   meta: {
-    type: 'suggestion',
+    type: "suggestion",
     docs: {
       description:
-        'Route files should have a name consistent with their path prefix (e.g., users.route.ts should use /users prefix).',
+        "Route files should have a name consistent with their path prefix (e.g., users.route.ts should use /users prefix).",
     },
     schema: [],
     messages: {
@@ -26,12 +26,12 @@ export default createRule<Options, MessageIds>({
     const filePath = context.filename;
     const fileName = path.basename(filePath);
     const fileNameStem = fileName
-      .replace(/\.route\.[a-z]+$/i, '')
-      .replace(/\.[a-z]+$/i, '')
+      .replace(/\.route\.[a-z]+$/i, "")
+      .replace(/\.[a-z]+$/i, "")
       .toLowerCase();
 
     function fileNameMatchesPrefix(prefix: string): boolean {
-      const prefixSegment = prefix.replace(/\/+$/, '').split('/').pop() || '';
+      const prefixSegment = prefix.replace(/\/+$/, "").split("/").pop() || "";
       return prefixSegment.toLowerCase() === fileNameStem;
     }
 
@@ -44,7 +44,7 @@ export default createRule<Options, MessageIds>({
           const relPath = getRelativeFilePath(filePath);
           context.report({
             node,
-            messageId: 'namingMismatch',
+            messageId: "namingMismatch",
             data: {
               prefix,
               fileName: relPath,

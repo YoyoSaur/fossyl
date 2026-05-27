@@ -1,21 +1,23 @@
 // @code-block-start: pagination
 // Paginated routes automatically handle pagination params:
 //   ?page=1&pageSize=20  →  { page: 1, pageSize: 20 }
-import { createRouter } from '@fossyl/core';
+import { createRouter } from "@fossyl/core";
 
 const router = createRouter<"/api">("/api");
 
-const listPostsRoute = router.createEndpoint('/api/posts').paginate({
-  defaultPageSize: 20,
-  maxPageSize: 100,
-}).get(
-  ({ pagination }) => async () => {
+const _listPostsRoute = router
+  .createEndpoint("/api/posts")
+  .paginate({
+    defaultPageSize: 20,
+    maxPageSize: 100,
+  })
+  .get(({ pagination }) => async () => {
     //    pagination is typed as: { page: number; pageSize: number }
     const { page, pageSize } = pagination;
 
     // N+1 trick: fetch one extra to determine hasMore
     const items = await db
-      .selectFrom('posts')
+      .selectFrom("posts")
       .limit(pageSize + 1)
       .offset((page - 1) * pageSize)
       .execute();
@@ -30,18 +32,20 @@ const listPostsRoute = router.createEndpoint('/api/posts').paginate({
         hasMore,
       },
     };
-  },
-);
+  });
 
 // Authenticated list routes work too
-const listMyPostsRoute = router.createEndpoint('/api/my-posts').paginate({
-  defaultPageSize: 20,
-  maxPageSize: 100,
-}).authenticator(myAuth).get(
-  ({ pagination }) => (auth) => async () => {
+const _listMyPostsRoute = router
+  .createEndpoint("/api/my-posts")
+  .paginate({
+    defaultPageSize: 20,
+    maxPageSize: 100,
+  })
+  .authenticator(myAuth)
+  .get(({ pagination }) => (auth) => async () => {
     const items = await db
-      .selectFrom('posts')
-      .where('userId', '=', auth.userId)
+      .selectFrom("posts")
+      .where("userId", "=", auth.userId)
       .limit(pagination.pageSize + 1)
       .offset((pagination.page - 1) * pagination.pageSize)
       .execute();
@@ -54,6 +58,5 @@ const listMyPostsRoute = router.createEndpoint('/api/my-posts').paginate({
         hasMore: items.length > pagination.pageSize,
       },
     };
-  },
-);
+  });
 // @code-block-end: pagination

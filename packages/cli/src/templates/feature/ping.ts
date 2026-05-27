@@ -1,8 +1,8 @@
-import type { ProjectOptions } from '../../prompts';
+import type { ProjectOptions } from "../../prompts";
 
 export function generatePingRoute(options: ProjectOptions): string {
   const validatorImport =
-    options.validator === 'zod'
+    options.validator === "zod"
       ? `import {
   createPingValidator,
   updatePingValidator,
@@ -133,7 +133,7 @@ export async function deletePing(id: string, _userId: string): Promise<void> {
 }
 
 export function generatePingRepo(options: ProjectOptions): string {
-  if (options.database === 'kysely') {
+  if (options.database === "kysely") {
     return generateKyselyPingRepo();
   }
   return generateByoPingRepo();

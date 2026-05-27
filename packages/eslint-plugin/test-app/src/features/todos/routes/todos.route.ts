@@ -29,7 +29,7 @@ export const listTodos = router
 export const getTodo = router
   .createEndpoint("/api/todos/:id")
   .authenticator(authenticator)
-  .get(({ url }) => (auth) => async () => {
+  .get(({ url }) => (_auth) => async () => {
     const todo = await todoService.getTodo(url.id);
     return { typeName: "Todo" as const, ...todo };
   });
@@ -38,7 +38,7 @@ export const createTodo = router
   .createEndpoint("/api/todos")
   .authenticator(authenticator)
   .validator(todoValidator)
-  .post((auth) => (body) => async () => {
+  .post((_auth) => (body) => async () => {
     const todo = await todoService.createTodo(body.title);
     return { typeName: "Todo" as const, ...todo };
   });
@@ -47,7 +47,7 @@ export const updateTodo = router
   .createEndpoint("/api/todos/:id")
   .authenticator(authenticator)
   .validator(todoValidator)
-  .put(({ url }) => (auth) => (body) => async () => {
+  .put(({ url }) => (_auth) => (body) => async () => {
     const todo = await todoService.updateTodo(url.id, body);
     return { typeName: "Todo" as const, ...todo };
   });
@@ -55,7 +55,7 @@ export const updateTodo = router
 export const deleteTodo = router
   .createEndpoint("/api/todos/:id")
   .authenticator(authenticator)
-  .delete(({ url }) => (auth) => async () => {
+  .delete(({ url }) => (_auth) => async () => {
     await todoService.deleteTodo(url.id);
     return { typeName: "DeleteResult" as const, id: url.id, deleted: true };
   });

@@ -1,4 +1,4 @@
-import type { Kysely, Migration, MigrationProvider } from 'kysely';
+import type { Kysely, Migration, MigrationProvider } from "kysely";
 
 /**
  * A migration with up and down functions.
@@ -70,9 +70,7 @@ export type MigrationRecord = Record<string, Migration>;
  * const database = kyselyAdapter({ client: db, migrations });
  * ```
  */
-export function createMigrationProvider(
-  migrations: MigrationRecord
-): MigrationProvider {
+export function createMigrationProvider(migrations: MigrationRecord): MigrationProvider {
   return {
     async getMigrations() {
       return migrations;
@@ -123,7 +121,7 @@ export async function runMigrations<DB>(
   db: Kysely<DB>,
   provider: MigrationProvider
 ): Promise<MigrationResult> {
-  const { Migrator } = await import('kysely');
+  const { Migrator } = await import("kysely");
   const migrator = new Migrator({
     db,
     provider,
@@ -132,7 +130,7 @@ export async function runMigrations<DB>(
   const { error, results } = await migrator.migrateToLatest();
 
   const executed = (results ?? [])
-    .filter((r) => r.status === 'Success')
+    .filter((r) => r.status === "Success")
     .map((r) => r.migrationName);
 
   if (error) {
@@ -149,7 +147,7 @@ export async function rollbackMigration<DB>(
   db: Kysely<DB>,
   provider: MigrationProvider
 ): Promise<MigrationResult> {
-  const { Migrator } = await import('kysely');
+  const { Migrator } = await import("kysely");
   const migrator = new Migrator({
     db,
     provider,
@@ -158,7 +156,7 @@ export async function rollbackMigration<DB>(
   const { error, results } = await migrator.migrateDown();
 
   const executed = (results ?? [])
-    .filter((r) => r.status === 'Success')
+    .filter((r) => r.status === "Success")
     .map((r) => r.migrationName);
 
   if (error) {
@@ -175,7 +173,7 @@ export async function getMigrationStatus<DB>(
   db: Kysely<DB>,
   provider: MigrationProvider
 ): Promise<{ pending: string[]; executed: string[] }> {
-  const { Migrator } = await import('kysely');
+  const { Migrator } = await import("kysely");
   const migrator = new Migrator({
     db,
     provider,

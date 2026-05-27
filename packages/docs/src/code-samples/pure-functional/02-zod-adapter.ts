@@ -1,8 +1,8 @@
 // @code-block-start: zod-adapter
 // With a validation library like Zod — still just a pure function
-import { z } from 'zod';
-import { zodValidator } from '@fossyl/zod';
-import { createRouter } from '@fossyl/core';
+import { z } from "zod";
+import { zodValidator } from "@fossyl/zod";
+import { createRouter } from "@fossyl/core";
 
 const router = createRouter<"/api">("/api");
 
@@ -15,11 +15,10 @@ const userSchema = z.object({
 const createUserValidator = zodValidator(userSchema);
 //    ^? (data: unknown) => { name: string; email: string }
 
-const createUserRoute = router.createEndpoint('/api/users').validator(
-  createUserValidator,
-).post(
-  (body) => async () => {
-    return { typeName: 'User' as const, ...body, id: crypto.randomUUID() };
-  },
-);
+const _createUserRoute = router
+  .createEndpoint("/api/users")
+  .validator(createUserValidator)
+  .post((body) => async () => {
+    return { typeName: "User" as const, ...body, id: crypto.randomUUID() };
+  });
 // @code-block-end: zod-adapter

@@ -30,7 +30,7 @@ export async function create(data: { name: string; email: string }): Promise<Use
 export async function update(id: string, data: { name?: string }): Promise<User> {
   const numId = Number(id);
   const existing = users.get(numId);
-  if (!existing) throw new Error('Not found');
+  if (!existing) throw new Error("Not found");
   const updated = { ...existing, ...data };
   users.set(numId, updated);
   return updated;

@@ -1,4 +1,4 @@
-import type { FrameworkAdapter, DatabaseAdapter, ValidationAdapter } from './adapters';
+import type { FrameworkAdapter, DatabaseAdapter, ValidationAdapter } from "./adapters";
 
 /**
  * Adapter configuration for fossyl.

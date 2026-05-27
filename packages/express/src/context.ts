@@ -1,5 +1,5 @@
-import { AsyncLocalStorage } from 'node:async_hooks';
-import type { DatabaseContext, Logger } from '@fossyl/core';
+import { AsyncLocalStorage } from "node:async_hooks";
+import type { DatabaseContext, Logger } from "@fossyl/core";
 
 /**
  * Request context available throughout the request lifecycle.
@@ -29,7 +29,7 @@ export const requestContext = new AsyncLocalStorage<RequestContext>();
  */
 export function getContext(): RequestContext {
   const ctx = requestContext.getStore();
-  if (!ctx) throw new Error('No request context available');
+  if (!ctx) throw new Error("No request context available");
   return ctx;
 }
 
@@ -55,7 +55,7 @@ export function getRequestId(): string {
  */
 export function getDb<T = unknown>(): DatabaseContext<T> {
   const ctx = getContext();
-  if (!ctx.databaseContext) throw new Error('No database context available');
+  if (!ctx.databaseContext) throw new Error("No database context available");
   return ctx.databaseContext as DatabaseContext<T>;
 }
 
@@ -66,13 +66,13 @@ export function createDefaultLogger(requestId: string): Logger {
   const prefix = `[${requestId}]`;
   return {
     info: (message: string, meta?: Record<string, unknown>) => {
-      console.log(prefix, message, meta ? JSON.stringify(meta) : '');
+      console.log(prefix, message, meta ? JSON.stringify(meta) : "");
     },
     warn: (message: string, meta?: Record<string, unknown>) => {
-      console.warn(prefix, message, meta ? JSON.stringify(meta) : '');
+      console.warn(prefix, message, meta ? JSON.stringify(meta) : "");
     },
     error: (message: string, meta?: Record<string, unknown>) => {
-      console.error(prefix, message, meta ? JSON.stringify(meta) : '');
+      console.error(prefix, message, meta ? JSON.stringify(meta) : "");
     },
   };
 }

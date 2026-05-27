@@ -1,4 +1,4 @@
-import type { Route } from '@fossyl/core';
+import type { Route } from "@fossyl/core";
 
 /**
  * Sorts routes so static paths come before dynamic params.
@@ -12,16 +12,16 @@ import type { Route } from '@fossyl/core';
  */
 export function sortRoutes(routes: Route[]): Route[] {
   return [...routes].sort((a, b) => {
-    const aSegments = a.path.split('/');
-    const bSegments = b.path.split('/');
+    const aSegments = a.path.split("/");
+    const bSegments = b.path.split("/");
 
     const maxLen = Math.max(aSegments.length, bSegments.length);
     for (let i = 0; i < maxLen; i++) {
-      const aSeg = aSegments[i] ?? '';
-      const bSeg = bSegments[i] ?? '';
+      const aSeg = aSegments[i] ?? "";
+      const bSeg = bSegments[i] ?? "";
 
-      const aIsParam = aSeg.startsWith(':');
-      const bIsParam = bSeg.startsWith(':');
+      const aIsParam = aSeg.startsWith(":");
+      const bIsParam = bSeg.startsWith(":");
 
       // Static segments come before dynamic
       if (!aIsParam && bIsParam) return -1;

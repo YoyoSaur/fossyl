@@ -28,13 +28,13 @@ function zodValidator<T extends z.ZodTypeAny>(schema: T): T["parse"] {
 // Test 1: Body only
 const t1 = post({
   validator: zodValidator(userSchema),
-  handler: async (p, body) => { 
+  handler: async (p, body) => {
     // These should work
-    const name: string = body.name;
-    const email: string = body.email;
+    const _name: string = body.name;
+    const _email: string = body.email;
     // @ts-expect-error - This should error (notAField doesn't exist)
     body.notAField;
-    return { typeName: "X" }; 
+    return { typeName: "X" };
   },
 });
 
@@ -42,12 +42,12 @@ const t1 = post({
 const t2 = post({
   validator: zodValidator(userSchema),
   queryValidator: zodValidator(querySchema),
-  handler: async (p, body) => { 
-    const name: string = body.name;
-    const limit: number = p.query.limit;
+  handler: async (p, body) => {
+    const _name: string = body.name;
+    const _limit: number = p.query.limit;
     // @ts-expect-error - This should error
     p.query.notAField;
-    return { typeName: "X" }; 
+    return { typeName: "X" };
   },
 });
 
