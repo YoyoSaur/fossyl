@@ -1,4 +1,5 @@
 import type { z } from "zod";
+import { fossylValidationError } from "@fossyl/core";
 
 /**
  * Create a type-safe validator from a Zod schema.
@@ -30,7 +31,13 @@ import type { z } from "zod";
  * ```
  */
 export function zodValidator<T extends z.ZodTypeAny>(schema: T): T["parse"] {
-  return schema.parse.bind(schema);
+  return ((data: unknown) => {
+    try {
+      return schema.parse(data);
+    } catch (err) {
+      throw fossylValidationError("Request body failed validation", { originalError: err });
+    }
+  }) as T["parse"];
 }
 
 /**
@@ -55,5 +62,11 @@ export function zodValidator<T extends z.ZodTypeAny>(schema: T): T["parse"] {
  * ```
  */
 export function zodQueryValidator<T extends z.ZodTypeAny>(schema: T): T["parse"] {
-  return schema.parse.bind(schema);
+  return ((data: unknown) => {
+    try {
+      return schema.parse(data);
+    } catch (err) {
+      throw fossylValidationError("Query parameters failed validation", { originalError: err });
+    }
+  }) as T["parse"];
 }

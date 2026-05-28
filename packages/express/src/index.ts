@@ -11,16 +11,6 @@ export {
   type LoggerContext,
 } from "./context";
 
-// Error exports
-export {
-  AuthenticationError,
-  ValidationError,
-  ERROR_CODES,
-  createErrorResponse,
-  type ErrorCode,
-  type ErrorResponse,
-} from "./errors";
-
 // Response exports
 export { wrapResponse } from "./response";
 

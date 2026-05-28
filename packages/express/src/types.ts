@@ -55,4 +55,7 @@ export type ExpressAdapterOptions = {
 
   /** Metrics recorder for request tracking */
   metrics?: MetricsRecorder;
+
+  /** Forward error details to the client in error responses (default: NODE_ENV !== "production") */
+  exposeErrorDetails?: boolean;
 };

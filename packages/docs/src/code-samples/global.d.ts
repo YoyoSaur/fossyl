@@ -1,9 +1,5 @@
 // Global declarations for code sample type checking
 
-declare class AuthenticationError extends Error {
-  constructor(message?: string);
-}
-
 declare function verifyJwt(token: string): { sub: string; role: string };
 declare function getLogger(): {
   info: (msg: string, meta?: any) => void;

@@ -1,11 +1,10 @@
-import { authWrapper } from "@fossyl/core";
-import { AuthenticationError } from "@fossyl/express";
+import { authWrapper, fossylUnauthorized } from "@fossyl/core";
 
 // @code: start authenticator
 export const authenticator = async (headers: Record<string, string>) => {
   const userId = headers["x-user-id"];
   if (!userId) {
-    throw new AuthenticationError("Unauthorized");
+    throw fossylUnauthorized("Unauthorized");
   }
   return authWrapper({ userId });
 };

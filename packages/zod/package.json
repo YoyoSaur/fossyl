@@ -49,9 +49,11 @@
     "access": "public"
   },
   "peerDependencies": {
+    "@fossyl/core": ">=0.16.0",
     "zod": "^3.0.0"
   },
   "devDependencies": {
+    "@fossyl/core": "workspace:*",
     "tsup": "^8.0.0",
     "typescript": "^5.8.0",
     "zod": "^3.23.0"

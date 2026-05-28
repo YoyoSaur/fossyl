@@ -1,6 +1,6 @@
 // @code-block-start: role-based-auth
 // Compose authenticators for role-based access
-import { authWrapper } from "@fossyl/core";
+import { authWrapper, fossylUnauthorized } from "@fossyl/core";
 
 import { createRouter } from "@fossyl/core";
 
@@ -10,11 +10,11 @@ const requireRole =
   (...roles: string[]) =>
   async (headers: Record<string, string>) => {
     const token = headers.authorization?.replace("Bearer ", "");
-    if (!token) throw new AuthenticationError("Missing token");
+    if (!token) throw fossylUnauthorized("Missing token");
 
     const payload = verifyJwt(token);
     if (!roles.includes(payload.role)) {
-      throw new AuthenticationError("Insufficient permissions");
+      throw fossylUnauthorized("Insufficient permissions");
     }
 
     return authWrapper({ userId: payload.sub, role: payload.role });

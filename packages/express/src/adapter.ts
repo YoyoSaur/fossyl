@@ -11,7 +11,6 @@ import type { ExpressAdapterOptions, CorsOptions } from "./types";
 import { sortRoutes } from "./sorting";
 import { groupRoutes } from "./register";
 import { createHandler } from "./handlers";
-import { createErrorResponse, ERROR_CODES } from "./errors";
 
 /**
  * Creates CORS middleware from options.
@@ -107,9 +106,7 @@ export function expressAdapter(options: ExpressAdapterOptions = {}): FrameworkAd
 
       // 404 handler
       app.use((req: Request, res: Response) => {
-        res
-          .status(404)
-          .json(createErrorResponse(ERROR_CODES.NOT_FOUND, `Not found: ${req.method} ${req.path}`));
+        res.status(404).json({ code: "NOT_FOUND", message: `Not found: ${req.method} ${req.path}` });
       });
     },
 

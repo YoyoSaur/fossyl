@@ -1,13 +1,13 @@
 // @code-block-start: custom-auth
 // Authentication is just an async function that returns authWrapper()
-import { authWrapper, createRouter } from "@fossyl/core";
+import { authWrapper, createRouter, fossylUnauthorized } from "@fossyl/core";
 
 const router = createRouter<"/api">("/api");
 
 // JWT-based auth
 const jwtAuth = async (headers: Record<string, string>) => {
   const token = headers.authorization?.replace("Bearer ", "");
-  if (!token) throw new AuthenticationError("Missing authorization token");
+  if (!token) throw fossylUnauthorized("Missing authorization token");
 
   const payload = verifyJwt(token);
   return authWrapper({

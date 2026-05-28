@@ -1,8 +1,16 @@
 import type { DatabaseAdapter, DatabaseContext } from "@fossyl/core";
+import { fossylConflict, fossylInternal } from "@fossyl/core";
 import type { Kysely } from "kysely";
 import { db as proxiedDb, setBaseClient, transactionContext } from "./context";
 import { runMigrations } from "./migrations";
 import type { KyselyAdapterOptions } from "./types";
+
+function isConstraintViolation(err: unknown): boolean {
+  const code = (err as { code?: unknown })?.code;
+  // PostgreSQL unique violation → 23505, foreign_key → 23503
+  // MySQL duplicate entry → 1062
+  return code === 23505 || code === 23503 || code === 1062;
+}
 
 export function kyselyAdapter<DB>(options: KyselyAdapterOptions<DB>): {
   adapter: DatabaseAdapter<Kysely<DB>>;
@@ -37,21 +45,49 @@ export function kyselyAdapter<DB>(options: KyselyAdapterOptions<DB>): {
     },
 
     async withTransaction<T>(fn: (ctx: DatabaseContext<Kysely<DB>>) => Promise<T>): Promise<T> {
-      return baseClient.transaction().execute(async (trx) => {
-        const ctx: DatabaseContext<Kysely<DB>> = {
-          client: trx as unknown as Kysely<DB>,
-          inTransaction: true,
-        };
-        return transactionContext.run({ trx, inTransaction: true }, () => fn(ctx));
-      });
+      try {
+        return await baseClient.transaction().execute(async (trx) => {
+          const ctx: DatabaseContext<Kysely<DB>> = {
+            client: trx as unknown as Kysely<DB>,
+            inTransaction: true,
+          };
+          return transactionContext.run({ trx, inTransaction: true }, () => fn(ctx));
+        });
+      } catch (err) {
+        if (isConstraintViolation(err)) {
+          throw fossylConflict(
+            err instanceof Error ? err.message : "Database constraint violation",
+            { originalError: err }
+          );
+        }
+        throw fossylInternal(
+          err instanceof Error ? err.message : "Database query failed",
+          { originalError: err }
+        );
+      }
     },
 
     async withClient<T>(fn: (ctx: DatabaseContext<Kysely<DB>>) => Promise<T>): Promise<T> {
-      const ctx: DatabaseContext<Kysely<DB>> = {
-        client: baseClient,
-        inTransaction: false,
-      };
-      return transactionContext.run({ trx: baseClient, inTransaction: false }, () => fn(ctx));
+      try {
+        const ctx: DatabaseContext<Kysely<DB>> = {
+          client: baseClient,
+          inTransaction: false,
+        };
+        return await transactionContext.run({ trx: baseClient, inTransaction: false }, () =>
+          fn(ctx)
+        );
+      } catch (err) {
+        if (isConstraintViolation(err)) {
+          throw fossylConflict(
+            err instanceof Error ? err.message : "Database constraint violation",
+            { originalError: err }
+          );
+        }
+        throw fossylInternal(
+          err instanceof Error ? err.message : "Database query failed",
+          { originalError: err }
+        );
+      }
     },
   };
 

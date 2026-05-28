@@ -1,8 +1,7 @@
 import type { Request, Response, NextFunction, RequestHandler } from "express";
-import type { Route, RequestExtractor, ResponseData } from "@fossyl/core";
-import { executeRoute } from "@fossyl/core";
+import type { Route, RequestExtractor } from "@fossyl/core";
+import { executeRoute, isFossylError } from "@fossyl/core";
 import { requestContext, type RequestContext, createDefaultLogger } from "./context";
-import { wrapResponse } from "./response";
 import { handleError } from "./errors";
 import type { ExpressAdapterOptions } from "./types";
 
@@ -17,6 +16,7 @@ const expressExtractor: RequestExtractor<Request> = {
 
 export function createHandler(route: Route, options: ExpressAdapterOptions): RequestHandler {
   const isPaginated = !!route.paginationConfig;
+  const exposeDetails = options.exposeErrorDetails ?? process.env.NODE_ENV !== "production";
 
   return async (req: Request, res: Response, _next: NextFunction) => {
     const startTime = Date.now();
@@ -40,7 +40,7 @@ export function createHandler(route: Route, options: ExpressAdapterOptions): Req
       if (isPaginated) {
         res.json(result);
       } else {
-        res.json(wrapResponse(result as ResponseData));
+        res.json(result);
       }
 
       options.metrics?.onRequestEnd({
@@ -49,7 +49,8 @@ export function createHandler(route: Route, options: ExpressAdapterOptions): Req
         durationMs: Date.now() - startTime,
       });
     } catch (error) {
-      handleError(error, res, logger);
+      handleError(error, res, logger, exposeDetails);
+      const statusCode = isFossylError(error) ? error.httpStatus : 500;
       options.metrics?.onRequestError({
         ...metricsInfo,
         error: error instanceof Error ? error : new Error(String(error)),

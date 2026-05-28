@@ -1,14 +1,14 @@
 // @code-block-start: sql-auth
 // SQL-based authentication — look up user in database
-import { authWrapper } from "@fossyl/core";
-import { AuthenticationError, getDb } from "@fossyl/express";
+import { authWrapper, fossylUnauthorized } from "@fossyl/core";
+import { getDb } from "@fossyl/express";
 import { createRouter } from "@fossyl/core";
 
 const router = createRouter<"/api">("/api");
 
 const sqlAuth = async (headers: Record<string, string>) => {
   const apiKey = headers["x-api-key"];
-  if (!apiKey) throw new AuthenticationError("API key required");
+  if (!apiKey) throw fossylUnauthorized("API key required");
 
   const db: any = getDb().client;
   const user = await db
@@ -17,7 +17,7 @@ const sqlAuth = async (headers: Record<string, string>) => {
     .select(["id", "role", "name"])
     .executeTakeFirst();
 
-  if (!user) throw new AuthenticationError("Invalid API key");
+  if (!user) throw fossylUnauthorized("Invalid API key");
 
   return authWrapper({
     userId: user.id,
