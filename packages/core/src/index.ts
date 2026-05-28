@@ -36,10 +36,20 @@ export type {
   AuthenticationFunction,
 } from "./router/types/router-creation.types";
 
-export type { Params } from "./router/types/params.types";
+export type { FossylError } from "./router/errors";
 
-// Validation types
-export type { ValidationResult, ValidationError, ValidationWarning } from "./validation";
+export {
+  fossylBad,
+  fossylUnauthorized,
+  fossylForbidden,
+  fossylNotFound,
+  fossylConflict,
+  fossylValidationError,
+  fossylInternal,
+  isFossylError,
+} from "./router/errors";
+
+export type { Params } from "./router/types/params.types";
 
 // Utility exports
 export { authWrapper } from "./router/types/routes.types";

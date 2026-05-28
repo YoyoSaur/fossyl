@@ -16,6 +16,7 @@ import { StripUndefined } from "./util.types";
  *
  * May be sync or async — return T or Promise<T>.
  * Throw (or return a rejected promise) to reject the request.
+ *  When using the fossyl linter, this function should throw one of the fossyl error types.
  *
  * @typeParam T - The validated output type
  */
@@ -25,6 +26,7 @@ export type ValidatorFunction<T> = (data: unknown) => T | Promise<T>;
  * Authenticates request headers and returns branded auth data.
  *
  * May be sync or async. Use authWrapper() to brand the return value.
+ *  When using the fossyl linter, this function should throw one of the fossyl error types.
  *
  * @typeParam T - The auth data type (must extend Authentication)
  */

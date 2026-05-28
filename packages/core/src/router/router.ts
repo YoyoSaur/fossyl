@@ -21,6 +21,7 @@ import {
 } from "./types/router-creation.types";
 import { EndpointParams } from "./types/params.types";
 import { DatabaseAdapter } from "../adapters";
+import { fossylValidationError } from "./errors";
 
 type BuildMethodsState = {
   steps: Steps[];
@@ -185,7 +186,7 @@ function parseQueryParams(
   const page = pageParam ? Number(pageParam) : undefined;
   const pageSize = pageSizeParam ? Number(pageSizeParam) : defaultPageSize;
   if (pageSize && maxPageSize && pageSize > maxPageSize) {
-    throw new Error(
+    throw fossylValidationError(
       `Page size ${pageSize} is greater than the maximum page size of ${maxPageSize}`
     );
   }
