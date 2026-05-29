@@ -22,7 +22,7 @@
     "example"
   ],
   "scripts": {
-    "build": "node scripts/generate-versions.js && tsup src/index.ts --format cjs,esm --dts && cp USAGE.md dist/CLAUDE.md",
+    "build": "node scripts/generate-versions.js && tsup src/index.ts --format cjs,esm --dts && cp USAGE.md dist/AGENTS.md && echo 'This project uses AGENTS.md for AI instructions. See [AGENTS.md](./AGENTS.md).' > dist/CLAUDE.md",
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit",
