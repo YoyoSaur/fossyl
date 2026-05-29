@@ -27,11 +27,10 @@ export const listPings = router
   .query(listPingQueryValidator)
   .paginate({ defaultPageSize: 20, maxPageSize: 100 })
   .get(
-    (params) =>
-      async (): Promise<PaginatedResponse<pingService.PingData>> => {
-        const result = await pingService.listPings(params.pagination, params.query);
-        return {
-          data: result.data,
+    (params) => async () => {
+      const result = await pingService.listPings(params.pagination, params.query);
+      return {
+        data: result.data.map((ping) => ({ typeName: 'Ping' as const, ...ping })),
           pagination: {
             page: params.pagination.page,
             pageSize: params.pagination.pageSize,
@@ -86,7 +85,7 @@ export type PingData = {
   id: number;
   message: string;
   created_by: string;
-  created_at: string;
+  created_at: Date;
 };
 
 export async function listPings(
@@ -172,12 +171,12 @@ export async function findById(id: string): Promise<Ping | undefined> {
 }
 
 export async function create(data: Omit<NewPing, 'id' | 'created_at'>): Promise<Ping> {
-  const now = new Date().toISOString();
+  const now = new Date();
   const { insertId } = await db
     .insertInto('ping')
     .values({ ...data, created_at: now })
     .executeTakeFirst();
-  return { id: Number(insertId), ...data, created_at: now } as Ping;
+  return { id: Number(insertId), ...data, created_at: now } as unknown as Ping;
 }
 
 export async function update(id: string, data: PingUpdate): Promise<Ping> {

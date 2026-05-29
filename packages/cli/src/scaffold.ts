@@ -1,5 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { createRequire } from "node:module";
 import type { ProjectOptions } from "./prompts";
 import {
   generatePackageJson,
@@ -33,7 +34,52 @@ export interface FileEntry {
   content: string;
 }
 
+const require = createRequire(import.meta.url);
+
+function isDefaultOptions(options: ProjectOptions): boolean {
+  return (
+    options.server === "express" &&
+    options.validator === "zod" &&
+    options.database === "kysely" &&
+    options.dialect === "sqlite" &&
+    options.docker === true
+  );
+}
+
+function readExampleFiles(exampleDir: string, projectName: string): FileEntry[] {
+  const files: FileEntry[] = [];
+  const root = path.join(path.dirname(require.resolve("../package.json")), exampleDir);
+
+  function walk(dir: string) {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.name === "node_modules") continue;
+      if (entry.isDirectory()) {
+        walk(fullPath);
+      } else {
+        let content = fs.readFileSync(fullPath, "utf-8");
+        const relativePath = path.relative(root, fullPath);
+        if (relativePath === "package.json") {
+          const pkg = JSON.parse(content);
+          pkg.name = projectName;
+          content = JSON.stringify(pkg, null, 2) + "\n";
+        }
+        files.push({ path: relativePath, content });
+      }
+    }
+  }
+
+  walk(root);
+  return files;
+}
+
 export function generateFiles(options: ProjectOptions): FileEntry[] {
+  // Use the canonical example for the default combination
+  if (isDefaultOptions(options)) {
+    return readExampleFiles("example", options.name);
+  }
+
   const files: FileEntry[] = [];
 
   // Base files

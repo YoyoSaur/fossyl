@@ -97,10 +97,10 @@ export const migrations = createMigrationProvider({
 
 export function generateMigrateScript(): string {
   return `import { client } from '@db';
-import { migrations } from '../migrations';
-import { runMigrations, createMigrationProvider } from '@fossyl/kysely';
+import { migrations } from './migrations';
+import { runMigrations } from '@fossyl/kysely';
 
-const result = await runMigrations(client, createMigrationProvider(migrations));
+const result = await runMigrations(client, migrations);
 
 if (result.error) {
   console.error('Migration failed:', result.error.message);

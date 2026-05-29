@@ -116,13 +116,12 @@ PORT=3000
 }
 
 export function generateAuth(): string {
-  return `import { authWrapper } from '@fossyl/core';
-import { AuthenticationError } from '@fossyl/express';
+  return `import { authWrapper, fossylUnauthorized } from '@fossyl/core';
 
 export const authenticator = async (headers: Record<string, string>) => {
   const userId = headers['x-user-id'];
   if (!userId) {
-    throw new AuthenticationError('Unauthorized');
+    throw fossylUnauthorized('Unauthorized');
   }
   return authWrapper({ userId });
 };

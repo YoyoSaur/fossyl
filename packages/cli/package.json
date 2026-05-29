@@ -18,13 +18,15 @@
   },
   "files": [
     "bin",
-    "dist"
+    "dist",
+    "example"
   ],
   "scripts": {
     "build": "node scripts/generate-versions.js && tsup src/index.ts --format cjs,esm --dts && cp USAGE.md dist/CLAUDE.md",
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
     "clean": "rm -rf dist",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --config vitest.config.ts"
   },
   "keywords": [
     "fossyl",
@@ -60,6 +62,7 @@
   },
   "devDependencies": {
     "tsup": "^8.0.0",
-    "typescript": "^5.8.0"
+    "typescript": "^5.8.0",
+    "vitest": "^3.0.0"
   }
 }
