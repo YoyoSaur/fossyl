@@ -2,7 +2,7 @@ packages:
   - 'packages/*'
   - 'examples/*'
   - 'packages/eslint-plugin/test-app'
-  - 'packages/cli/example'
+  - 'packages/cli/examples/*'
 allowBuilds:
   better-sqlite3: true
   esbuild: false

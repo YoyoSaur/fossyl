@@ -55,12 +55,25 @@ describe("scaffold", () => {
   });
 
   it("generates correct files for non-default options", () => {
-    const files = generateFiles({ ...defaultOptions, validator: "byo", database: "byo" });
+    const files = generateFiles({ ...defaultOptions, server: "byo", validator: "byo", database: "byo" });
     const paths = files.map((f) => f.path);
     expect(paths).toContain("src/db.ts");
     expect(paths).toContain("src/features/ping/validators/ping.validators.ts");
-    // BYO validator placeholders
+    expect(paths).toContain("src/server.ts");
+    expect(paths).not.toContain("src/migrations/index.ts");
     const valContent = files.find((f) => f.path === "src/features/ping/validators/ping.validators.ts")!.content;
-    expect(valContent).toContain("TODO");
+    expect(valContent).not.toContain("zodValidator");
+  });
+
+  it("uses example dir matching combo", () => {
+    const expressZodKysely = generateFiles(defaultOptions);
+    const byoZodKysely = generateFiles({ ...defaultOptions, server: "byo" });
+    const expressByoKysely = generateFiles({ ...defaultOptions, validator: "byo" });
+    const expressZodByo = generateFiles({ ...defaultOptions, database: "byo" });
+
+    expect(expressZodKysely.some((f) => f.path === "src/db.ts" && f.content.includes("better-sqlite3"))).toBe(true);
+    expect(byoZodKysely.some((f) => f.path === "src/server.ts")).toBe(true);
+    expect(expressByoKysely.some((f) => f.path === "src/features/ping/validators/ping.validators.ts" && !f.content.includes("zodValidator"))).toBe(true);
+    expect(expressZodByo.some((f) => f.path === "src/db.ts" && f.content.includes("TODO"))).toBe(true);
   });
 });

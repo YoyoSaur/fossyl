@@ -55,20 +55,318 @@ importers:
         specifier: ^3.0.0
         version: 3.2.4(@types/debug@4.1.13)(@types/node@25.7.0)(tsx@4.21.0)(yaml@2.9.0)
 
-  packages/cli/example:
+  packages/cli/examples/byo-byo-byo:
     dependencies:
       '@fossyl/core':
         specifier: workspace:*
-        version: link:../../core
-      '@fossyl/express':
+        version: link:../../../core
+    devDependencies:
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.19.19
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^8.0.0
+        version: 8.54.0(@typescript-eslint/parser@8.54.0(eslint@9.39.2)(typescript@5.8.3))(eslint@9.39.2)(typescript@5.8.3)
+      '@typescript-eslint/parser':
+        specifier: ^8.0.0
+        version: 8.54.0(eslint@9.39.2)(typescript@5.8.3)
+      eslint:
+        specifier: ^9.0.0
+        version: 9.39.2
+      eslint-plugin-fossyl:
         specifier: workspace:*
-        version: link:../../express
+        version: link:../../../eslint-plugin
+      tsx:
+        specifier: ^4.0.0
+        version: 4.21.0
+      typescript:
+        specifier: ^5.8.0
+        version: 5.8.3
+      vitest:
+        specifier: ^3.0.0
+        version: 3.2.4(@types/debug@4.1.13)(@types/node@22.19.19)(tsx@4.21.0)(yaml@2.9.0)
+
+  packages/cli/examples/byo-byo-kysely:
+    dependencies:
+      '@fossyl/core':
+        specifier: workspace:*
+        version: link:../../../core
       '@fossyl/kysely':
         specifier: workspace:*
-        version: link:../../kysely
+        version: link:../../../kysely
+      better-sqlite3:
+        specifier: ^11.0.0
+        version: 11.10.0
+      kysely:
+        specifier: ^0.27.0
+        version: 0.27.6
+    devDependencies:
+      '@types/better-sqlite3':
+        specifier: ^7.6.0
+        version: 7.6.13
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.19.19
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^8.0.0
+        version: 8.54.0(@typescript-eslint/parser@8.54.0(eslint@9.39.2)(typescript@5.8.3))(eslint@9.39.2)(typescript@5.8.3)
+      '@typescript-eslint/parser':
+        specifier: ^8.0.0
+        version: 8.54.0(eslint@9.39.2)(typescript@5.8.3)
+      eslint:
+        specifier: ^9.0.0
+        version: 9.39.2
+      eslint-plugin-fossyl:
+        specifier: workspace:*
+        version: link:../../../eslint-plugin
+      tsx:
+        specifier: ^4.0.0
+        version: 4.21.0
+      typescript:
+        specifier: ^5.8.0
+        version: 5.8.3
+      vitest:
+        specifier: ^3.0.0
+        version: 3.2.4(@types/debug@4.1.13)(@types/node@22.19.19)(tsx@4.21.0)(yaml@2.9.0)
+
+  packages/cli/examples/byo-zod-byo:
+    dependencies:
+      '@fossyl/core':
+        specifier: workspace:*
+        version: link:../../../core
       '@fossyl/zod':
         specifier: workspace:*
-        version: link:../../zod
+        version: link:../../../zod
+      zod:
+        specifier: ^3.24.0
+        version: 3.25.76
+    devDependencies:
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.19.19
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^8.0.0
+        version: 8.54.0(@typescript-eslint/parser@8.54.0(eslint@9.39.2)(typescript@5.8.3))(eslint@9.39.2)(typescript@5.8.3)
+      '@typescript-eslint/parser':
+        specifier: ^8.0.0
+        version: 8.54.0(eslint@9.39.2)(typescript@5.8.3)
+      eslint:
+        specifier: ^9.0.0
+        version: 9.39.2
+      eslint-plugin-fossyl:
+        specifier: workspace:*
+        version: link:../../../eslint-plugin
+      tsx:
+        specifier: ^4.0.0
+        version: 4.21.0
+      typescript:
+        specifier: ^5.8.0
+        version: 5.8.3
+      vitest:
+        specifier: ^3.0.0
+        version: 3.2.4(@types/debug@4.1.13)(@types/node@22.19.19)(tsx@4.21.0)(yaml@2.9.0)
+
+  packages/cli/examples/byo-zod-kysely:
+    dependencies:
+      '@fossyl/core':
+        specifier: workspace:*
+        version: link:../../../core
+      '@fossyl/kysely':
+        specifier: workspace:*
+        version: link:../../../kysely
+      '@fossyl/zod':
+        specifier: workspace:*
+        version: link:../../../zod
+      better-sqlite3:
+        specifier: ^11.0.0
+        version: 11.10.0
+      kysely:
+        specifier: ^0.27.0
+        version: 0.27.6
+      zod:
+        specifier: ^3.24.0
+        version: 3.25.76
+    devDependencies:
+      '@types/better-sqlite3':
+        specifier: ^7.6.0
+        version: 7.6.13
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.19.19
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^8.0.0
+        version: 8.54.0(@typescript-eslint/parser@8.54.0(eslint@9.39.2)(typescript@5.8.3))(eslint@9.39.2)(typescript@5.8.3)
+      '@typescript-eslint/parser':
+        specifier: ^8.0.0
+        version: 8.54.0(eslint@9.39.2)(typescript@5.8.3)
+      eslint:
+        specifier: ^9.0.0
+        version: 9.39.2
+      eslint-plugin-fossyl:
+        specifier: workspace:*
+        version: link:../../../eslint-plugin
+      tsx:
+        specifier: ^4.0.0
+        version: 4.21.0
+      typescript:
+        specifier: ^5.8.0
+        version: 5.8.3
+      vitest:
+        specifier: ^3.0.0
+        version: 3.2.4(@types/debug@4.1.13)(@types/node@22.19.19)(tsx@4.21.0)(yaml@2.9.0)
+
+  packages/cli/examples/express-byo-byo:
+    dependencies:
+      '@fossyl/core':
+        specifier: workspace:*
+        version: link:../../../core
+      '@fossyl/express':
+        specifier: workspace:*
+        version: link:../../../express
+      express:
+        specifier: ^4.21.0
+        version: 4.22.1
+    devDependencies:
+      '@types/express':
+        specifier: ^4.17.0
+        version: 4.17.25
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.19.19
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^8.0.0
+        version: 8.54.0(@typescript-eslint/parser@8.54.0(eslint@9.39.2)(typescript@5.8.3))(eslint@9.39.2)(typescript@5.8.3)
+      '@typescript-eslint/parser':
+        specifier: ^8.0.0
+        version: 8.54.0(eslint@9.39.2)(typescript@5.8.3)
+      eslint:
+        specifier: ^9.0.0
+        version: 9.39.2
+      eslint-plugin-fossyl:
+        specifier: workspace:*
+        version: link:../../../eslint-plugin
+      tsx:
+        specifier: ^4.0.0
+        version: 4.21.0
+      typescript:
+        specifier: ^5.8.0
+        version: 5.8.3
+      vitest:
+        specifier: ^3.0.0
+        version: 3.2.4(@types/debug@4.1.13)(@types/node@22.19.19)(tsx@4.21.0)(yaml@2.9.0)
+
+  packages/cli/examples/express-byo-kysely:
+    dependencies:
+      '@fossyl/core':
+        specifier: workspace:*
+        version: link:../../../core
+      '@fossyl/express':
+        specifier: workspace:*
+        version: link:../../../express
+      '@fossyl/kysely':
+        specifier: workspace:*
+        version: link:../../../kysely
+      better-sqlite3:
+        specifier: ^11.0.0
+        version: 11.10.0
+      express:
+        specifier: ^4.21.0
+        version: 4.22.1
+      kysely:
+        specifier: ^0.27.0
+        version: 0.27.6
+    devDependencies:
+      '@types/better-sqlite3':
+        specifier: ^7.6.0
+        version: 7.6.13
+      '@types/express':
+        specifier: ^4.17.0
+        version: 4.17.25
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.19.19
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^8.0.0
+        version: 8.54.0(@typescript-eslint/parser@8.54.0(eslint@9.39.2)(typescript@5.8.3))(eslint@9.39.2)(typescript@5.8.3)
+      '@typescript-eslint/parser':
+        specifier: ^8.0.0
+        version: 8.54.0(eslint@9.39.2)(typescript@5.8.3)
+      eslint:
+        specifier: ^9.0.0
+        version: 9.39.2
+      eslint-plugin-fossyl:
+        specifier: workspace:*
+        version: link:../../../eslint-plugin
+      tsx:
+        specifier: ^4.0.0
+        version: 4.21.0
+      typescript:
+        specifier: ^5.8.0
+        version: 5.8.3
+      vitest:
+        specifier: ^3.0.0
+        version: 3.2.4(@types/debug@4.1.13)(@types/node@22.19.19)(tsx@4.21.0)(yaml@2.9.0)
+
+  packages/cli/examples/express-zod-byo:
+    dependencies:
+      '@fossyl/core':
+        specifier: workspace:*
+        version: link:../../../core
+      '@fossyl/express':
+        specifier: workspace:*
+        version: link:../../../express
+      '@fossyl/zod':
+        specifier: workspace:*
+        version: link:../../../zod
+      express:
+        specifier: ^4.21.0
+        version: 4.22.1
+      zod:
+        specifier: ^3.24.0
+        version: 3.25.76
+    devDependencies:
+      '@types/express':
+        specifier: ^4.17.0
+        version: 4.17.25
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.19.19
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^8.0.0
+        version: 8.54.0(@typescript-eslint/parser@8.54.0(eslint@9.39.2)(typescript@5.8.3))(eslint@9.39.2)(typescript@5.8.3)
+      '@typescript-eslint/parser':
+        specifier: ^8.0.0
+        version: 8.54.0(eslint@9.39.2)(typescript@5.8.3)
+      eslint:
+        specifier: ^9.0.0
+        version: 9.39.2
+      eslint-plugin-fossyl:
+        specifier: workspace:*
+        version: link:../../../eslint-plugin
+      tsx:
+        specifier: ^4.0.0
+        version: 4.21.0
+      typescript:
+        specifier: ^5.8.0
+        version: 5.8.3
+      vitest:
+        specifier: ^3.0.0
+        version: 3.2.4(@types/debug@4.1.13)(@types/node@22.19.19)(tsx@4.21.0)(yaml@2.9.0)
+
+  packages/cli/examples/express-zod-kysely:
+    dependencies:
+      '@fossyl/core':
+        specifier: workspace:*
+        version: link:../../../core
+      '@fossyl/express':
+        specifier: workspace:*
+        version: link:../../../express
+      '@fossyl/kysely':
+        specifier: workspace:*
+        version: link:../../../kysely
+      '@fossyl/zod':
+        specifier: workspace:*
+        version: link:../../../zod
       better-sqlite3:
         specifier: ^11.0.0
         version: 11.10.0
@@ -102,7 +400,7 @@ importers:
         version: 9.39.2
       eslint-plugin-fossyl:
         specifier: workspace:*
-        version: link:../../eslint-plugin
+        version: link:../../../eslint-plugin
       tsx:
         specifier: ^4.0.0
         version: 4.21.0
