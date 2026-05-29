@@ -54,3 +54,4 @@ Every package has an `AGENTS.md` with source structure and implementation guidan
 
 - No GitHub Actions workflows yet.
 - No `opencode.json` at root.
+- `skills/` at root for OpenCode SKILL.md files — core, express, kysely, zod adapter skills.

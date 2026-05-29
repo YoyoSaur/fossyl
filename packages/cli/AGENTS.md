@@ -73,6 +73,10 @@ node bin/fossyl.js --help
 node bin/fossyl.js --create /tmp/test-app
 ```
 
+## Skill Copying
+
+When scaffolding a project, the CLI also copies SKILL.md files from the monorepo root `skills/` directory into `.opencode/skills/` in the generated project. Core skills are always copied; adapter-specific skills (express, kysely, zod) are copied based on the user's adapter choices.
+
 ## Contributing
 
 - Keep prompts clear and concise
