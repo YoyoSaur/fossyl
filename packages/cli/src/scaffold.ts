@@ -12,6 +12,58 @@ export interface FileEntry {
 
 const require = createRequire(import.meta.url);
 
+const SKILL_ADAPTER_MAP: Record<string, string[]> = {
+  express: ["express"],
+  byo: [],
+};
+
+const VALIDATOR_MAP: Record<string, string[]> = {
+  zod: ["zod"],
+  byo: [],
+};
+
+const DATABASE_MAP: Record<string, string[]> = {
+  kysely: ["kysely"],
+  byo: [],
+};
+
+function collectSkillDirs(options: ProjectOptions): string[] {
+  const dirs: string[] = ["core"];
+  dirs.push(...(SKILL_ADAPTER_MAP[options.server] ?? []));
+  dirs.push(...(VALIDATOR_MAP[options.validator] ?? []));
+  dirs.push(...(DATABASE_MAP[options.database] ?? []));
+  return [...new Set(dirs)];
+}
+
+function copySkills(options: ProjectOptions): FileEntry[] {
+  const files: FileEntry[] = [];
+  const monorepoRoot = path.resolve(
+    path.dirname(require.resolve("../../../package.json"))
+  );
+  const skillRoot = path.join(monorepoRoot, "skills");
+  const adapters = collectSkillDirs(options);
+
+  for (const adapter of adapters) {
+    const adapterDir = path.join(skillRoot, adapter);
+    if (!fs.existsSync(adapterDir)) continue;
+
+    const skillDirs = fs.readdirSync(adapterDir, { withFileTypes: true });
+    for (const entry of skillDirs) {
+      if (!entry.isDirectory()) continue;
+      const skillPath = path.join(adapterDir, entry.name, "SKILL.md");
+      if (!fs.existsSync(skillPath)) continue;
+
+      const content = fs.readFileSync(skillPath, "utf-8");
+      files.push({
+        path: `.opencode/skills/${entry.name}/SKILL.md`,
+        content,
+      });
+    }
+  }
+
+  return files;
+}
+
 function exampleDirName(options: ProjectOptions): string {
   return `examples/${options.server}-${options.validator}-${options.database}`;
 }
@@ -46,7 +98,13 @@ function readExampleFiles(exampleDir: string, projectName: string, includeDocker
 }
 
 export function generateFiles(options: ProjectOptions): FileEntry[] {
-  return readExampleFiles(exampleDirName(options), options.name, options.docker);
+  const exampleFiles = readExampleFiles(
+    exampleDirName(options),
+    options.name,
+    options.docker
+  );
+  const skillFiles = copySkills(options);
+  return [...exampleFiles, ...skillFiles];
 }
 
 export function writeFiles(projectPath: string, files: FileEntry[]): void {
