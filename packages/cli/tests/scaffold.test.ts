@@ -36,7 +36,7 @@ describe("scaffold", () => {
     expect(paths).toContain(".dockerignore");
     expect(paths).toContain("docker-compose.yml");
     expect(paths).toContain("src/features/ping/validators/ping.validators.test.ts");
-    expect(files.length).toBe(20);
+    expect(files.length).toBe(35);
   });
 
   it("substitutes project name in package.json", () => {
@@ -75,5 +75,50 @@ describe("scaffold", () => {
     expect(byoZodKysely.some((f) => f.path === "src/server.ts")).toBe(true);
     expect(expressByoKysely.some((f) => f.path === "src/features/ping/validators/ping.validators.ts" && !f.content.includes("zodValidator"))).toBe(true);
     expect(expressZodByo.some((f) => f.path === "src/db.ts" && f.content.includes("TODO"))).toBe(true);
+  });
+});
+
+describe("skill files", () => {
+  it("includes core skills for any adapter combo", () => {
+    const files = generateFiles({
+      name: "test-project",
+      server: "express",
+      validator: "byo",
+      database: "byo",
+      docker: false,
+    });
+
+    const skillFiles = files.filter((f) =>
+      f.path.startsWith(".opencode/skills/")
+    );
+    expect(skillFiles.length).toBeGreaterThan(0);
+
+    const skillNames = skillFiles.map((f) =>
+      f.path.replace(".opencode/skills/", "").replace("/SKILL.md", "")
+    );
+    expect(skillNames).toContain("fossyl-execute");
+    expect(skillNames).toContain("fossyl-domain");
+    expect(skillNames).toContain("fossyl-route");
+  });
+
+  it("includes adapter-specific skills when selected", () => {
+    const files = generateFiles({
+      name: "test-project",
+      server: "express",
+      validator: "zod",
+      database: "kysely",
+      docker: false,
+    });
+
+    const skillFiles = files.filter((f) =>
+      f.path.startsWith(".opencode/skills/")
+    );
+    const skillNames = skillFiles.map((f) =>
+      f.path.replace(".opencode/skills/", "").replace("/SKILL.md", "")
+    );
+
+    expect(skillNames).toContain("fossyl-server");
+    expect(skillNames).toContain("fossyl-validation");
+    expect(skillNames).toContain("fossyl-add-model");
   });
 });
