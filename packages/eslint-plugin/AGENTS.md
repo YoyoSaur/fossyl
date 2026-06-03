@@ -11,10 +11,14 @@ src/
 ├── index.ts                          # Plugin entry - exports rules and configs
 ├── rules/
 │   ├── no-repo-import-outside-service.ts  # Architecture: .repo imports only in .service
+│   ├── no-db-import-outside-repo.ts       # Architecture: db imports only in .repo
+│   ├── no-bare-throw.ts                   # Quality: throws must be FossylError branded
 │   ├── no-duplicate-routes.ts             # Route quality: no duplicate METHOD+PATH
 │   ├── path-prefix-convention.ts          # Route quality: paths must start with /api/
 │   ├── consistent-naming.ts               # Route quality: file name matches prefix
-│   └── no-mixed-prefixes.ts              # Route quality: single prefix per file
+│   ├── no-mixed-prefixes.ts              # Route quality: single prefix per file
+│   ├── no-router-chain.ts                # Route quality: no chaining on createRouter()
+│   └── builder-chains-newline.ts          # Formatting: newlines in builder chains
 └── utils/
     ├── rule-factory.ts              # createRule from @typescript-eslint/utils
     └── route-collector.ts           # Cross-file route analysis (singleton store)
@@ -22,12 +26,12 @@ src/
 
 ## Available Configs
 
-| Config                     | Rules Included                                                                    | Severity     |
-| -------------------------- | --------------------------------------------------------------------------------- | ------------ |
-| `recommended`              | no-repo-import-outside-service, no-duplicate-routes                               | error        |
-| `all`                      | All 5 rules                                                                       | error / warn |
-| `architecture-enforcement` | no-repo-import-outside-service                                                    | error        |
-| `route-quality`            | no-duplicate-routes, path-prefix-convention, consistent-naming, no-mixed-prefixes | error / warn |
+| Config                     | Rules Included                                                                                          | Severity     |
+| -------------------------- | ------------------------------------------------------------------------------------------------------- | ------------ |
+| `recommended`              | no-repo-import-outside-service, no-duplicate-routes                                                     | error        |
+| `all`                      | All 9 rules                                                                                            | error / warn |
+| `architecture-enforcement` | no-repo-import-outside-service, no-db-import-outside-repo                                               | error        |
+| `route-quality`            | no-duplicate-routes, path-prefix-convention, consistent-naming, no-mixed-prefixes, no-router-chain       | error / warn |
 
 ## Usage
 
@@ -64,6 +68,18 @@ Prevents importing `.repo` files anywhere except `.service` files. Enforces the 
 
 - `allowImports` (string[]): Additional import paths allowed to import .repo files
 
+### no-bare-throw
+
+Prevents throwing non-FossylError values in route handlers, service files, and repo files. All throws in `.route.ts`, `.service.ts`, and `.repo.ts` must use FossylError branded errors (e.g., `fossylNotFound()`, `fossylError(400, ...)`) to ensure consistent HTTP error responses.
+
+### no-db-import-outside-repo
+
+Prevents importing `db` from anywhere except files matching `*.repo.ts`. Enforces that all database access flows through repository modules. The `allowFiles` option can whitelist infrastructure files (e.g., migration scripts, seed files) that need direct db access.
+
+**Options:**
+
+- `allowFiles` (string[]): File glob patterns allowed to import `db` outside repos (default: `[]`)
+
 ### no-duplicate-routes
 
 Prevents the same METHOD + PATH from being defined twice across the project.
@@ -83,6 +99,16 @@ Route files should be named consistently with their `createRouter()` prefix.
 ### no-mixed-prefixes
 
 All routes in a single file must share the same `createRouter()` base prefix.
+
+### no-router-chain
+
+Two checks in one rule:
+
+1. **`createRouter()` must be standalone** — Chaining methods on the router (`.authenticator()`, `.query()`, `.paginate()`, `.validator()`) is not allowed. Middleware belongs on individual endpoints.
+
+2. **`createEndpoint()` chains must terminate** — Every `router.createEndpoint()` chain must end with a terminal HTTP method (`.get()`, `.post()`, `.put()`, `.delete()`). Without this, the expression would export a partial builder instead of registering a route.
+
+This enforces the pattern where the router is a scoped path prefix (subrouter), all middleware is per-endpoint, and every endpoint goes through the full chain including terminal method.
 
 ## Route Collector
 

@@ -1,6 +1,6 @@
 ---
 name: fossyl-pagination
-description: Use when adding pagination to list endpoints in a fossyl project — N+1 trick, PaginatedResponse shape, offset math, hasMore semantics
+description: Use when adding pagination to list endpoints in a fossyl project — chain integration, PaginatedResponse shape, offset math, hasMore semantics
 license: GPL-3.0
 compatibility: opencode
 metadata:
@@ -11,7 +11,21 @@ metadata:
 
 ## Overview
 
-The N+1 pagination pattern runs the data query and count query concurrently to avoid sequential round-trips. Offset-based pagination with `hasMore` flag.
+Pagination in Fossyl uses the `.paginate()` chain step, which extends `params` with a `pagination` object and wraps the response in `PaginatedResponse<T>`. Under the hood it's offset-based with a `hasMore` flag.
+
+## Chain Integration
+
+```typescript
+createEndpoint("/api/todos")
+  .paginate({ defaultPageSize: 20 })   // adds pagination support
+  .get((params) => async () => ({
+    typeName: "TodoList",
+    items: [],
+    pagination: { page: 1, pageSize: 20, total: 0, hasMore: false },
+  }));
+```
+
+When `.paginate()` is used, `params` gains a `pagination` field with `{ page, pageSize }` from the query string. The return type is automatically typed as `PaginatedResponse<T>`.
 
 ## PaginatedResponse Shape
 
@@ -36,10 +50,10 @@ function paginate(page: number, pageSize: number) {
 
 ## N+1 Trick
 
-Run both queries in parallel via `Promise.all`:
+Run data query and count query concurrently:
 
 ```typescript
-export async function list(page = 1, pageSize = 20) {
+export async function list(auth: Auth, page = 1, pageSize = 20) {
   const { offset, limit } = paginate(page, pageSize);
   const [items, total] = await Promise.all([
     repo.findAll(offset, limit),
@@ -57,4 +71,8 @@ export async function list(page = 1, pageSize = 20) {
 
 ## hasMore Semantics
 
-`hasMore` is `true` when `offset + pageSize < total`. This tells the client there's at least one more page. The client uses it to conditionally show a "load more" button or enable infinite scroll.
+`hasMore` is `true` when `offset + pageSize < total`. The client uses this to conditionally show a "load more" button or enable infinite scroll.
+
+## Query vs Paginate
+
+`.query()` and `.paginate()` can be used together. `.query()` validates arbitrary query params, `.paginate()` specifically adds `page`/`pageSize` query params and wraps the response. They compose: `.query(qv).paginate(c)`.

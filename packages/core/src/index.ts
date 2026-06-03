@@ -39,7 +39,7 @@ export type {
 export type { FossylError } from "./router/errors";
 
 export {
-  fossylBad,
+  fossylBadRequest,
   fossylUnauthorized,
   fossylForbidden,
   fossylNotFound,

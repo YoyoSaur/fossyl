@@ -5,6 +5,8 @@ import pathPrefixConvention from "./rules/path-prefix-convention";
 import consistentNaming from "./rules/consistent-naming";
 import noMixedPrefixes from "./rules/no-mixed-prefixes";
 import noBareThrow from "./rules/no-bare-throw";
+import noRouterChain from "./rules/no-router-chain";
+import noDbImportOutsideRepo from "./rules/no-db-import-outside-repo";
 
 const plugin = {
   rules: {
@@ -15,6 +17,8 @@ const plugin = {
     "consistent-naming": consistentNaming,
     "no-mixed-prefixes": noMixedPrefixes,
     "no-bare-throw": noBareThrow,
+    "no-router-chain": noRouterChain,
+    "no-db-import-outside-repo": noDbImportOutsideRepo,
   },
   configs: {
     recommended: {
@@ -32,6 +36,8 @@ const plugin = {
         "fossyl/consistent-naming": "warn",
         "fossyl/no-mixed-prefixes": "warn",
         "fossyl/no-bare-throw": "error",
+        "fossyl/no-router-chain": "error",
+        "fossyl/no-db-import-outside-repo": "error",
       },
     },
     "route-quality": {
@@ -40,12 +46,14 @@ const plugin = {
         "fossyl/path-prefix-convention": "warn",
         "fossyl/consistent-naming": "warn",
         "fossyl/no-mixed-prefixes": "warn",
+        "fossyl/no-router-chain": "error",
       },
     },
     "architecture-enforcement": {
       rules: {
         "fossyl/no-repo-import-outside-service": "error",
         "fossyl/no-bare-throw": "error",
+        "fossyl/no-db-import-outside-repo": "error",
       },
     },
   },

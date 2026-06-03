@@ -1,6 +1,6 @@
 ---
 name: fossyl-repo
-description: Use when implementing the repo layer in a fossyl project — named CRUD exports, db proxy usage, query patterns
+description: Use when implementing the repo layer in a fossyl project — one repo per model, named CRUD exports, Kysely queries, external SDK adapters, domain model transformation
 license: GPL-3.0
 compatibility: opencode
 metadata:
@@ -11,13 +11,15 @@ metadata:
 
 ## Overview
 
-Repos are the data access layer. Each feature has one repo file exporting named CRUD functions. Repos use the `db` proxy from `@fossyl/kysely` or a raw connection.
+One repo file per model. Repos are thin (15–30 lines) data adapters. A repo can wrap a Kysely query or an external SDK call — the service layer treats both identically.
 
-## CRUD Exports
+Repos can only be imported by service files (enforced by `no-repo-import-outside-service` linter rule). A single repo may be imported by at most one service.
+
+## Kysely Repo (Internal DB)
 
 ```typescript
 import { db } from "../../db";
-import type { MyEntity } from "../../types/db";
+import type { MyEntity, NewMyEntity } from "../../types/db";
 
 export function findAll(offset: number, limit: number) {
   return db
@@ -41,7 +43,7 @@ export function create(data: NewMyEntity) {
     .insertInto("my_entity")
     .values(data)
     .returningAll()
-    .executeTakeFirst();
+    .executeTakeFirstOrThrow();
 }
 
 export function update(id: string, data: Partial<MyEntity>) {
@@ -70,6 +72,33 @@ export function countAll() {
 }
 ```
 
+## External SDK Repo (Third-Party API)
+
+Repos can wrap external API clients from SDKs. Transform the third-party model into your domain model at the repo boundary:
+
+```typescript
+import { CheckClient } from "@checkhq/sdk";
+import type { Timesheet } from "../../types/domain";
+
+const checkClient = new CheckClient(process.env.CHECK_API_KEY!);
+
+export async function findByEmployee(employeeId: string): Promise<Timesheet[]> {
+  const raw = await checkClient.timesheets.list({ employeeId });
+  return raw.map((t) => ({
+    id: t.id,
+    employeeId: t.employee_id,
+    hours: t.total_hours,
+    status: t.status,
+    weekEnding: t.week_ending,
+  }));
+}
+
+export async function approve(id: string): Promise<Timesheet> {
+  const raw = await checkClient.timesheets.approve(id);
+  return mapCheckTimesheetToDomain(raw);
+}
+```
+
 ## Naming Convention
 
 | Function | Purpose |
@@ -80,3 +109,12 @@ export function countAll() {
 | `update` | Update and return |
 | `remove` | Delete and return |
 | `countAll` | Total count for pagination |
+| `findBy{Field}` | Custom lookup (e.g. `findByEmployee`) |
+
+## Rules
+
+- Import `{ db }` from `../../db` (or `@db` via tsconfig alias) for Kysely repos
+- Import SDK clients directly for external API repos
+- Transform external models to domain models at the repo boundary — never leak SDK types
+- Never throw errors — return `undefined` for not-found, let the service handle errors
+- One repo file per model, grouped by feature

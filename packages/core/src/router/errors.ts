@@ -32,7 +32,7 @@ function fossylError<Code extends FossylStatusCode>(
   };
 }
 
-export function fossylBad(message?: string, details?: unknown): FossylError<400> {
+export function fossylBadRequest(message?: string, details?: unknown): FossylError<400> {
   return fossylError(400, message, details);
 }
 

@@ -61,14 +61,12 @@ describe("no-repo-import-outside-service", () => {
     expect(result.messages).toHaveLength(0);
   });
 
-  it("should flag cross-boundary repo import in service file", async () => {
+  it("should allow repo import in service file regardless of name", async () => {
     const [result] = await lintCode(
       'import { repo } from "./repo/user.repo";\n',
       "things.service.ts"
     );
-    expect(result.messages).toHaveLength(1);
-    expect(result.messages[0].ruleId).toBe("fossyl/no-repo-import-outside-service");
-    expect(result.messages[0].messageId).toBe("crossBoundaryRepoImport");
+    expect(result.messages).toHaveLength(0);
   });
 
   it("should flag repo import in route file", async () => {

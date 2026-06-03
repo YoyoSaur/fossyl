@@ -107,7 +107,7 @@ describe("test-app integration", () => {
         "violations/plain-file-imports-repo.ts": 2,
         "violations/route-imports-repo.ts": 2,
         "violations/things.route.ts": 1,
-        "violations/things.service.ts": 1,
+        "violations/things.service.ts": 0,
         "violations/validator-imports-repo.ts": 1,
       };
 

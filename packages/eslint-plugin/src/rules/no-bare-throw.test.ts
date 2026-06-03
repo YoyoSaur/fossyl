@@ -205,4 +205,42 @@ router.get({ handler: () => { const err = fossylNotFound("msg"); throw err; } })
     }, IMPORTS);
     expect(results["user.route.ts"].messages).toHaveLength(0);
   }, TIMEOUT);
+
+  describe("service and repo files", () => {
+    it("should allow fossyl-branded throw in service file", async () => {
+      const results = await lintInDir({
+        "user.service.ts": `export function fn() { throw fossylNotFound("msg"); }`,
+      }, IMPORTS);
+      expect(results["user.service.ts"].messages).toHaveLength(0);
+    }, TIMEOUT);
+
+    it("should flag bare throw in service file", async () => {
+      const results = await lintInDir({
+        "user.service.ts": `export function fn() { throw new Error("fail"); }`,
+      }, IMPORTS);
+      expect(results["user.service.ts"].messages).toHaveLength(1);
+      expect(results["user.service.ts"].messages[0].ruleId).toBe("fossyl/no-bare-throw");
+    }, TIMEOUT);
+
+    it("should flag bare throw string in service file", async () => {
+      const results = await lintInDir({
+        "user.service.ts": `export function fn() { throw "bad"; }`,
+      }, IMPORTS);
+      expect(results["user.service.ts"].messages).toHaveLength(1);
+    }, TIMEOUT);
+
+    it("should allow fossyl-branded throw in repo file", async () => {
+      const results = await lintInDir({
+        "user.repo.ts": `export function fn() { throw fossylNotFound("msg"); }`,
+      }, IMPORTS);
+      expect(results["user.repo.ts"].messages).toHaveLength(0);
+    }, TIMEOUT);
+
+    it("should flag bare throw in repo file", async () => {
+      const results = await lintInDir({
+        "user.repo.ts": `export function fn() { throw new Error("fail"); }`,
+      }, IMPORTS);
+      expect(results["user.repo.ts"].messages).toHaveLength(1);
+    }, TIMEOUT);
+  });
 });

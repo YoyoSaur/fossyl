@@ -1,6 +1,6 @@
 import { ESLintUtils } from "@typescript-eslint/utils";
 import type { TSESTree } from "@typescript-eslint/utils";
-import type { Type, TypeChecker, TypeFlags } from "typescript";
+import type { Type, TypeChecker } from "typescript";
 import { createRule } from "../utils/rule-factory";
 
 export type MessageIds = "bareThrow";
@@ -17,15 +17,15 @@ const HANDLER_PROPERTY_NAMES = new Set([
   "responseValidator",
 ]);
 
+const SERVICE_FILE_PATTERN = /[/\\][^/\\]*\.service(\.[a-z]+)?$/;
+const REPO_FILE_PATTERN = /[/\\][^/\\]*\.repo(\.[a-z]+)?$/;
+
 function isHandlerContext(node: TSESTree.Node): boolean {
-  if (
+  return (
     node.type === "Property" &&
     node.key.type === "Identifier" &&
     HANDLER_PROPERTY_NAMES.has(node.key.name)
-  ) {
-    return true;
-  }
-  return false;
+  );
 }
 
 function isMethodChainCall(node: TSESTree.CallExpression): boolean {
@@ -95,23 +95,30 @@ export default createRule<Options, MessageIds>({
     type: "problem",
     docs: {
       description:
-        "Enforce that throw statements in route handlers use a FossylError type.",
+        "Enforce that throw statements in fossyl project files use a FossylError type.",
     },
     schema: [],
     messages: {
       bareThrow:
-        "Thrown value must be a FossylError. Use fossylError() or a named constructor (fossylNotFound, fossylValidationError, etc.) in route handlers.",
+        "Thrown value must be a FossylError. Use fossylError() or a named constructor (fossylNotFound, fossylValidationError, etc.) in route handlers, services, and repos.",
     },
   },
   defaultOptions: [],
   create(context) {
+    const fileName = context.filename;
+    const isServiceFile = SERVICE_FILE_PATTERN.test(fileName);
+    const isRepoFile = REPO_FILE_PATTERN.test(fileName);
+
     const parserServices = ESLintUtils.getParserServices(context);
     const checker = parserServices.program.getTypeChecker();
 
     return {
       ThrowStatement(node: TSESTree.ThrowStatement): void {
         if (!node.argument) return;
-        if (!isInsideRouteHandler(node)) return;
+
+        const isInRouteHandler = isInsideRouteHandler(node);
+
+        if (!isInRouteHandler && !isServiceFile && !isRepoFile) return;
 
         const tsNode = parserServices.esTreeNodeToTSNodeMap.get(node.argument);
         if (!tsNode) return;
