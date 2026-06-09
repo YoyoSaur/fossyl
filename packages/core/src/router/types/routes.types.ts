@@ -1,7 +1,7 @@
 import { AuthenticationFunction, ValidatorFunction } from "./router-creation.types";
 
-declare const authBrand: unique symbol;
-declare const requestBrand: unique symbol;
+const authBrand: unique symbol = Symbol("authBrand");
+const requestBrand: unique symbol = Symbol("requestBrand");
 /**
  * Brand type for authenticated user data.
  *
