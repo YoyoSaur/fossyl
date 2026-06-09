@@ -1,6 +1,6 @@
 {
   "name": "fossyl",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "type": "module",
   "description": "CLI for scaffolding fossyl projects",
   "bin": {
@@ -19,7 +19,7 @@
   "files": [
     "bin",
     "dist",
-    "example"
+    "examples"
   ],
   "scripts": {
     "build": "node scripts/generate-versions.js && tsup src/index.ts --format cjs,esm --dts && cp USAGE.md dist/AGENTS.md && echo 'This project uses AGENTS.md for AI instructions. See [AGENTS.md](./AGENTS.md).' > dist/CLAUDE.md && mkdir -p dist/skills && cp -r ../../skills/* dist/skills/ && cp ../../for-the-devs/agent-source.yaml dist/",
