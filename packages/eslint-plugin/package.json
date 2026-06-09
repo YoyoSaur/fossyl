@@ -1,6 +1,6 @@
 {
   "name": "eslint-plugin-fossyl",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
   "description": "ESLint plugin for Fossyl projects - architecture enforcement and route quality rules",
   "main": "./dist/index.cjs",

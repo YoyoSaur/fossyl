@@ -9,5 +9,6 @@
   "dependencies": {
     "@fossyl/core": "workspace:*",
     "zod": "^3.23.0"
-  }
+  },
+  "version": "0.1.0"
 }

@@ -2,6 +2,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { createRequire } from "node:module";
 import type { ProjectOptions } from "./prompts";
+import { VERSIONS } from "./versions";
 
 const DOCKER_FILES = new Set(["Dockerfile", ".dockerignore", "docker-compose.yml"]);
 
@@ -86,6 +87,22 @@ function readExampleFiles(exampleDir: string, projectName: string, includeDocker
         if (relativePath === "package.json") {
           const pkg = JSON.parse(content);
           pkg.name = projectName;
+          const fossylVersions: Record<string, string> = {
+            "@fossyl/core": VERSIONS.core,
+            "@fossyl/express": VERSIONS.express,
+            "@fossyl/zod": VERSIONS.zod,
+            "@fossyl/kysely": VERSIONS.kysely,
+            "eslint-plugin-fossyl": VERSIONS.eslintPlugin,
+            fossyl: VERSIONS.cli,
+          };
+          for (const dep of [pkg.dependencies, pkg.devDependencies]) {
+            if (!dep) continue;
+            for (const [name, version] of Object.entries(dep)) {
+              if (version === "workspace:*" && name in fossylVersions) {
+                dep[name] = `^${fossylVersions[name]}`;
+              }
+            }
+          }
           content = JSON.stringify(pkg, null, 2) + "\n";
         }
         files.push({ path: relativePath, content });

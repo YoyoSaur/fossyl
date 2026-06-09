@@ -16,6 +16,7 @@ const versions = {
   express: getVersion("express"),
   zod: getVersion("zod"),
   kysely: getVersion("kysely"),
+  cli: getVersion("cli"),
   eslintPlugin: getVersion("eslint-plugin"),
 };
 
@@ -25,6 +26,7 @@ export const VERSIONS = {
   express: '${versions.express}',
   zod: '${versions.zod}',
   kysely: '${versions.kysely}',
+  cli: '${versions.cli}',
   eslintPlugin: '${versions.eslintPlugin}',
 } as const;
 `;
