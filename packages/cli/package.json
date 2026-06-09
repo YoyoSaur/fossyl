@@ -21,8 +21,9 @@
     "dist",
     "example"
   ],
+
   "scripts": {
-    "build": "node scripts/generate-versions.js && tsup src/index.ts --format cjs,esm --dts && cp USAGE.md dist/AGENTS.md && echo 'This project uses AGENTS.md for AI instructions. See [AGENTS.md](./AGENTS.md).' > dist/CLAUDE.md",
+    "build": "node scripts/generate-versions.js && tsup src/index.ts --format cjs,esm --dts && cp USAGE.md dist/AGENTS.md && echo 'This project uses AGENTS.md for AI instructions. See [AGENTS.md](./AGENTS.md).' > dist/CLAUDE.md && mkdir -p dist/skills && cp -r ../../skills/* dist/skills/ && cp ../../for-the-devs/agent-source.yaml dist/",
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit",
@@ -58,9 +59,11 @@
     "access": "public"
   },
   "dependencies": {
-    "@clack/prompts": "^0.7.0"
+    "@clack/prompts": "^0.7.0",
+    "js-yaml": "^4.2.0"
   },
   "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
     "tsup": "^8.0.0",
     "typescript": "^5.8.0",
     "vitest": "^3.0.0"

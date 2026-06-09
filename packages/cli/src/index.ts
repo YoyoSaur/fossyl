@@ -1,6 +1,7 @@
 import { parseArgs } from "node:util";
 import { createRequire } from "node:module";
 import { createCommand } from "./commands/create";
+import { addSkillsCommand } from "./commands/add-skills";
 import type {
   ServerChoice,
   ValidatorChoice,
@@ -17,6 +18,9 @@ const { values, positionals } = parseArgs({
     create: { type: "boolean" },
     help: { type: "boolean", short: "h" },
     version: { type: "boolean", short: "v" },
+    "add-skills": { type: "boolean" },
+    adapter: { type: "string" },
+    list: { type: "boolean" },
     // Non-interactive options
     server: { type: "string", short: "s" },
     validator: { type: "string" },
@@ -35,6 +39,9 @@ fossyl - CLI for scaffolding fossyl projects
 
 Usage:
   npx fossyl --create <project-name>   Create a new fossyl project (interactive)
+  npx fossyl add-skills               Install fossyl skills into .opencode/skills/
+  npx fossyl add-skills --list         List available skills
+  npx fossyl add-skills --adapter <a>  Install skills for specific adapters
   npx fossyl --help                    Show this help message
   npx fossyl --version                 Show version
 
@@ -65,6 +72,11 @@ Examples:
 
   # BYO everything
   npx fossyl --create my-api --server byo --validator byo --database byo
+
+  # Skills
+  npx fossyl add-skills
+  npx fossyl add-skills --adapter express,kysely
+  npx fossyl add-skills --list
 `);
 }
 
@@ -143,7 +155,14 @@ function parseCliOptions(): CliOptions | null {
 }
 
 async function main() {
-  if (values.version) {
+  const subcommand = positionals[0];
+
+  if (subcommand === "add-skills" || values["add-skills"]) {
+    const adapters = values.adapter
+      ? (values.adapter as string).split(",").map((s) => s.trim())
+      : undefined;
+    await addSkillsCommand({ adapters, list: !!values.list });
+  } else if (values.version) {
     showVersion();
   } else if (values.create) {
     const cliOptions = parseCliOptions();

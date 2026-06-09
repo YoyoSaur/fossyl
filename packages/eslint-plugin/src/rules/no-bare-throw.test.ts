@@ -56,7 +56,7 @@ async function lintInDir(
         "export function fossylError<Code extends FossylStatusCode>(",
         "  status: Code, message?: string, details?: unknown",
         "): FossylError<Code>;",
-        "export function fossylBad(message?: string, details?: unknown): FossylError<400>;",
+        "export function   fossylBadRequest(message?: string, details?: unknown): FossylError<400>;",
         "export function fossylUnauthorized(message?: string, details?: unknown): FossylError<401>;",
         "export function fossylForbidden(message?: string, details?: unknown): FossylError<403>;",
         "export function fossylNotFound(message?: string, details?: unknown): FossylError<404>;",
@@ -112,7 +112,7 @@ async function lintInDir(
   }
 }
 
-const IMPORTS = `import { fossylError, fossylNotFound, fossylValidationError, fossylBad, fossylUnauthorized } from "@fossyl/core";`;
+const IMPORTS = `import { fossylError, fossylNotFound, fossylValidationError, fossylBadRequest, fossylUnauthorized } from "@fossyl/core";`;
 
 describe("no-bare-throw", () => {
   it("should allow fossylNotFound in handler", async () => {

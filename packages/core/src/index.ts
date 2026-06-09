@@ -2,8 +2,7 @@
 export { createRouter, executeRoute } from "./router/router";
 
 // Config
-export { defineConfig } from "./config";
-export type { FossylConfig, AdaptersConfig } from "./config";
+export type { AdaptersConfig } from "./config";
 
 // Adapter types
 export type {

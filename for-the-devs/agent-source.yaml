@@ -1,0 +1,975 @@
+version: 1
+
+# ============================================================
+# Fossyl Agent Source — structured reference metadata
+# ============================================================
+# This file is the source of truth for framework API docs
+# consumed by AI agents. The CLI scaffold reads this to
+# generate AGENTS.md reference sections.
+#
+# Every public export from every @fossyl/* package must have
+# an entry here. CI (check-agent-docs) enforces this.
+#
+# Fields:
+#   name        — Export name (matches the code)
+#   package     — Package it belongs to (core, express, kysely, zod)
+#   category    — Semantic group (router, errors, adapters, types, etc.)
+#   description — Short "Use when..." trigger for AI pattern-matching
+#   agents      — Full prose reference with keywords, gotchas, examples
+#   see_also    — Cross-references to patterns and related exports
+# ============================================================
+
+exports:
+  # ── @fossyl/core — Router ──────────────────────────────
+  - name: createRouter
+    package: core
+    category: router
+    description: >
+      Use when grouping related endpoints under a shared path
+      namespace. Creates the scope for createEndpoint chains.
+    agents: |
+      Creates a type-level namespace constraint. The `BasePath` generic
+      enforces at compile-time that all createEndpoint() paths in this
+      router start with the given string. Does NOT concatenate or
+      prepend at runtime — endpoints use full paths.
+
+      No middleware goes on the router. All middleware
+      (.authenticator(), .validator(), .query(), .paginate()) is
+      declared on individual createEndpoint() chains.
+    see_also:
+      - export: createEndpoint
+      - pattern: builder-chain-order
+
+  - name: createEndpoint
+    package: core
+    category: router
+    description: >
+      Use when defining a single API endpoint. Starts the builder
+      chain that configures middleware and terminates with an HTTP
+      method.
+    agents: |
+      Starts a full builder chain for one endpoint. The chain order
+      is enforced by the type system:
+
+      createEndpoint(path) → .query() → .paginate() → .authenticator()
+      → .validator() → .get() / .post() / .put() / .delete()
+
+      All steps are optional. The chain MUST terminate with a method
+      call — the expression is void after the terminal.
+    see_also:
+      - pattern: handler-curry
+      - pattern: builder-chain-order
+      - pattern: params-shape
+
+  - name: executeRoute
+    package: core
+    category: router
+    description: >
+      Use internally within framework adapters to resolve the handler
+      curry chain at request time. Not called directly by user code.
+    agents: |
+      Internal runtime resolver. Steps through the middleware chain,
+      calling each layer synchronously in order (params → auth → body),
+      then executing the final async handler. The framework adapter
+      (e.g., expressAdapter) calls this — user code never does.
+
+  # ── @fossyl/core — Errors ─────────────────────────────
+  - name: fossylError
+    package: core
+    category: errors
+    description: >
+      Use when constructing a FossylError from a raw HTTP status
+      code and message. Prefer the named helpers below instead.
+    agents: |
+      Low-level factory: fossylError(404, "Not found", details?).
+      Creates a FossylError branded with the given status code.
+      Prefer the named helpers (fossylNotFound, fossylBadRequest,
+      etc.) for readability.
+
+  - name: fossylBadRequest
+    package: core
+    category: errors
+    description: >
+      Use when returning HTTP 400 errors for semantic validation
+      failures in business logic.
+    agents: |
+      HTTP 400 Bad Request. Use for semantic validation failures
+      (e.g., "email already in use"). Not for parse errors — those
+      are caught by zodValidator and automatically return 422.
+
+  - name: fossylUnauthorized
+    package: core
+    category: errors
+    description: >
+      Use when authentication is missing or invalid (HTTP 401).
+    agents: |
+      HTTP 401 Unauthorized. Use in authenticators when the request
+      lacks valid credentials. Not for permission failures (use
+      fossylForbidden for 403).
+
+  - name: fossylForbidden
+    package: core
+    category: errors
+    description: >
+      Use when the caller is authenticated but lacks permission
+      (HTTP 403).
+    agents: |
+      HTTP 403 Forbidden. Use in service layer when the caller
+      is authenticated but doesn't have permission for the
+      requested operation.
+
+  - name: fossylNotFound
+    package: core
+    category: errors
+    description: >
+      Use when a requested resource does not exist (HTTP 404).
+    agents: |
+      HTTP 404 Not Found. Use in services/repos when a lookup
+      by ID or filter returns no results.
+
+  - name: fossylConflict
+    package: core
+    category: errors
+    description: >
+      Use when a resource state conflict prevents the operation
+      (HTTP 409).
+    agents: |
+      HTTP 409 Conflict. Use for duplicate resource creation,
+      version conflicts, or state mismatches.
+
+  - name: fossylValidationError
+    package: core
+    category: errors
+    description: >
+      Use when a request body or query fails validation (HTTP 422).
+    agents: |
+      HTTP 422 Validation Error. Used automatically by zodValidator
+      and zodQueryValidator. Also use in manual validation logic.
+
+  - name: fossylInternal
+    package: core
+    category: errors
+    description: >
+      Use as a last resort for unexpected server-side failures
+      (HTTP 500).
+    agents: |
+      HTTP 500 Internal Server Error. Use sparingly — prefer specific
+      error codes. Typically wraps unexpected exceptions caught at
+      the service boundary.
+
+  - name: isFossylError
+    package: core
+    category: errors
+    description: >
+      Use at runtime to check whether a thrown value is a
+      FossylError branded error.
+    agents: |
+      Type guard that checks for the __fossyl brand property at
+      runtime. Returns true for any FossylError regardless of
+      status code.
+
+  # ── @fossyl/core — Adapter Interfaces ──────────────────
+  - name: FrameworkAdapter
+    package: core
+    category: adapters
+    description: >
+      Implement this interface to create an HTTP framework
+      adapter (e.g., Express, Fastify).
+    agents: |
+      Interface for HTTP framework adapters. Requires a `register`
+      method that receives Route objects and binds them to the
+      framework router. Also defines naming and any startup
+      lifecycle hooks.
+
+  - name: DatabaseAdapter
+    package: core
+    category: adapters
+    description: >
+      Implement this interface to create a database adapter
+      (e.g., Kysely, Prisma).
+    agents: |
+      Interface for database adapters. Requires withTransaction
+      and withClient methods that wrap handler execution in a
+      database context. The adapter manages connection lifecycle
+      and transaction propagation via AsyncLocalStorage.
+
+  - name: DatabaseContext
+    package: core
+    category: adapters
+    description: >
+      Type representing the database client/transaction context
+      available at runtime.
+    agents: |
+      Type for the database context object that adapters store
+      in AsyncLocalStorage. Contains the database client instance
+      and any transaction state.
+
+  - name: ValidationAdapter
+    package: core
+    category: adapters
+    description: >
+      Implement this interface to create a validation adapter
+      (e.g., Zod, Yup).
+    agents: |
+      Interface for validation adapters. Defines a validate
+      method that takes raw input and returns validated/parsed
+      output or throws.
+
+  - name: LoggerAdapter
+    package: core
+    category: adapters
+    description: >
+      Implement this interface to integrate a logging framework.
+    agents: |
+      Interface for logger adapters. Defines the log method
+      signature expected by the framework.
+
+  - name: Logger
+    package: core
+    category: adapters
+    description: >
+      Type representing a logger instance within the framework.
+    agents: |
+      Logger interface with info, warn, error, debug methods.
+      Available per-request via getLogger() in the express adapter.
+
+  # ── @fossyl/core — Route Types ─────────────────────────
+  - name: Route
+    package: core
+    category: types
+    description: >
+      Internal route definition — stores path, method, middleware
+      config, and the handler function.
+    agents: |
+      The Route type represents a fully-configured endpoint after
+      the builder chain completes. Contains path, method, middleware
+      steps, pagination config, transaction flag, and the compiled
+      handler. Created by terminal methods (.get/.post/.put/.delete).
+
+  - name: Endpoint
+    package: core
+    category: types
+    description: >
+      The builder chain type returned by createEndpoint(). Carries
+      the path as a generic for type-safe chaining.
+    agents: |
+      The Endpoint type represents the state of a builder chain
+      before the terminal method is called. The generic parameter
+      carries the path string for compile-time constraint checking.
+
+  - name: Router
+    package: core
+    category: types
+    description: >
+      The router type returned by createRouter(). Carries the base
+      path as a generic to constrain createEndpoint paths.
+    agents: |
+      The Router type carries the base path as a generic to enforce
+      that all createEndpoint() and createSubrouter() paths extend
+      this prefix. No middleware is stored at the router level.
+
+  - name: RestMethod
+    package: core
+    category: types
+    description: >
+      Union of REST HTTP methods: GET | POST | PUT | DELETE.
+    agents: |
+      String literal union type: "GET" | "POST" | "PUT" | "DELETE".
+      Used in Route definitions.
+
+  - name: HttpMethod
+    package: core
+    category: types
+    description: >
+      Union of all HTTP methods including non-REST ones.
+    agents: |
+      Broader union than RestMethod — includes PATCH, HEAD, OPTIONS
+      in addition to GET, POST, PUT, DELETE.
+
+  - name: ValidatorFunction
+    package: core
+    category: types
+    description: >
+      Signature type for validator and query-validator functions.
+    agents: |
+      Type: (data: unknown) => T. Implemented by zodValidator,
+      zodQueryValidator, or custom validators.
+
+  - name: AuthenticationFunction
+    package: core
+    category: types
+    description: >
+      Signature type for authenticator functions passed to
+      .authenticator().
+    agents: |
+      Accepts raw auth data (e.g., headers), validates/parses it,
+      and returns an Authentication object or throws fossylUnauthorized.
+
+  - name: Authentication
+    package: core
+    category: types
+    description: >
+      The result type returned by an authenticator function.
+    agents: |
+      Generic type representing authenticated caller info. Typically
+      contains userId, roles, orgId, etc. Available at runtime via
+      params.auth in the handler curry.
+
+  - name: ResponseData
+    package: core
+    category: types
+    description: >
+      Constraint type for handler return values.
+    agents: |
+      Base type for all endpoint handler return values. Every handler
+      must return an object matching this shape. Framework adapters
+      wrap it into the standard response format.
+
+  - name: RequestExtractor
+    package: core
+    category: types
+    description: >
+      Adapter interface for extracting params, headers, and body
+      from framework-specific request objects.
+    agents: |
+      Framework adapters implement this to teach the framework
+      how to extract URL params, query strings, headers, and
+      request bodies from incoming requests.
+
+  # ── @fossyl/core — Domain Types ────────────────────────
+  - name: Params
+    package: core
+    category: types
+    description: >
+      The shape of the params argument in handler curries.
+      Contains .url, .query, .pagination, and .auth depending
+      on which middleware steps are present.
+    agents: |
+      Generic params type available in handler curries when any
+      middleware is present. Properties depend on the chain:
+        params.url         — path params (from :param segments)
+        params.query       — parsed query params (from .query())
+        params.pagination  — pagination info (from .paginate())
+        params.auth        — authenticator result (from .authenticator())
+    see_also:
+      - pattern: params-shape
+      - pattern: handler-curry
+
+  - name: PaginationParams
+    package: core
+    category: types
+    description: >
+      Pagination parameters available when .paginate() is chained
+      on an endpoint.
+    agents: |
+      Shape: { page: number; pageSize: number }. Automatically
+      parsed from query params when .paginate() is configured.
+      Available at params.pagination.
+
+  - name: PaginationConfig
+    package: core
+    category: types
+    description: >
+      Configuration passed to .paginate() to control page size
+      limits and defaults.
+    agents: |
+      Shape: { defaultPageSize: number; maxPageSize?: number }.
+      Passed to the .paginate() chain step. The framework
+      clamps pageSize to maxPageSize at runtime.
+
+  - name: PaginatedResponse
+    package: core
+    category: types
+    description: >
+      Return type wrapper for paginated endpoints.
+    agents: |
+      Generic type: { data: T[]; pagination: { page, pageSize, hasMore } }.
+      Return this from handlers that use .paginate().
+
+  # ── @fossyl/core — Branded Wrappers ────────────────────
+  - name: authWrapper
+    package: core
+    category: wrappers
+    description: >
+      Use to brand an auth type for type-safe inference in
+      handler curry chains.
+    agents: |
+      Brands an Authentication type so the builder chain can
+      infer the auth parameter shape in the handler curry.
+      Used when declaring authenticator functions.
+
+  # ── @fossyl/express — Adapter ──────────────────────────
+  - name: expressAdapter
+    package: express
+    category: adapter
+    description: >
+      Use to create the Express.js framework adapter.
+    agents: |
+      Factory function that creates an Express app with the
+      fossyl adapter. Returns { app, register } where register()
+      accepts an array of Route objects. Handles route sorting
+      (static before dynamic), grouping, and Express router
+      registration. Also manages AsyncLocalStorage context
+      setup for per-request state.
+    see_also:
+      - pattern: express-server-setup
+      - export: getContext
+
+  - name: getContext
+    package: express
+    category: context
+    description: >
+      Use to retrieve the full request context (logger, DB,
+      request ID) from anywhere in the call stack.
+    agents: |
+      Returns the current RequestContext from AsyncLocalStorage.
+      Contains logger, requestId, and db client. Works anywhere
+      in the call stack after the adapter starts processing a
+      request.
+
+  - name: getLogger
+    package: express
+    category: context
+    description: >
+      Use to get the current request's logger instance.
+    agents: |
+      Returns the Logger for the current request. Provides
+      request-scoped logging with automatic requestId
+      correlation.
+
+  - name: getRequestId
+    package: express
+    category: context
+    description: >
+      Use to get the unique identifier for the current request.
+    agents: |
+      Returns the request ID string. Useful for logging,
+      error reporting, and correlating async operations.
+
+  - name: getDb
+    package: express
+    category: context
+    description: >
+      Use to get the database client for the current request
+      (respects transactions).
+    agents: |
+      Returns the database client from the current request
+      context. Automatically resolves to the transaction client
+      if one is active, otherwise returns the base pool client.
+
+  - name: wrapResponse
+    package: express
+    category: response
+    description: >
+      Use to format a handler's return value into the standard
+      fossyl response shape.
+    agents: |
+      Wraps successful responses into
+      { success: "true", type: response.typeName, data: response }.
+      Errors are wrapped into
+      { success: "false", error: { code, message, details? } }.
+      Called internally by the adapter — user code rarely
+      needs to call this directly.
+
+  # ── @fossyl/express — Types ────────────────────────────
+  - name: RequestContext
+    package: express
+    category: types
+    description: >
+      Type representing the per-request AsyncLocalStorage context.
+    agents: |
+      Interface containing logger, requestId, and db client
+      for the current request.
+
+  - name: LoggerContext
+    package: express
+    category: types
+    description: >
+      Type for the logger portion of the request context.
+    agents: |
+      The logger interface with info, warn, error, debug methods,
+      scoped to the current request.
+
+  - name: ExpressAdapterOptions
+    package: express
+    category: types
+    description: >
+      Options type for expressAdapter configuration.
+    agents: |
+      Configuration options for the Express adapter: CORS
+      settings, metrics recording, and any adapter-specific
+      overrides.
+
+  - name: CorsOptions
+    package: express
+    category: types
+    description: >
+      CORS configuration sub-type within ExpressAdapterOptions.
+    agents: |
+      Standard CORS options: origins, methods, headers,
+      credentials, etc. Passed through to the cors middleware.
+
+  - name: MetricsRecorder
+    package: express
+    category: types
+    description: >
+      Interface for recording request metrics in the Express
+      adapter.
+    agents: |
+      Metrics interface: recordRequest(method, path, statusCode,
+      duration). Implement to integrate with your metrics
+      backend.
+
+  # ── @fossyl/kysely — Adapter ───────────────────────────
+  - name: kyselyAdapter
+    package: kysely
+    category: adapter
+    description: >
+      Use to create the Kysely database adapter for the
+      configured resources.
+    agents: |
+      Creates a Kysely-based DatabaseAdapter. Manages connection
+      pooling, transaction lifecycle, and AsyncLocalStorage
+      context propagation. Call with KyselyAdapterOptions
+      including your Kysely DB instance.
+    see_also:
+      - pattern: kysely-database
+      - export: db
+      - export: getTransaction
+
+  # ── @fossyl/kysely — Context ───────────────────────────
+  - name: getDb
+    package: kysely
+    category: context
+    description: >
+      Use to get the base Kysely client from AsyncLocalStorage
+      (outside a transaction).
+    agents: |
+      Returns the base Kysely client from AsyncLocalStorage.
+      Not transaction-scoped — use getTransaction() inside
+      transactions.
+
+  - name: getTransaction
+    package: kysely
+    category: context
+    description: >
+      Use to get the current transaction's Kysely client from
+      AsyncLocalStorage.
+    agents: |
+      Returns the transaction-scoped Kysely client. Only
+      available inside withTransaction(). Returns undefined
+      outside a transaction.
+
+  - name: transactionContext
+    package: kysely
+    category: context
+    description: >
+      The AsyncLocalStorage instance used for Kysely transaction
+      propagation.
+    agents: |
+      The raw AsyncLocalStorage<TransactionContext> instance.
+      Used internally by the adapter. Advanced use only.
+
+  - name: db
+    package: kysely
+    category: context
+    description: >
+      Use as a Kysely client proxy — automatically resolves to
+      the transaction client or base client based on context.
+    agents: |
+      A proxy function that automatically resolves to the
+      correct Kysely client. Inside withTransaction(), returns
+      the transaction client. Outside, returns the base pool
+      client. This is the recommended way to access the
+      database in repo files.
+
+  - name: setBaseClient
+    package: kysely
+    category: context
+    description: >
+      Use to set the base Kysely client for the proxy.
+    agents: |
+      Sets the base Kysely client that the db proxy falls back
+      to when no transaction is active. Called during adapter
+      initialization.
+
+  - name: createDbProxy
+    package: kysely
+    category: context
+    description: >
+      Creates a new Kysely client proxy function with the same
+      auto-resolution behavior.
+    agents: |
+      Factory for creating additional db proxy instances.
+      Returns a function that auto-resolves to transaction or
+      base client. Used internally by the adapter.
+
+  # ── @fossyl/kysely — Migrations ────────────────────────
+  - name: createMigrationProvider
+    package: kysely
+    category: migrations
+    description: >
+      Use to wrap migration definitions for Kysely's Migrator.
+    agents: |
+      Wraps an array of KyselyMigration objects into a provider
+      compatible with Kysely's Migrator. Each migration gets a
+      name based on its index in the array.
+
+  - name: defineMigration
+    package: kysely
+    category: migrations
+    description: >
+      Use to define a single migration with up/down methods.
+    agents: |
+      Type helper that returns a KyselyMigration. Accept objects
+      with up and down async methods that receive the Kysely
+      client. Call before passing to createMigrationProvider.
+
+  - name: runMigrations
+    package: kysely
+    category: migrations
+    description: >
+      Use to execute all pending migrations programmatically.
+    agents: |
+      Runs all pending migrations using the configured Kysely
+      Migrator. Returns MigrationResult array with status
+      per migration.
+
+  - name: rollbackMigration
+    package: kysely
+    category: migrations
+    description: >
+      Use to roll back the most recently applied migration.
+    agents: |
+      Calls migrator.migrateDown() to roll back the last
+      migration. Returns the MigrationResult or undefined
+      if no migration to roll back.
+
+  - name: getMigrationStatus
+    package: kysely
+    category: migrations
+    description: >
+      Use to list all migrations and their current state
+      (executed vs pending).
+    agents: |
+      Calls migrator.getMigrations() to list all migrations
+      with their execution status. Useful for status checks
+      and debugging.
+
+  # ── @fossyl/kysely — Types ─────────────────────────────
+  - name: TransactionContext
+    package: kysely
+    category: types
+    description: >
+      Type containing the Kysely client and transaction state.
+    agents: |
+      Interface with db (Kysely client) and isTransaction
+      (boolean) properties. Stored in AsyncLocalStorage.
+
+  - name: KyselyMigration
+    package: kysely
+    category: types
+    description: >
+      Migration definition type with up and down methods.
+    agents: |
+      Type: { up: (db: Kysely<any>) => Promise<void>; down: (db: Kysely<any>) => Promise<void> }.
+      Created by defineMigration().
+
+  - name: MigrationRecord
+    package: kysely
+    category: types
+    description: >
+      Database record tracking which migrations have been run.
+    agents: |
+      Stored in the kysely_migration table. Contains migration
+      name, timestamp, and execution info.
+
+  - name: MigrationResult
+    package: kysely
+    category: types
+    description: >
+      Result type returned by runMigrations and
+      rollbackMigration.
+    agents: |
+      Contains migration name, status (success/error), and any
+      error details.
+
+  - name: KyselyAdapterOptions
+    package: kysely
+    category: types
+    description: >
+      Options type for kyselyAdapter configuration.
+    agents: |
+      Configuration for the Kysely adapter: database connection
+      settings, pool size, and any dialect-specific options.
+
+  # ── @fossyl/zod — Validation ───────────────────────────
+  - name: zodValidator
+    package: zod
+    category: validation
+    description: >
+      Use to create a body validator from a Zod schema. Pass to
+      .validator() in endpoint chains.
+    agents: |
+      Wraps schema.parse() in a fossylValidationError try/catch.
+      Returns the schema's parse function with full type inference
+      preserved. Use in .validator() chain step or standalone
+      for manual validation.
+    see_also:
+      - export: zodQueryValidator
+      - export: fossylValidationError
+
+  - name: zodQueryValidator
+    package: zod
+    category: validation
+    description: >
+      Use to create a query parameter validator from a Zod schema.
+      Pass to .queryValidator() or .query() in endpoint chains.
+    agents: |
+      Functionally identical to zodValidator, but semantically
+      distinct for code clarity. Wraps schema.parse() with a
+      fossylValidationError wrapper. Use in .queryValidator()
+      for validating URL query parameters.
+
+# ── Cross-Cutting Patterns ─────────────────────────────
+# Patterns describe system-level behaviors and conventions
+# that span multiple exports or packages. They provide the
+# context agents need to use the framework correctly.
+
+patterns:
+  - id: handler-curry
+    packages:
+      - core
+    description: >
+      Use when writing route handler functions. Determines the
+      correct curry signature based on which middleware steps are
+      present in the endpoint chain.
+    triggers:
+      - createEndpoint
+      - fossyl-route
+    agents: |
+      Handler functions use a curried pattern:
+
+      (params?) => (auth?) => (body?) => async () => Promise<Response>
+
+      Each layer is present or skipped based on which middleware
+      steps are in the chain. The type system infers the correct
+      signature — the table below shows every combination:
+
+      | Chain layers         | Handler signature                                     |
+      |----------------------|-------------------------------------------------------|
+      | none                 | async () => ({...})                                   |
+      | params only          | (params) => async () => ({...})                       |
+      | auth only            | (auth) => async () => ({...})                         |
+      | params + auth        | (params) => (auth) => async () => ({...})             |
+      | body only            | (body) => async () => ({...})                         |
+      | params + body        | (params) => (body) => async () => ({...})             |
+      | auth + body          | (auth) => (body) => async () => ({...})               |
+      | params + auth + body | (params) => (auth) => (body) => async () => ({...})   |
+
+      Rules:
+      - Only the final () => Promise<Response> is async.
+      - params is present when the path has :param, or .query()
+        is chained, or .paginate() is chained.
+      - No .authenticator() = no auth layer.
+      - No .validator() = no body layer.
+    see_also:
+      - pattern: builder-chain-order
+      - pattern: params-shape
+
+  - id: builder-chain-order
+    packages:
+      - core
+    description: >
+      Use when constructing an endpoint with createEndpoint().
+      Determines the correct order of chain steps.
+    triggers:
+      - createEndpoint
+      - fossyl-route
+    agents: |
+      The builder chain follows a fixed order enforced by the
+      type system:
+
+      createEndpoint(path)
+        → .query(queryValidator)
+        → .paginate(config)
+        → .authenticator(authFn)
+        → .validator(bodyFn)
+        → .get() / .post() / .put() / .delete()
+
+      All steps are optional. The type system prevents calling
+      steps out of order. The chain MUST terminate with a method
+      call — the expression type is void after.
+    see_also:
+      - pattern: handler-curry
+      - pattern: params-shape
+
+  - id: params-shape
+    packages:
+      - core
+    description: >
+      Use to understand what properties are available on the
+      params argument in a handler curry. Depends on which
+      middleware steps are configured.
+    triggers:
+      - createEndpoint
+      - .query
+      - .paginate
+      - .authenticator
+      - fossyl-route
+    agents: |
+      The params object shape depends on the endpoint chain:
+
+      params.url         — Present when path has :param segments.
+                           Contains path parameter values keyed by
+                           name (e.g., { id: string }).
+
+      params.query       — Present when .query() is chained.
+                           Contains parsed and validated query
+                           string parameters.
+
+      params.pagination  — Present when .paginate() is chained.
+                           Shape: { page: number, pageSize: number }.
+
+      params.auth        — Present when .authenticator() is chained.
+                           Contains the return value of the
+                           authenticator function (the Authentication
+                           type).
+
+      Use _params as the parameter name when only auth or body
+      layers are present, to signal that params is unused. The
+      parameter name is a convention, not enforced by the type
+      system.
+    see_also:
+      - pattern: handler-curry
+
+  - id: error-conventions
+    packages:
+      - core
+    description: >
+      Use when throwing or handling errors in services, repos,
+      and route handlers. Defines which layer is responsible
+      for what.
+    triggers:
+      - fossyl-errors
+      - fossyl-service
+    agents: |
+      Error handling conventions by layer:
+
+      Routes (.route.ts):
+      - Never catch errors — let them propagate to the adapter
+      - All throws must be FossylError branded
+      - Handlers throw fossyl* errors from service calls
+
+      Services (.service.ts):
+      - Catch non-Fossyl errors and wrap with fossyl* functions
+      - All throws must be FossylError branded
+      - Don't catch FossylErrors — let them propagate
+
+      Repos (.repo.ts):
+      - Never throw — let Kysely adapter handle DB errors
+      - If throw is unavoidable, must be FossylError branded
+      - Return null/undefined for "not found" cases
+
+      All exported error creators:
+      - fossylError(status, message, details?) — generic factory
+      - fossylBadRequest(message?, details?) — 400
+      - fossylUnauthorized(message?, details?) — 401
+      - fossylForbidden(message?, details?) — 403
+      - fossylNotFound(message?, details?) — 404
+      - fossylConflict(message?, details?) — 409
+      - fossylValidationError(message?, details?) — 422
+      - fossylInternal(message?, details?) — 500
+    see_also:
+      - pattern: architecture-boundaries
+
+  - id: architecture-boundaries
+    packages:
+      - core
+    description: >
+      Use when organizing code into route, service, and repo
+      layers. Defines the responsibilities and import rules
+      for each layer.
+    triggers:
+      - fossyl-feature
+      - fossyl-domain
+    agents: |
+      Three-layer architecture enforced by linter rules:
+
+      *.route.ts — Endpoint definitions
+      - createRouter() + createEndpoint() chains
+      - No business logic — delegate to services
+      - Import services, not repos
+
+      *.service.ts — Business logic
+      - Multi-repo composition
+      - Import repos, not db directly
+      - Use fossyl* errors for business rule violations
+      - Import other services for service-of-services patterns
+
+      *.repo.ts — Data access
+      - Import db (kysely), not services
+      - Never throw — must return domain models
+      - Transform DB rows to domain models at the boundary
+      - 15-30 lines per method
+    see_also:
+      - pattern: error-conventions
+
+  - id: express-server-setup
+    packages:
+      - express
+    description: >
+      Use when setting up an Express server with fossyl.
+      Covers adapter creation, route registration, and
+      middleware ordering.
+    triggers:
+      - expressAdapter
+    agents: |
+      Typical setup flow:
+
+      1. Create adapter: const { app, register } = expressAdapter(options)
+      2. Define all endpoints via createEndpoint chains
+      3. Pass routes to register(routes)
+      4. The adapter sorts routes (static before dynamic),
+         groups them by common prefix, and registers them
+         on the Express router.
+      5. Call app.listen() or export app for serverless.
+
+      Context is available via AsyncLocalStorage after a
+      request starts: getLogger(), getDb(), getRequestId().
+    see_also:
+      - export: expressAdapter
+      - export: getContext
+
+  - id: kysely-database
+    packages:
+      - kysely
+    description: >
+      Use when setting up Kysely database access with fossyl.
+      Covers adapter setup, transaction management, and
+      database access patterns.
+    triggers:
+      - kyselyAdapter
+      - db
+    agents: |
+      Database access patterns:
+
+      Adapter setup:
+      - Create Kysely instance with your dialect (pg, sqlite, etc.)
+      - Pass to kyselyAdapter({ db: kyselyInstance })
+      - Adapter manages connection pooling and transactions
+
+      Transaction handling:
+      - withTransaction() starts a transaction, stores in AsyncLocalStorage
+      - The db proxy auto-resolves to the transaction client
+      - withClient() sets the base client (no transaction)
+
+      Migration workflow:
+      - Define: const migration = defineMigration({ up, down })
+      - Collect: const provider = createMigrationProvider([...])
+      - Run: await runMigrations(db)
+      - Rollback: await rollbackMigration(db)
+    see_also:
+      - export: kyselyAdapter
+      - export: db
+      - export: defineMigration

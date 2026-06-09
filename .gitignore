@@ -7,6 +7,7 @@ dist/
 .npmrc
 plans/*
 bump-push
+docs/superpowers/*
 
 # Auto-generated
 packages/cli/src/versions.ts
