@@ -16,7 +16,7 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "typecheck": "pnpm -r --filter './packages/*' typecheck",
-    "publish": "pnpm publish -r --filter './packages/*'"
+    "publish": "pnpm publish -r --filter='@fossyl/core' --filter='@fossyl/express' --filter='@fossyl/zod' --filter='@fossyl/kysely' --filter='fossyl' --filter='eslint-plugin-fossyl'"
   },
   "keywords": [],
   "author": "YoyoSaur",
