@@ -1,6 +1,6 @@
 {
   "name": "@fossyl/regression-testing",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "description": "Regression tests that exercise the full fossyl framework as a consumer would",
