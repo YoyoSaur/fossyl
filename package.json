@@ -15,11 +15,12 @@
     "lint": "eslint 'packages/*/src/**/*.ts'",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
-    "typecheck": "pnpm -r --filter './packages/*' typecheck"
+    "typecheck": "pnpm -r --filter './packages/*' typecheck",
+    "publish": "pnpm publish -r"
   },
   "keywords": [],
   "author": "YoyoSaur",
-  "license": "GPL-3.0",
+  "license": "Apache-2.0",
   "packageManager": "pnpm@11.1.2",
   "pnpm": {
     "patchedDependencies": {
@@ -27,7 +28,6 @@
     }
   },
   "devDependencies": {
-    "@changesets/cli": "^2.29.7",
     "@types/node": "^20.0.0",
     "@typescript-eslint/eslint-plugin": "^8.54.0",
     "@typescript-eslint/parser": "^8.54.0",
