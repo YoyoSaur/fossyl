@@ -12,6 +12,9 @@
     "lint": "eslint src/",
     "migrate": "tsx src/migrate.ts"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": ["better-sqlite3"]
+  },
   "dependencies": {
     "@fossyl/core": "workspace:*",
     "@fossyl/express": "workspace:*",

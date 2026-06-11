@@ -5,7 +5,7 @@ export interface PingTable {
   id: Generated<number>;
   message: string;
   created_by: string;
-  created_at: Generated<Date>;
+  created_at: Generated<string>;
 }
 
 export type Ping = Selectable<PingTable>;

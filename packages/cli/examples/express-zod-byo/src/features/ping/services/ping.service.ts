@@ -4,7 +4,7 @@ export type PingData = {
   id: number;
   message: string;
   created_by: string;
-  created_at: Date;
+  created_at: string;
 };
 
 export async function listPings(
