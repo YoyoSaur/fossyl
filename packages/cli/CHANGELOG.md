@@ -1,5 +1,11 @@
 # fossyl
 
+## 1.1.7
+
+### Patch Changes
+
+- Dockerfile builder stage uses `pnpm install --ignore-scripts` to avoid native build failures with `better-sqlite3` in Docker (pnpm 11.5+ ignores `onlyBuiltDependencies` from package.json)
+
 ## 1.1.6
 
 ### Patch Changes
