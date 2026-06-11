@@ -38,11 +38,15 @@ function collectSkillDirs(options: ProjectOptions): string[] {
 
 function copySkills(options: ProjectOptions): FileEntry[] {
   const files: FileEntry[] = [];
-  const monorepoRoot = path.resolve(
-    path.dirname(require.resolve("../../../package.json"))
-  );
-  const skillRoot = path.join(monorepoRoot, "skills");
+  const pkgDir = path.dirname(require.resolve("../package.json"));
+  const pkgSkillRoot = path.join(pkgDir, "dist", "skills");
   const adapters = collectSkillDirs(options);
+
+  let skillRoot = pkgSkillRoot;
+  if (!fs.existsSync(skillRoot)) {
+    const monorepoRoot = path.resolve(pkgDir, "..", "..");
+    skillRoot = path.join(monorepoRoot, "skills");
+  }
 
   for (const adapter of adapters) {
     const adapterDir = path.join(skillRoot, adapter);

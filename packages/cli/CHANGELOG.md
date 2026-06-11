@@ -1,5 +1,11 @@
 # fossyl
 
+## 1.1.6
+
+### Patch Changes
+
+- Fixed `copySkills` path resolution — was trying to find `../../../package.json` from dist (monorepo-local), now resolves from the package's own `package.json` so it works when installed from npm
+
 ## 1.1.5
 
 ### Patch Changes

@@ -36,7 +36,8 @@ describe("scaffold", () => {
     expect(paths).toContain(".dockerignore");
     expect(paths).toContain("docker-compose.yml");
     expect(paths).toContain("src/features/ping/validators/ping.validators.test.ts");
-    expect(files.length).toBe(35);
+    expect(paths).toContain(".gitignore");
+    expect(files.length).toBe(38);
   });
 
   it("substitutes project name in package.json", () => {
