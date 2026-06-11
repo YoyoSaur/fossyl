@@ -1,5 +1,11 @@
 # @fossyl/zod
 
+## 1.1.0
+
+### Minor Changes
+
+- License changed from MIT to Apache-2.0
+
 ## 1.0.0
 
 ### Major Changes

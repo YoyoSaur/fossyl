@@ -1,4 +1,16 @@
-# fossyl
+# @fossyl/core
+
+## 1.1.2
+
+### Patch Changes
+
+- Fix `authBrand`/`requestBrand` runtime error — changed `declare const` phantom symbols to real `Symbol()` values so `authWrapper()` doesn't throw `ReferenceError` at runtime
+
+## 1.1.0
+
+### Minor Changes
+
+- License changed from GPL-3.0 to Apache-2.0
 
 ## 1.0.0
 

@@ -114,6 +114,14 @@ function readExampleFiles(exampleDir: string, projectName: string, includeDocker
   return files;
 }
 
+const GITIGNORE = `node_modules
+dist
+.env
+.env.local
+.DS_Store
+*.log
+`;
+
 export function generateFiles(options: ProjectOptions): FileEntry[] {
   const exampleFiles = readExampleFiles(
     exampleDirName(options),
@@ -121,7 +129,8 @@ export function generateFiles(options: ProjectOptions): FileEntry[] {
     options.docker
   );
   const skillFiles = copySkills(options);
-  return [...exampleFiles, ...skillFiles];
+  const gitignore: FileEntry = { path: ".gitignore", content: GITIGNORE };
+  return [...exampleFiles, skillFiles, gitignore].flat();
 }
 
 export function writeFiles(projectPath: string, files: FileEntry[]): void {
@@ -134,5 +143,11 @@ export function writeFiles(projectPath: string, files: FileEntry[]): void {
     }
 
     fs.writeFileSync(fullPath, file.content, "utf-8");
+  }
+
+  try {
+    require("child_process").execSync("git init", { cwd: projectPath, stdio: "ignore" });
+  } catch {
+    // git not available — project still usable
   }
 }

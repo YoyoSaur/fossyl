@@ -1,5 +1,47 @@
 # fossyl
 
+## 1.1.5
+
+### Patch Changes
+
+- Kysely examples now use `@libsql/client` + `@libsql/kysely-libsql` for Docker/production and `better-sqlite3` for local dev (dual-mode db.ts)
+- Dockerfiles updated to two-stage build with prod-only deps (`pnpm install --prod`)
+- docker-compose.yml adds `sqld` service for multi-client SQLite access
+- Dockerfile, docker-compose.yml, and .env.example now generated when `--docker` flag is used
+- Package.json for kysely examples: `better-sqlite3` moved to devDeps, `@libsql/client` and `@libsql/kysely-libsql` added
+- Removed `@types/better-sqlite3` from example devDependencies
+
+## 1.1.4
+
+### Patch Changes
+
+- Scaffolding now generates `.gitignore` and runs `git init` in new projects
+- Added `esbuild` to `onlyBuiltDependencies` in kysely example package.jsons
+
+## 1.1.3
+
+### Patch Changes
+
+- Bumped example Dockerfiles from `node:20-alpine` to `node:22-alpine` for pnpm 11 compatibility
+- Fixed `created_at` type mismatch (`Date` → `string`) in example services and Kysely types
+- Added `.npmrc` with `minimum-release-age=0` to examples for freshly published packages
+- Added `onlyBuiltDependencies: ["better-sqlite3"]` to kysely example package.jsons
+
+## 1.1.1
+
+### Patch Changes
+
+- Fixed `files` array — changed `"example"` to `"examples"` so the examples directory is included in the published tarball
+
+## 1.1.0
+
+### Minor Changes
+
+- License changed from GPL-3.0 to Apache-2.0
+- CLI scaffolding now injects real version numbers instead of `workspace:*` for fossyl dependencies
+- Added `cli` version to `generate-versions.js`
+- Added `publish` script to root package.json
+
 ## 1.0.0
 
 ### Major Changes

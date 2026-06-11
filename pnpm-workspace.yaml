@@ -5,7 +5,7 @@ packages:
   - 'packages/cli/examples/*'
 allowBuilds:
   better-sqlite3: true
-  esbuild: false
+  esbuild: true
   sharp: false
 patchedDependencies:
   '@astrojs/starlight@0.39.2': patches/@astrojs__starlight@0.39.2.patch

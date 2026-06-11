@@ -1,9 +1,21 @@
 services:
+  sqld:
+    image: ghcr.io/tursodatabase/libsql-server:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - sqld-data:/var/lib/sqld
+    environment:
+      - SQLD_NODE=primary
+
   app:
     build: .
     ports:
       - "${PORT:-3000}:3000"
-    volumes:
-      - ./data:/app/data
     environment:
-      - DATABASE_PATH=/app/data/app.db
+      - DATABASE_URL=http://sqld:8080
+    depends_on:
+      - sqld
+
+volumes:
+  sqld-data:
