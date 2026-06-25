@@ -1,7 +1,10 @@
 import { parseArgs } from "node:util";
 import { createRequire } from "node:module";
+import path from "node:path";
 import { createCommand } from "./commands/create";
 import { addSkillsCommand } from "./commands/add-skills";
+import { registerCommand } from "./commands/register";
+import { registerSkillsCommand } from "./commands/register-skills";
 import type {
   ServerChoice,
   ValidatorChoice,
@@ -17,6 +20,9 @@ const { values, positionals } = parseArgs({
   options: {
     create: { type: "boolean" },
     help: { type: "boolean", short: "h" },
+    register: { type: "boolean" },
+    "register-skills": { type: "boolean" },
+    global: { type: "boolean" },
     version: { type: "boolean", short: "v" },
     "add-skills": { type: "boolean" },
     adapter: { type: "string" },
@@ -39,11 +45,15 @@ fossyl - CLI for scaffolding fossyl projects
 
 Usage:
   npx fossyl --create <project-name>   Create a new fossyl project (interactive)
+  npx fossyl register                 Generate src/registry.ts from feature route files
+  npx fossyl register-skills           Register .opencode/skills/ in opencode.jsonc
+  npx fossyl register-skills --global  Register in ~/.opencode/opencode.json
   npx fossyl add-skills               Install fossyl skills into .opencode/skills/
   npx fossyl add-skills --list         List available skills
   npx fossyl add-skills --adapter <a>  Install skills for specific adapters
-  npx fossyl --help                    Show this help message
-  npx fossyl --version                 Show version
+  npx fossyl register [dir]           Generate src/registry.ts from route files
+  npx fossyl --help                   Show this help message
+  npx fossyl --version                Show version
 
 Non-interactive mode:
   npx fossyl --create <name> --server <s> --validator <v> --database <d> [options]
@@ -157,11 +167,19 @@ function parseCliOptions(): CliOptions | null {
 async function main() {
   const subcommand = positionals[0];
 
-  if (subcommand === "add-skills" || values["add-skills"]) {
+  if (subcommand === "register-skills" || values["register-skills"]) {
+    await registerSkillsCommand({ global: !!values.global });
+  } else if (subcommand === "add-skills" || values["add-skills"]) {
     const adapters = values.adapter
       ? (values.adapter as string).split(",").map((s) => s.trim())
       : undefined;
     await addSkillsCommand({ adapters, list: !!values.list });
+  } else if (subcommand === "register" || values.register) {
+    const targetDir =
+      subcommand === "register" && positionals[1]
+        ? path.resolve(process.cwd(), positionals[1])
+        : process.cwd();
+    await registerCommand(targetDir);
   } else if (values.version) {
     showVersion();
   } else if (values.create) {

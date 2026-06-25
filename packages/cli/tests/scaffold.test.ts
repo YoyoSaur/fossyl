@@ -25,19 +25,30 @@ describe("scaffold", () => {
     expect(paths).toContain("src/types/db.ts");
     expect(paths).toContain("src/migrations/index.ts");
     expect(paths).toContain("src/migrations/001_create_ping.ts");
-    expect(paths).toContain("src/features/ping/routes/ping.route.ts");
-    expect(paths).toContain("src/features/ping/services/ping.service.ts");
-    expect(paths).toContain("src/features/ping/repo/ping.repo.ts");
-    expect(paths).toContain("src/features/ping/validators/ping.validators.ts");
+    expect(paths).toContain("src/features/ping/ping.route.ts");
+    expect(paths).toContain("src/features/ping/ping.service.ts");
+    expect(paths).toContain("src/features/ping/ping.repo.ts");
+    expect(paths).toContain("src/features/ping/ping.validators.ts");
     expect(paths).toContain(".env.example");
     expect(paths).toContain("CLAUDE.md");
     expect(paths).toContain("eslint.config.js");
     expect(paths).toContain("Dockerfile");
     expect(paths).toContain(".dockerignore");
     expect(paths).toContain("docker-compose.yml");
-    expect(paths).toContain("src/features/ping/validators/ping.validators.test.ts");
+    expect(paths).toContain("src/features/ping/ping.validators.test.ts");
+    expect(paths).toContain("src/features/ping/ping.types.ts");
+    expect(paths).toContain("src/registry.ts");
+    expect(paths).toContain("opencode.jsonc");
     expect(paths).toContain(".gitignore");
-    expect(files.length).toBe(38);
+    expect(files.length).toBe(41);
+
+    // opencode.jsonc uses flat paths matching copySkills
+    const opencodeConfig = files.find((f) => f.path === "opencode.jsonc")!;
+    expect(opencodeConfig.content).toContain('"skills":');
+    expect(opencodeConfig.content).toContain(".opencode/skills/fossyl-execute/SKILL.md");
+    expect(opencodeConfig.content).toContain(".opencode/skills/fossyl-server/SKILL.md");
+    expect(opencodeConfig.content).not.toContain("core/fossyl");
+    expect(opencodeConfig.content).not.toContain("express/fossyl");
   });
 
   it("substitutes project name in package.json", () => {
@@ -59,10 +70,10 @@ describe("scaffold", () => {
     const files = generateFiles({ ...defaultOptions, server: "byo", validator: "byo", database: "byo" });
     const paths = files.map((f) => f.path);
     expect(paths).toContain("src/db.ts");
-    expect(paths).toContain("src/features/ping/validators/ping.validators.ts");
+    expect(paths).toContain("src/features/ping/ping.validators.ts");
     expect(paths).toContain("src/server.ts");
     expect(paths).not.toContain("src/migrations/index.ts");
-    const valContent = files.find((f) => f.path === "src/features/ping/validators/ping.validators.ts")!.content;
+    const valContent = files.find((f) => f.path === "src/features/ping/ping.validators.ts")!.content;
     expect(valContent).not.toContain("zodValidator");
   });
 
@@ -74,7 +85,7 @@ describe("scaffold", () => {
 
     expect(expressZodKysely.some((f) => f.path === "src/db.ts" && f.content.includes("better-sqlite3"))).toBe(true);
     expect(byoZodKysely.some((f) => f.path === "src/server.ts")).toBe(true);
-    expect(expressByoKysely.some((f) => f.path === "src/features/ping/validators/ping.validators.ts" && !f.content.includes("zodValidator"))).toBe(true);
+    expect(expressByoKysely.some((f) => f.path === "src/features/ping/ping.validators.ts" && !f.content.includes("zodValidator"))).toBe(true);
     expect(expressZodByo.some((f) => f.path === "src/db.ts" && f.content.includes("TODO"))).toBe(true);
   });
 });

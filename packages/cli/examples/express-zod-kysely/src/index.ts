@@ -2,7 +2,7 @@ import { expressAdapter } from '@fossyl/express';
 import { kyselyAdapter } from '@fossyl/kysely';
 import { client } from './db';
 import { migrations } from './migrations';
-import pingRoutes from './features/ping/routes/ping.route';
+import routes from './registry';
 
 const { adapter: database } = kyselyAdapter({
   client,
@@ -15,7 +15,6 @@ const adapter = expressAdapter({
   database,
 });
 
-const routes = [...pingRoutes];
 adapter.register(routes);
 
 const PORT = process.env.PORT ?? 3000;

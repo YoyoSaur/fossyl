@@ -63,6 +63,26 @@ adapter.register([getUser, createUser]);
 adapter.listen(3000);
 ```
 
+## CLI Commands
+
+| Command | Description |
+|---|---|
+| `npx fossyl --create <name>` | Scaffold a new fossyl project (interactive or non-interactive) |
+| `npx fossyl add-skills` | Install fossyl skills into `.opencode/skills/` |
+| `npx fossyl register` | Generate `src/registry.ts` from feature route files |
+| `npx fossyl register-skills` | Register `.opencode/skills/` in `opencode.jsonc` |
+| `npx fossyl register-skills --global` | Register in `~/.opencode/opencode.json` |
+| `npx fossyl --help` | Show help |
+| `npx fossyl --version` | Show version |
+
+### Route Registry
+
+Generated projects include a `src/registry.ts` auto-generated file that imports all route arrays. Run `fossyl register` to regenerate it when adding or removing routes. The `fossyl/unregistered-route` lint rule warns if a route file's default export isn't registered.
+
+### OpenCode Integration
+
+Generating a project with `--create` produces an `opencode.jsonc` that registers all bundled skills. Use `fossyl register-skills` to update the skill registry in an existing project.
+
 ## Packages
 
 | Package                                                            | Description                  |
