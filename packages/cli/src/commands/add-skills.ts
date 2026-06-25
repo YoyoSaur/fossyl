@@ -1,5 +1,5 @@
 import { readFileSync, existsSync, readdirSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
-import { join, dirname, relative } from "node:path";
+import { join, dirname } from "node:path";
 import { createRequire } from "node:module";
 import * as yaml from "js-yaml";
 

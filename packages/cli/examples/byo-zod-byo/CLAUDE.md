@@ -2,10 +2,12 @@
 
 **Fossyl REST API project (byo + zod + byo)**
 
-## Package Reference (AGENTS.md)
-- packages/core/AGENTS.md — Route types, chain API, handler signatures (do not modify core)
-- packages/zod/AGENTS.md — Zod adapter, validators
+## Package Reference
 
+Documentation for fossyl packages is available at:
+
+- Core: https://github.com/YoyoSaur/fossyl/tree/main/packages/core
+- Zod: https://github.com/YoyoSaur/fossyl/tree/main/packages/zod
 ## Skills
 
 This project includes OpenCode skills in `.opencode/skills/` for AI-assisted development:

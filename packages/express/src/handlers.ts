@@ -50,7 +50,7 @@ export function createHandler(route: Route, options: ExpressAdapterOptions): Req
       });
     } catch (error) {
       handleError(error, res, logger, exposeDetails);
-      const statusCode = isFossylError(error) ? error.httpStatus : 500;
+      const _statusCode = isFossylError(error) ? error.httpStatus : 500;
       options.metrics?.onRequestError({
         ...metricsInfo,
         error: error instanceof Error ? error : new Error(String(error)),

@@ -2,11 +2,13 @@
 
 **Fossyl REST API project (express + byo + kysely)**
 
-## Package Reference (AGENTS.md)
-- packages/core/AGENTS.md — Route types, chain API, handler signatures (do not modify core)
-- packages/express/AGENTS.md — Express adapter, handler wrapping, response formatting
-- packages/kysely/AGENTS.md — Kysely adapter, db proxy, transactions, migrations
+## Package Reference
 
+Documentation for fossyl packages is available at:
+
+- Core: https://github.com/YoyoSaur/fossyl/tree/main/packages/core
+- Express: https://github.com/YoyoSaur/fossyl/tree/main/packages/express
+- Kysely: https://github.com/YoyoSaur/fossyl/tree/main/packages/kysely
 ## Skills
 
 This project includes OpenCode skills in `.opencode/skills/` for AI-assisted development:

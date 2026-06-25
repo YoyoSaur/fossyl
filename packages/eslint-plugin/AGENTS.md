@@ -18,7 +18,9 @@ src/
 │   ├── consistent-naming.ts               # Route quality: file name matches prefix
 │   ├── no-mixed-prefixes.ts              # Route quality: single prefix per file
 │   ├── no-router-chain.ts                # Route quality: no chaining on createRouter()
-│   └── builder-chains-newline.ts          # Formatting: newlines in builder chains
+│   ├── builder-chains-newline.ts          # Formatting: newlines in builder chains
+│   ├── no-unregistered-route.ts           # Route quality: exports must be in registry.ts
+│   └── no-raw-sql.ts                      # Quality: discourage sql.raw() in repos
 └── utils/
     ├── rule-factory.ts              # createRule from @typescript-eslint/utils
     └── route-collector.ts           # Cross-file route analysis (singleton store)
@@ -28,10 +30,10 @@ src/
 
 | Config                     | Rules Included                                                                                          | Severity     |
 | -------------------------- | ------------------------------------------------------------------------------------------------------- | ------------ |
-| `recommended`              | no-repo-import-outside-service, no-duplicate-routes                                                     | error        |
-| `all`                      | All 9 rules                                                                                            | error / warn |
-| `architecture-enforcement` | no-repo-import-outside-service, no-db-import-outside-repo                                               | error        |
-| `route-quality`            | no-duplicate-routes, path-prefix-convention, consistent-naming, no-mixed-prefixes, no-router-chain       | error / warn |
+| `recommended`              | no-repo-import-outside-service, no-duplicate-routes, no-bare-throw, no-raw-sql                          | error / warn |
+| `all`                      | All 11 rules                                                                                           | error / warn |
+| `architecture-enforcement` | no-repo-import-outside-service, no-bare-throw, no-db-import-outside-repo                                | error        |
+| `route-quality`            | no-duplicate-routes, path-prefix-convention, consistent-naming, no-mixed-prefixes, no-router-chain, no-unregistered-route | error / warn |
 
 ## Usage
 
@@ -109,6 +111,18 @@ Two checks in one rule:
 2. **`createEndpoint()` chains must terminate** — Every `router.createEndpoint()` chain must end with a terminal HTTP method (`.get()`, `.post()`, `.put()`, `.delete()`). Without this, the expression would export a partial builder instead of registering a route.
 
 This enforces the pattern where the router is a scoped path prefix (subrouter), all middleware is per-endpoint, and every endpoint goes through the full chain including terminal method.
+
+### no-unregistered-route
+
+Enforces that every `features/*/*.route.ts` file with a default export is imported in `src/registry.ts`. Run `fossyl register` to regenerate the registry. Warns at `warn` level.
+
+### no-raw-sql
+
+Discourages `sql.raw()` calls in `.repo.ts` files in favor of Kysely query builder methods. Warns at `warn` level.
+
+**Options:**
+
+- `allowlist` (string[]): File paths or function names where `sql.raw()` is permitted (default: `[]`)
 
 ## Route Collector
 

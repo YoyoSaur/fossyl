@@ -91,13 +91,13 @@ describe("test-app integration", () => {
 
       const expected: Record<string, number> = {
         // Valid files (zero fossyl violations expected)
-        "features/todos/repo/todos.repo.ts": 0,
-        "features/todos/routes/todos.route.ts": 0,
-        "features/todos/services/todos.service.ts": 0,
-        "features/users/repo/users.repo.ts": 0,
-        "features/users/routes/users.route.ts": 0,
-        "features/users/services/users.service.ts": 0,
-        "features/users/validators/users.validators.ts": 0,
+        "features/todos/todos.repo.ts": 0,
+        "features/todos/todos.route.ts": 0,
+        "features/todos/todos.service.ts": 0,
+        "features/users/users.repo.ts": 0,
+        "features/users/users.route.ts": 0,
+        "features/users/users.service.ts": 0,
+        "features/users/users.validators.ts": 0,
         "auth.ts": 0,
         "index.ts": 1,
         // Violation files

@@ -1,6 +1,5 @@
 import type { TSESTree } from "@typescript-eslint/utils";
 import { createRule } from "../utils/rule-factory";
-import path from "node:path";
 
 const REPO_IMPORT_PATTERN = /[/\\][^/\\]*\.repo(\.[a-z]+)?$/;
 const REPO_IMPORT_NO_PATH_PATTERN = /\.repo(\.[a-z]+)?$/;

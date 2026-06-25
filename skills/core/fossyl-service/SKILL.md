@@ -17,7 +17,7 @@ Services contain business logic between routes and repos. A service can import m
 
 ```typescript
 import type { Auth } from "@fossyl/core";
-import * as myRepo from "../repo/my.repo";
+import * as myRepo from "./my.repo";
 import { fossylNotFound } from "../errors";
 
 export async function list(auth: Auth, page = 1, pageSize = 20) {
@@ -41,9 +41,9 @@ export async function getById(auth: Auth, id: string) {
 Services freely compose multiple repos to build complex responses:
 
 ```typescript
-import * as userRepo from "../repo/user.repo";
-import * as timesheetRepo from "../repo/timesheet.repo";
-import * as payrollRepo from "../repo/payroll.repo";
+import * as userRepo from "./user.repo";
+import * as timesheetRepo from "./timesheet.repo";
+import * as payrollRepo from "./payroll.repo";
 
 export async function getEmployeeDashboard(auth: Auth, employeeId: string) {
   const [user, timesheets, payroll] = await Promise.all([
@@ -61,8 +61,8 @@ export async function getEmployeeDashboard(auth: Auth, employeeId: string) {
 Services can import and call other services — no special constraints:
 
 ```typescript
-import * as userService from "../services/user.service";
-import * as auditService from "../services/audit.service";
+import * as userService from "./user.service";
+import * as auditService from "./audit.service";
 
 export async function promoteUser(auth: Auth, userId: string, role: string) {
   const user = await userService.getById(auth, userId);
@@ -76,7 +76,7 @@ export async function promoteUser(auth: Auth, userId: string, role: string) {
 When a repo wraps an external API (e.g. timesheets via Check SDK, payroll via Gusto), the service layer treats it identically. The repo transforms the external model into the domain model:
 
 ```typescript
-// src/features/timesheets/repo/timesheet.repo.ts
+// src/features/timesheets/timesheet.repo.ts
 import { CheckClient } from "@checkhq/sdk";
 
 export async function findByEmployee(employeeId: string): Promise<Timesheet[]> {
@@ -108,7 +108,7 @@ export async function getById(id: string) {
 
 ## Dependencies
 
-- Import `../repo/<name>.repo` — never import `db` directly
-- Import `../services/<name>.service` — compose other services freely
+- Import `./<name>.repo` — never import `db` directly
+- Import `./<name>.service` — compose other services freely
 - Import `../errors` for error creators
 - Import `@fossyl/core` for types only (`Auth`, `Response`, etc.)

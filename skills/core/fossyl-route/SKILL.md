@@ -22,8 +22,8 @@ A `createRouter(path)` provides a path prefix. Each export calls `router.createE
 ```typescript
 import { createRouter } from "@fossyl/core";
 import { authenticator } from "../../auth";
-import * as todosService from "../services/todos.service";
-import { listTodoQueryValidator, createTodoValidator, updateTodoValidator } from "../validators/todos.validators";
+import * as todosService from "./todos.service";
+import { listTodoQueryValidator, createTodoValidator, updateTodoValidator } from "./todos.validators";
 
 const router = createRouter("/todos");
 
@@ -149,7 +149,7 @@ const myValidator = bodyWrapper(myZodSchema);
 Import and call each route function in your server entry:
 
 ```typescript
-import { listTodos, getTodo, createTodo, updateTodo } from "./features/todos/routes/todos.route";
+import { listTodos, getTodo, createTodo, updateTodo } from "./features/todos/todos.route";
 
 listTodos(router);
 getTodo(router);

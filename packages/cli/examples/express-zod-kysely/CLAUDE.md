@@ -2,25 +2,25 @@
 
 **Fossyl REST API project**
 
-## Package Reference (AGENTS.md)
+## Package Reference
 
-When modifying or referencing code from a fossyl package, load its AGENTS.md file:
+Documentation for fossyl packages is available at:
 
-- packages/core/AGENTS.md — Route types, chain API, handler signatures (do not modify core)
-- packages/express/AGENTS.md — Express adapter, handler wrapping, response formatting
-- packages/zod/AGENTS.md — Zod adapter, validators
-- packages/kysely/AGENTS.md — Kysely adapter, db proxy, transactions, migrations
-
+- Core: https://github.com/YoyoSaur/fossyl/tree/main/packages/core
+- Express: https://github.com/YoyoSaur/fossyl/tree/main/packages/express
+- Zod: https://github.com/YoyoSaur/fossyl/tree/main/packages/zod
+- Kysely: https://github.com/YoyoSaur/fossyl/tree/main/packages/kysely
 ## Project Structure
 
 ```
 src/
 ├── features/
 │   └── ping/
-│       ├── routes/ping.route.ts      # Route definitions (chain API)
-│       ├── services/ping.service.ts  # Business logic
-│       ├── validators/               # Request validators
-│       └── repo/ping.repo.ts         # Database access (imports db from @db)
+│       ├── ping.route.ts      # Route definitions (chain API)
+│       ├── ping.service.ts  # Business logic
+│       ├── 
+│       ├── ping.repo.ts              # Database access (imports db from @db)
+│       ├── ping.types.ts             # Feature-level type definitions
 ├── migrations/                       # Database migrations
 ├── types/
 │   └── db.ts                         # Database type definitions
@@ -87,10 +87,10 @@ Route (handler) → Service (business logic) → Repo (raw queries) → DB
 ## Adding New Features
 
 1. Create feature directory: `src/features/{name}/`
-2. Add route: `routes/{name}.route.ts`
-3. Add service: `services/{name}.service.ts`
-4. Add validators: `validators/{name}.validators.ts`
-5. Add repo (if DB): `repo/{name}.repo.ts`
+2. Add route: `{name}.route.ts`
+3. Add service: `{name}.service.ts`
+4. Add validators: `{name}.validators.ts`
+5. Add repo (if DB): `{name}.repo.ts`
 6. Register in `src/index.ts`
 
 ## Documentation

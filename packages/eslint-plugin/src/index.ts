@@ -7,6 +7,8 @@ import noMixedPrefixes from "./rules/no-mixed-prefixes";
 import noBareThrow from "./rules/no-bare-throw";
 import noRouterChain from "./rules/no-router-chain";
 import noDbImportOutsideRepo from "./rules/no-db-import-outside-repo";
+import noUnregisteredRoute from "./rules/no-unregistered-route";
+import noRawSql from "./rules/no-raw-sql";
 
 const plugin = {
   rules: {
@@ -19,6 +21,8 @@ const plugin = {
     "no-bare-throw": noBareThrow,
     "no-router-chain": noRouterChain,
     "no-db-import-outside-repo": noDbImportOutsideRepo,
+    "no-unregistered-route": noUnregisteredRoute,
+    "no-raw-sql": noRawSql,
   },
   configs: {
     recommended: {
@@ -26,6 +30,7 @@ const plugin = {
         "fossyl/no-repo-import-outside-service": "error",
         "fossyl/no-duplicate-routes": "error",
         "fossyl/no-bare-throw": "error",
+        "fossyl/no-raw-sql": "warn",
       },
     },
     all: {
@@ -38,6 +43,8 @@ const plugin = {
         "fossyl/no-bare-throw": "error",
         "fossyl/no-router-chain": "error",
         "fossyl/no-db-import-outside-repo": "error",
+        "fossyl/no-unregistered-route": "warn",
+        "fossyl/no-raw-sql": "warn",
       },
     },
     "route-quality": {
