@@ -13,6 +13,8 @@ metadata:
 
 Design the complete API surface for a feature or project before writing code. Produces a structured domain spec that feeds directly into `fossyl-feature` for scaffolding.
 
+This is the **planning entry point** for any new feature — run it first, then hand the resulting domain spec to `fossyl-feature` to scaffold the files.
+
 ## Process
 
 1. **Enumerate endpoints** — list each REST endpoint with method, path, and purpose

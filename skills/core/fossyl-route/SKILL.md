@@ -157,6 +157,19 @@ createTodo(router);
 updateTodo(router);
 ```
 
+## Adding a Single Route to an Existing Feature
+
+To add one route to an existing service (rather than scaffolding a whole feature),
+follow the pattern above for the relevant file, then **register the new export**:
+
+1. Add the new `export const <name> = router.createEndpoint(...)...` in the
+   feature's route file.
+2. Wire any new service logic into the feature's existing service file.
+3. Import and call the new route export in the server entry point.
+
+Keep the endpoint self-contained — the full chain for the new route lives in one
+export, matching the existing routes in the file.
+
 ## Route Composition
 
 Handlers call services, never repos directly. Multiple services per handler is fine:

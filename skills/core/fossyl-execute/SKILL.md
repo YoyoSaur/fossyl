@@ -28,6 +28,8 @@ Loads the correct set of fossyl skills based on the project's adapter choices (e
    - Load `fossyl-route` / `fossyl-service` / `fossyl-repo` if implementing routes/services/repos
    - Load `fossyl-pagination` if using pagination
    - Load `fossyl-errors` if handling errors
+   - Load `fossyl-review` if reviewing code or before merging
+   - Load `fossyl-debug` if debugging type inference or route errors
 3. Load adapter skills:
    - If express detected → load `fossyl-server`, `fossyl-context`
    - If kysely detected → load `fossyl-database`, `fossyl-migrations`, `fossyl-add-model`
@@ -42,3 +44,5 @@ Loads the correct set of fossyl skills based on the project's adapter choices (e
 | Add a new database table | fossyl-add-model, fossyl-migrations |
 | Set up project | fossyl-domain, fossyl-server, fossyl-database, fossyl-validation |
 | Add pagination to list endpoint | fossyl-pagination, fossyl-route, fossyl-service |
+| Review code before merging | fossyl-review |
+| Fix a type or runtime route error | fossyl-debug |

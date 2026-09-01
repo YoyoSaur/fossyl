@@ -13,6 +13,8 @@ metadata:
 
 Create the full file tree for a new feature: route, service, repo, validators. Always run `fossyl-domain` first to design the API surface.
 
+For **adding a single route or validator to an existing feature**, use `fossyl-route` / `fossyl-validation` instead — they cover the one-file additions without the full scaffold.
+
 ## File Structure
 
 ```
