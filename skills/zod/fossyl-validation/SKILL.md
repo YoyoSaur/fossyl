@@ -40,3 +40,16 @@ createEndpoint()
     // body is fully typed
   });
 ```
+
+## Adding a Validator to an Existing Feature
+
+To create a validation schema for a route in an existing feature:
+
+1. Add the schema and `bodyWrapper(...)` validator to the feature's validator file
+   (e.g. `createTodoValidator`, `updateTodoValidator`).
+2. Reference it on the route chain with `.validator(<name>)` — the handler's
+   `body` layer becomes fully typed from the schema.
+3. Add a companion `*.validators.test.ts` (see `fossyl-validator-test`) covering
+   valid input, invalid input, and edge cases.
+
+Keep schemas in the feature's validator file, not inline in the route.
