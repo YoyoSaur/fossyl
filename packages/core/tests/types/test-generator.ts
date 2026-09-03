@@ -13,6 +13,9 @@ import {
   validCombinations,
   mismatchScenarios,
   getInvalidConfigs,
+  validResponseCombinations,
+  responseMismatchScenarios,
+  getResponseConfigByName,
   type MethodCategory,
   type ConfigType,
   type MismatchScenario,
@@ -297,6 +300,90 @@ function generateReturnTypeMismatchTests(): string {
 }
 
 // ============================================================================
+// Response-Bounded Tests (Issue #17)
+// ============================================================================
+
+/**
+ * Maps a response config's flags to intermediate chain steps that come after
+ * the mandatory `.response(validator)` base step.
+ */
+function responseChainSteps(configName: string): string {
+  const config = getResponseConfigByName(configName);
+  if (!config) return "";
+
+  const steps: string[] = [];
+  if (config.hasQuery) steps.push(".query(queryValidator)");
+  if (config.hasAuth) steps.push(".authenticator(authenticator)");
+  if (config.hasBody) steps.push(".validator(validator)");
+  return steps.join("");
+}
+
+/**
+ * Maps a response config to the handler signature for its terminal method.
+ */
+function generateResponseHandler(config: ConfigType, method: string): string {
+  const isPagination = false;
+  const handlerParams = generateHandlerParams(config.hasQuery, isPagination);
+  const handlerArgs = generateHandlerArgs(config.hasAuth, config.hasBody);
+  return `async (${handlerParams}${handlerArgs}) => responseBounded`;
+}
+
+/**
+ * Generates valid `.response()` base-step tests for every method.
+ */
+function generateResponseBoundedValidTests(method: string): string {
+  const validConfigs = validResponseCombinations.responseBounded;
+  let output = `// Valid .response() chains for ${method.toUpperCase()}\n`;
+
+  for (const configName of validConfigs) {
+    const config = getResponseConfigByName(configName);
+    if (!config) continue;
+    const steps = responseChainSteps(configName);
+    const handler = generateResponseHandler(config, method);
+    output += `endpointResponse.response(responseValidator)${steps}.${method}(${handler});\n`;
+  }
+
+  return output + "\n";
+}
+
+/**
+ * Generates the negative case: handler returns a shape not matching the pinned
+ * `Res`, which must fail `tsc` (the compile-time gate from the approved design).
+ */
+function generateResponseMismatchTests(method: string): string {
+  let output = `// Response-shape mismatches for ${method.toUpperCase()}\n`;
+
+  for (const mismatch of responseMismatchScenarios) {
+    const config = getResponseConfigByName(mismatch.configName);
+    if (!config) continue;
+    const steps = responseChainSteps(mismatch.configName);
+    output += `// @ts-expect-error - ${mismatch.description}\n`;
+    output += `endpointResponse.response(responseValidator)${steps}.${method}(async ({ url: _url }) => (${mismatch.wrongReturn}));\n`;
+  }
+
+  return output + "\n";
+}
+
+/**
+ * Generates the full response-bounded test section.
+ */
+function generateResponseBoundedTests(): string {
+  let output = "";
+
+  for (const [method, category] of Object.entries(methodCategories)) {
+    if (category === "pagination") continue;
+    output += `// ============================================================================\n`;
+    output += `// ${method.toUpperCase()} RESPONSE-BOUNDED TESTS\n`;
+    output += `// ============================================================================\n\n`;
+
+    output += generateResponseBoundedValidTests(method);
+    output += generateResponseMismatchTests(method);
+  }
+
+  return output;
+}
+
+// ============================================================================
 // Main Generation
 // ============================================================================
 
@@ -336,6 +423,13 @@ const queryValidator = (data: unknown) => data as { search?: string };
 // Standard response for non-list routes
 const response = { typeName: "Test" as const };
 
+// Response validator + bounded response for the .response() base step (Issue #17)
+const responseBounded = { typeName: "Test" as const };
+const responseValidator = (data: unknown) => data as { typeName: "Test" };
+
+// Router endpoint exposing the mandatory .response() base step (Issue #17)
+const endpointResponse = createRouter("/api").createEndpoint("/api/test/:id");
+
 // Paginated response for list routes
 const paginatedResponse: PaginatedResponse<{ id: string }> = {
   data: [],
@@ -365,6 +459,13 @@ function generateAllTests(): string {
       output += generateReturnTypeMismatchTests();
     }
   }
+
+  output += `// ============================================================================\n`;
+  output += `// RESPONSE-BOUNDED (.response base step) TESTS - Issue #17\n`;
+  output += `// These are pending core source landing; they will typecheck once\n`;
+  output += `// @fossyl/core implements the mandatory .response() endpoint step.\n`;
+  output += `// ============================================================================\n\n`;
+  output += generateResponseBoundedTests();
 
   return output;
 }
