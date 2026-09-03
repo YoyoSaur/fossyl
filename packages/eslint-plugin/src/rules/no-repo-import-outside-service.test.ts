@@ -95,4 +95,48 @@ describe("no-repo-import-outside-service", () => {
     expect(result.messages).toHaveLength(1);
     expect(result.messages[0].ruleId).toBe("fossyl/no-repo-import-outside-service");
   });
+
+  it("should flag service import in repo file", async () => {
+    const [result] = await lintCode(
+      'import { cacheChannelName } from "./analytics.service";\n',
+      "discord.repo.ts"
+    );
+    expect(result.messages).toHaveLength(1);
+    expect(result.messages[0].ruleId).toBe("fossyl/no-repo-import-outside-service");
+    expect(result.messages[0].messageId).toBe("serviceImportInRepo");
+  });
+
+  it("should flag service import with .ts extension in repo file", async () => {
+    const [result] = await lintCode(
+      'import { cacheChannelName } from "./analytics.service.ts";\n',
+      "discord.repo.ts"
+    );
+    expect(result.messages).toHaveLength(1);
+    expect(result.messages[0].messageId).toBe("serviceImportInRepo");
+  });
+
+  it("should flag service re-export in repo file", async () => {
+    const [result] = await lintCode(
+      'export { cacheChannelName } from "./analytics.service";\n',
+      "discord.repo.ts"
+    );
+    expect(result.messages).toHaveLength(1);
+    expect(result.messages[0].messageId).toBe("serviceImportInRepo");
+  });
+
+  it("should flag export * from service in repo file", async () => {
+    const [result] = await lintCode('export * from "./analytics.service";\n', "discord.repo.ts");
+    expect(result.messages).toHaveLength(1);
+    expect(result.messages[0].messageId).toBe("serviceImportInRepo");
+  });
+
+  it("should allow non-service import in repo file", async () => {
+    const [result] = await lintCode('import { t } from "./types";\n', "discord.repo.ts");
+    expect(result.messages).toHaveLength(0);
+  });
+
+  it("should allow service import in non-repo file", async () => {
+    const [result] = await lintCode('import { s } from "./analytics.service";\n', "route.ts");
+    expect(result.messages).toHaveLength(0);
+  });
 });

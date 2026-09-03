@@ -106,6 +106,7 @@ describe("test-app integration", () => {
         "violations/no-prefix.route.ts": 3,
         "violations/plain-file-imports-repo.ts": 2,
         "violations/route-imports-repo.ts": 2,
+        "violations/repo-imports-service.repo.ts": 1,
         "violations/things.route.ts": 1,
         "violations/things.service.ts": 0,
         "violations/validator-imports-repo.ts": 1,
