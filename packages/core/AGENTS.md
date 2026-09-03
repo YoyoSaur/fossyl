@@ -25,6 +25,7 @@ AI modifications risk breaking the finely-tuned type inference that makes Fossyl
 - **Use the types** to build adapters, services, and user-facing code
 - **Reference USAGE.md** to understand API patterns
 - Fix typos in comments/docs (with human review)
+- **Write and edit tests** in `tests/` (e.g. `tests/types/index.test-d.ts`) - the Red Zone covers `src/` source only, never the test suite
 
 ### If Core Needs Changes
 
