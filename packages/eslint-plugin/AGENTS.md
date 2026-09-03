@@ -10,7 +10,7 @@
 src/
 ├── index.ts                          # Plugin entry - exports rules and configs
 ├── rules/
-│   ├── no-repo-import-outside-service.ts  # Architecture: .repo imports only in .service
+│   ├── no-repo-import-outside-service.ts  # Architecture: .repo <-> .service direction guard
 │   ├── no-db-import-outside-repo.ts       # Architecture: db imports only in .repo
 │   ├── no-bare-throw.ts                   # Quality: throws must be FossylError branded
 │   ├── no-duplicate-routes.ts             # Route quality: no duplicate METHOD+PATH
@@ -64,11 +64,11 @@ export default [
 
 ### no-repo-import-outside-service
 
-Prevents importing `.repo` files anywhere except `.service` files. Enforces the architectural boundary between repositories (data access) and services (business logic).
+Enforces the service layer boundary in both directions: importing `.repo` files anywhere except `.service` files (service -> repo), and prevents `.repo` files from importing `.service` files (blocks the `service <-> repo` cycle). Enforces the layered architecture: routes -> services -> repos -> db.
 
 **Options:**
 
-- `allowImports` (string[]): Additional import paths allowed to import .repo files
+- `allowImports` (string[]): Additional import paths allowed to import .repo files (applies to both directions)
 
 ### no-bare-throw
 
