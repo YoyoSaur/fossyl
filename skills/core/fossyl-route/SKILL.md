@@ -80,23 +80,47 @@ Each `export const` is a complete route definition — no hidden shared middlewa
 
 ```typescript
 createEndpoint("/todos")
-  .query(queryValidator)       // optional — validates + types query params
-  .paginate({ pageSize: 20 })  // optional — adds pagination to params + response
-  .authenticator(authFn)       // optional — adds auth layer
-  .validator(bodyValidator)    // optional — validates request body
-  .get(handler)                // terminal: get | post | put | delete
+  .response(responseValidator)   // REQUIRED — validates + types the handler response
+  .query(queryValidator)         // optional — validates + types query params
+  .paginate({ pageSize: 20 })    // optional — adds pagination to params + response
+  .authenticator(authFn)         // optional — adds auth layer
+  .validator(bodyValidator)      // optional — validates request body
+  .get(handler)                  // terminal: get | post | put | delete
 ```
+
+**`.response()` is the mandatory first step** (Issue #17). It pins the response type `Res` to the schema, so the terminal handler's return value is forced to match — a handler whose return doesn't match fails `tsc` (compile-time gate) and throws 422 in dev (runtime gate). Include `typeName` in the schema as a literal.
 
 **Order is enforced by the type system.** Each step returns a different router type exposing only valid next methods:
 
 | Step | Returns | Next methods |
 |---|---|---|
-| `createEndpoint(path)` | `Endpoint` | `.query()` |
+| `createEndpoint(path)` | `Endpoint` | `.response()` |
+| `.response(v)` | `ResponseBounded` | `.query()`, `.authenticator()`, `.validator()`, terminal |
 | `.query(v)` | `QueryableRouter` | `.paginate()`, `.authenticator()` |
 | `.paginate(c)` | `PaginatedRouter` | `.authenticator()` |
 | `.authenticator(f)` | `AuthenticatedRouter` | `.validator()` (if body allowed), terminal |
 | `.validator(f)` | `ValidatedRouter` | terminal |
 | Terminal `.get/post/put/delete(h)` | `void` (registers the route) | — |
+
+## Response Validation (`.response()`)
+
+```typescript
+import { z } from "zod";
+import { zodValidator } from "@fossyl/zod";
+
+const pingResponse = zodValidator(
+  z.object({ typeName: z.literal("Ping"), message: z.string() })
+);
+
+export const ping = router
+  .createEndpoint("/ping")
+  .response(pingResponse)
+  .get(() => async () => ({ typeName: "Ping", message: "pong" }));
+```
+
+- Response schemas must include `typeName: z.literal("Name")` so responses stay self-describing.
+- Validation runs in dev only (`NODE_ENV !== "production"`); zero production cost.
+- For `.paginate()` routes, each entry in `result.data` is validated independently.
 
 ## Handler Curry Signatures
 

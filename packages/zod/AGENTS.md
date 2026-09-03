@@ -34,6 +34,21 @@ The key insight: returning a function with explicit return type `z.infer<T>` all
 
 This makes code more readable and self-documenting.
 
+## Response Validation (.response())
+
+The mandatory `.response(validator)` base step (Issue #17) reuses `zodValidator` directly — it already has the `ValidatorFunction<Res>` shape needed for the response-bounded chain. No new API is required.
+
+```typescript
+import { z } from "zod";
+import { zodValidator } from "@fossyl/zod";
+
+const pingResponse = zodValidator(
+  z.object({ typeName: z.literal("Ping"), message: z.string() })
+);
+```
+
+Response schemas must include `typeName: z.literal("Name")` so the handler's return is pinned to `Res`. Validation runs in dev only (`NODE_ENV !== "production"`); for `.paginate()` routes each item in `result.data` is validated independently.
+
 ## Development Commands
 
 ```bash

@@ -30,6 +30,13 @@ const queryValidator = (data: unknown) => data as { search?: string };
 // Standard response for non-list routes
 const response = { typeName: "Test" as const };
 
+// Response validator + bounded response for the .response() base step (Issue #17)
+const responseBounded = { typeName: "Test" as const };
+const responseValidator = (data: unknown) => data as { typeName: "Test" };
+
+// Router endpoint exposing the mandatory .response() base step (Issue #17)
+const endpointResponse = createRouter("/api").createEndpoint("/api/test/:id");
+
 // Paginated response for list routes
 const paginatedResponse: PaginatedResponse<{ id: string }> = {
   data: [],
@@ -155,4 +162,66 @@ endpoint.list({ handler: async ({ url: _url, query: _query, pagination: _paginat
 endpoint.list({ handler: async ({ url: _url, pagination: _pagination }) => response });
 // @ts-expect-error - authenticated list must return PaginatedResponse
 endpoint.list({ authenticator, handler: async ({ url: _url, pagination: _pagination }, _auth) => response });
+
+// ============================================================================
+// RESPONSE-BOUNDED (.response base step) TESTS - Issue #17
+// These are pending core source landing; they will typecheck once
+// @fossyl/core implements the mandatory .response() endpoint step.
+// ============================================================================
+
+// ============================================================================
+// GET RESPONSE-BOUNDED TESTS
+// ============================================================================
+
+// Valid .response() chains for GET
+endpointResponse.response(responseValidator).get(async ({ url: _url }) => responseBounded);
+endpointResponse.response(responseValidator).authenticator(authenticator).get(async ({ url: _url }, _auth) => responseBounded);
+endpointResponse.response(responseValidator).validator(validator).get(async ({ url: _url }, _body) => responseBounded);
+endpointResponse.response(responseValidator).authenticator(authenticator).validator(validator).get(async ({ url: _url }, _auth, _body) => responseBounded);
+
+// Response-shape mismatches for GET
+// @ts-expect-error - handler returns shape not matching the .response() schema (Res) -> tsc fails
+endpointResponse.response(responseValidator).get(async ({ url: _url }) => ({ wrong: true }));
+
+// ============================================================================
+// DELETE RESPONSE-BOUNDED TESTS
+// ============================================================================
+
+// Valid .response() chains for DELETE
+endpointResponse.response(responseValidator).delete(async ({ url: _url }) => responseBounded);
+endpointResponse.response(responseValidator).authenticator(authenticator).delete(async ({ url: _url }, _auth) => responseBounded);
+endpointResponse.response(responseValidator).validator(validator).delete(async ({ url: _url }, _body) => responseBounded);
+endpointResponse.response(responseValidator).authenticator(authenticator).validator(validator).delete(async ({ url: _url }, _auth, _body) => responseBounded);
+
+// Response-shape mismatches for DELETE
+// @ts-expect-error - handler returns shape not matching the .response() schema (Res) -> tsc fails
+endpointResponse.response(responseValidator).delete(async ({ url: _url }) => ({ wrong: true }));
+
+// ============================================================================
+// POST RESPONSE-BOUNDED TESTS
+// ============================================================================
+
+// Valid .response() chains for POST
+endpointResponse.response(responseValidator).post(async ({ url: _url }) => responseBounded);
+endpointResponse.response(responseValidator).authenticator(authenticator).post(async ({ url: _url }, _auth) => responseBounded);
+endpointResponse.response(responseValidator).validator(validator).post(async ({ url: _url }, _body) => responseBounded);
+endpointResponse.response(responseValidator).authenticator(authenticator).validator(validator).post(async ({ url: _url }, _auth, _body) => responseBounded);
+
+// Response-shape mismatches for POST
+// @ts-expect-error - handler returns shape not matching the .response() schema (Res) -> tsc fails
+endpointResponse.response(responseValidator).post(async ({ url: _url }) => ({ wrong: true }));
+
+// ============================================================================
+// PUT RESPONSE-BOUNDED TESTS
+// ============================================================================
+
+// Valid .response() chains for PUT
+endpointResponse.response(responseValidator).put(async ({ url: _url }) => responseBounded);
+endpointResponse.response(responseValidator).authenticator(authenticator).put(async ({ url: _url }, _auth) => responseBounded);
+endpointResponse.response(responseValidator).validator(validator).put(async ({ url: _url }, _body) => responseBounded);
+endpointResponse.response(responseValidator).authenticator(authenticator).validator(validator).put(async ({ url: _url }, _auth, _body) => responseBounded);
+
+// Response-shape mismatches for PUT
+// @ts-expect-error - handler returns shape not matching the .response() schema (Res) -> tsc fails
+endpointResponse.response(responseValidator).put(async ({ url: _url }) => ({ wrong: true }));
 

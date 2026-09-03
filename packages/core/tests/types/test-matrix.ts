@@ -22,6 +22,14 @@
 export type MethodCategory = "bodyless" | "body-required" | "pagination";
 
 /**
+ * Response-bounded chain category for the upcoming `.response()` base step
+ * (Issue #17 design). `Endpoint` exposes only `.response(validator)`, which
+ * returns a `ResponseBounded<P, Res>` router. Added now (pending core source
+ * landing) so the type-test matrix covers the new mandatory first step.
+ */
+export type ResponseCategory = "responseBounded";
+
+/**
  * Maps each HTTP method to its category.
  * Adding a new method here automatically generates tests for it.
  */
@@ -113,6 +121,26 @@ export const validCombinations: Record<MethodCategory, readonly string[]> = {
 };
 
 // ============================================================================
+// Response-Bounded Configs (Issue #17)
+// ============================================================================
+
+/**
+ * Configs for the new `.response(validator)` base chain step. Each mirrors an
+ * existing config, but the handler's `Res` is pinned by the response schema so
+ * a wrong return shape fails `tsc` (compile-time gate from the approved design).
+ */
+export const responseConfigTypes: readonly ConfigType[] = [
+  { name: "respOpen", hasAuth: false, hasBody: false, hasQuery: false },
+  { name: "respAuthenticated", hasAuth: true, hasBody: false, hasQuery: false },
+  { name: "respValidated", hasAuth: false, hasBody: true, hasQuery: false },
+  { name: "respFull", hasAuth: true, hasBody: true, hasQuery: false },
+] as const;
+
+export const validResponseCombinations: Record<ResponseCategory, readonly string[]> = {
+  responseBounded: ["respOpen", "respAuthenticated", "respValidated", "respFull"],
+};
+
+// ============================================================================
 // Mismatch Scenarios
 // ============================================================================
 
@@ -170,6 +198,36 @@ export const mismatchScenarios: readonly MismatchScenario[] = [
     applicableCategories: ["bodyless", "body-required", "pagination"],
   },
 ] as const;
+
+/**
+ * Response-shape mismatch scenarios for the `.response()` base step (Issue #17).
+ * These verify the compile-time gate: a handler that returns a shape not
+ * matching the pinned `Res` must fail `tsc`.
+ */
+export interface ResponseMismatchScenario {
+  name: string;
+  description: string;
+  /** Which response config name this applies to */
+  configName: string;
+  /** The wrong-shaped return literal emitted for the handler */
+  wrongReturn: string;
+}
+
+export const responseMismatchScenarios: readonly ResponseMismatchScenario[] = [
+  {
+    name: "responseShapeMismatch",
+    description: "handler returns shape not matching the .response() schema (Res) -> tsc fails",
+    configName: "respOpen",
+    wrongReturn: "{ wrong: true }",
+  },
+] as const;
+
+/**
+ * Get a response-bounded config by name
+ */
+export function getResponseConfigByName(name: string): ConfigType | undefined {
+  return responseConfigTypes.find((c) => c.name === name);
+}
 
 // ============================================================================
 // Invalid Category Scenarios

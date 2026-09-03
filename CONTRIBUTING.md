@@ -49,6 +49,7 @@ AI tools are encouraged to work in these areas:
 - Unit and integration tests for adapters
 - Type tests for adapter implementations
 - End-to-end testing
+- **Type and runtime tests for `@fossyl/core`** (e.g. `packages/core/tests/**`) - the tests themselves are AI-writable; the protection covers `packages/core/src/**` source only, never the test suite.
 
 ---
 
@@ -69,6 +70,7 @@ This includes:
 
 - Typo fixes in comments
 - Documentation improvements in CLAUDE.md
+- **Tests in `packages/core/tests/`** - written/edited freely by AI; the Red Zone applies to source (`packages/core/src/**`) only.
 
 ---
 
